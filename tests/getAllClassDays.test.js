@@ -1,6 +1,6 @@
+import moment from "moment";
 import { expect, it, beforeEach } from "vitest";
 import { getDates } from "./getAllClassDays";
-import moment from "moment";
 import { specialDays } from './specialDays';
 
 /**
@@ -63,5 +63,3 @@ it('has an entry for 2023-09-23 with weekday 1', () => {
   expect(targetDate.weekday).toEqual(1);
 });
 //specialDays should make an array of data set from raw data
-
-
