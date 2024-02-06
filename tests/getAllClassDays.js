@@ -19,7 +19,8 @@ export const getDates = (startDate, endDate, specialDays) => {
 		if (weekday !== 0) {
 			let dateStr = currentDate.format('YYYY-MM-DD');
 			let specialData = specialMap.get(dateStr) || ["", "", ""];
-		// If the weekday is Saturday
+		// If the weekday is Saturday, try to find a make up date in specialDays
+		// Make update is marke by having 'Make up' in the description field and a date at the beginning of note field
 		if (weekday === 6) {
 			let noteDate = specialData[1].match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
 			// If there's a date in the note field
