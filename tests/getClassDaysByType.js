@@ -1,9 +1,8 @@
 
 import moment from 'moment';
-import getAllClassDays from './getAllClassDays'
 /**
  * Retrieves all class days for a class type.
- * @param {Array <getAllClassDays>} classDays - CLIC, Comm, G9, H (High school)'.
+ * @param {Array <{date: String, weekday: Number, description: String, note: String, type: String}>} classDays
  * @param {Array <number>} weekdays - which days are class days
  * @param {string} type - CLIC, Comm, G9, H (High school)'.
  */
@@ -17,7 +16,7 @@ export const getClassDaysByType = (classDays, weekdays, type) => {
 
   firstExamDays.forEach(theDay => {
     let examDate = moment(theDay.date);
-    /** @type Array<Number> */
+    /** @type {Array<Number>} */
     let twoClassesBefore = [];
     
     filteredClassDays.forEach((classDay, index) => {

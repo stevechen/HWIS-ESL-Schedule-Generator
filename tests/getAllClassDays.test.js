@@ -39,9 +39,11 @@ function countDaysExcludingSundays(startDate, endDate, specialDays) {
 
     return totalDays - saturdays - sundays + specialSaturdays;
 }
-
+/** @type {String} */
 let startDate;
+/** @type {String} */
 let endDate;
+/** @type {Array <{ date: String, weekday: Number }>} */
 let classDates;
 
 beforeEach(() => {

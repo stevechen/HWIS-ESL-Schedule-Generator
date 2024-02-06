@@ -4,7 +4,7 @@ import moment from "moment";
  * @param {string} startDate - The start date in the format 'YYYY/MM/DD'.
  * @param {string} endDate - The end date in the format 'YYYY/MM/DD'.
  * @param {string} specialDays - A list of special school days
- * @returns {Array<{ date: string, weekday: number }>} - A set containing objects with the date and weekday index.
+ * @returns {Array <{ date: String, weekday: Number, description: String, note: String, type: String }>} - A set containing objects with the date and weekday index.
  */
 export const getDates = (startDate, endDate, specialDays) => {
 	let dateArray = [];
