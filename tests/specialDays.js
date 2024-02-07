@@ -33,3 +33,6 @@ export const specialDays =
 2023-09-06	Off (Mock exam)		G9
 2023-09-05	Off (Mock exam)		G9
 2023-08-30	Class starts on period 3`;
+
+export const startDate = '2023-08-30';
+export const endDate = '2024-01-19'

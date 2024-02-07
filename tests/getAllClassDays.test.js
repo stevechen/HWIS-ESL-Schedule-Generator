@@ -1,14 +1,14 @@
 import moment from "moment";
 import { expect, it, beforeEach } from "vitest";
 import { getDates } from "./getAllClassDays";
-import { specialDays } from './specialDays';
+import { specialDays, startDate, endDate } from './specialDays';
 
 /**
  * Retrieves all class days between the given start and end dates.
- * @param {string} startDate - The start date in the format 'YYYY/MM/DD'.
- * @param {string} endDate - The end date in the format 'YYYY/MM/DD'.
- * @param {string} specialDays - A list of special school days
- * @returns {number} The number of days between the start and end dates, excluding Sundays and Saturdays, but includes special Saturdays.
+ * @param {String} startDate - The start date in the format 'YYYY/MM/DD'.
+ * @param {String} endDate - The end date in the format 'YYYY/MM/DD'.
+ * @param {String} specialDays - A list of special school days
+ * @returns {Number} The number of days between the start and end dates, excluding Sundays and Saturdays, but includes special Saturdays.
 */
 function countDaysExcludingSundays(startDate, endDate, specialDays) {
     const start = moment(startDate);
@@ -39,16 +39,11 @@ function countDaysExcludingSundays(startDate, endDate, specialDays) {
 
     return totalDays - saturdays - sundays + specialSaturdays;
 }
-/** @type {String} */
-let startDate;
-/** @type {String} */
-let endDate;
+
 /** @type {Array <{ date: String, weekday: Number }>} */
 let classDates;
 
 beforeEach(() => {
-  startDate = '2023-08-30';
-  endDate = '2024-01-19';
   classDates = getDates(startDate, endDate, specialDays);
 });
 
