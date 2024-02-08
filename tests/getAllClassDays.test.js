@@ -59,4 +59,3 @@ it('has an entry for 2023-09-23 with weekday 1', () => {
   expect(targetDate).toBeDefined();
   expect(targetDate.weekday).toEqual(1);
 });
-//specialDays should make an array of data set from raw data
