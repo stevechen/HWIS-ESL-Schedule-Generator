@@ -14,7 +14,8 @@ export const getClassDaysByType = (classDays, weekdays, type='', grade='') => {
 
   let typedClassDays = newClassDays.map(day => {
     if ((type === 'CLIL' && day.type === 'Comm') || //mismatch junior type disgards the other type events
-        (type === 'Comm' || type === 'G9') && day.type === 'CLIL' || //Comm or G9 disgards CLIL
+        (type === 'Comm' || type === 'G9') && day.type === 'CLIL' || //G7/8 Comm or G9 disgards CLIL events
+        (type === 'Comm' && day.type === 'G9') ||//G7/8 Comm classes disgards G9 events
         (type === 'H') && (day.type === 'CLIL' || day.type === 'Comm')) //H class disgards Junior events
     {
       day.description = '';
@@ -23,7 +24,7 @@ export const getClassDaysByType = (classDays, weekdays, type='', grade='') => {
     return day;
   });
   
-  // add 'Oral Exam days if it's not a CLIL type
+  // add 'Oral Exam days for Comm classes
   if (type!=='CLIL') {
     // get exam days
     let examDays = classDays.filter(day => day.description === 'Exam');
