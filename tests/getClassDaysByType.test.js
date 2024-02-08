@@ -26,15 +26,16 @@ it('get all classes of class days for Comm', () => {
   expect(otherDaysCount).toBe(0);
 });
 
-it('G7/8 Comm class has Comm but no CLIL entries', () => {
+it('G7/8 Comm class has Comm but no CLIL nor G9 entries', () => {
   let classDays = getClassDaysByType(allClassDays, [2, 4], 'Comm');
    // only Comm entries
   let commDaysCount = classDays.filter(day => day.note === 'Passport check').length;
   let clilDaysCount = classDays.filter(day => day.note === 'WB check').length;
+  let g9DaysCount = classDays.filter(day => day.note === 'G9 Mock Exam').length;
 
   expect (commDaysCount).toBeGreaterThan(0);
   expect(clilDaysCount).toBe(0);
-});
+  expect(g9DaysCount).toBe(0);});
 
 it('G9 Comm class has Comm but no CLIL entries', () => {
   let classDays = getClassDaysByType(allClassDays, [2, 4], 'G9');

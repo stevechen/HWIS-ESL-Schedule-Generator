@@ -28,8 +28,8 @@ export const specialDays =
 2023-12-06	CLIL Presentation		CLIL
 2023-12-05	CLIL Presentation		CLIL
 2023-12-04	CLIL Presentation		CLIL
-2023-12-22	Off (G9 Mock exam)		G9
-2023-12-21	Off (G9 Mock exam)		G9
+2023-12-22	Off G9 Mock exam		G9
+2023-12-21	Off G9 Mock exam		G9
 2023-09-06	Off (Mock exam)		G9
 2023-09-05	Off (Mock exam)		G9
 2023-08-30	Class starts on period 3`;
