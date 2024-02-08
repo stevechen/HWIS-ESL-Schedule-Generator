@@ -1,6 +1,6 @@
 import moment from "moment";
 import { expect, it, beforeEach } from "vitest";
-import { getDates } from "./getAllClassDays";
+import { getDates } from "../src/lib/getAllClassDays";
 import { specialDays, startDate, endDate } from './specialDays';
 
 /**

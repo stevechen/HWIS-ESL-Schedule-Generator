@@ -1,7 +1,7 @@
 import { expect, it, beforeEach } from "vitest";
 import { specialDays, startDate, endDate } from "./specialDays";
-import { getDates } from "./getAllClassDays";
-import { getClassDaysByType } from "./getClassDaysByType";
+import { getDates } from "../src/lib/getAllClassDays";
+import { getClassDaysByType } from "../src/lib/getClassDaysByType";
 
 /** @type {Array <{ date: String, weekday: Number, description: String, note: String, type: String }>} */
 let allClassDays;
