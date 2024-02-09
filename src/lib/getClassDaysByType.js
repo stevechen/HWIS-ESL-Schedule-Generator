@@ -2,9 +2,10 @@
 import moment from 'moment';
 /**
  * Retrieves all class days for a class type.
- * @param {Array <{date: String, weekday: Number, description: String, note: String, type: String}>} classDays
+ * @param {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>} classDays - result from getAllClassDays
  * @param {Array <number>} weekdays - which days are class days
  * @param {String} type - CLIC, Comm, G9, H (High school)'.
+ * @returns {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>}
  */
 export const getClassDaysByType = (classDays, weekdays, type='', grade='') => {
   //This should NOT happen
@@ -23,11 +24,13 @@ export const getClassDaysByType = (classDays, weekdays, type='', grade='') => {
     }
     return day;
   });
-  
+
+    let examDays = classDays.filter(day => day.description === 'Exam');
+
   // add 'Oral Exam days for Comm classes
   if (type!=='CLIL') {
     // get exam days
-    let examDays = classDays.filter(day => day.description === 'Exam');
+    // let examDays = classDays.filter(day => day.description === 'Exam');
     //find the first exam date for each term
     let firstExamDays = [examDays[0], examDays[2], examDays[4]];
     if (type ==='H') firstExamDays = [examDays[4]];
@@ -65,6 +68,50 @@ export const getClassDaysByType = (classDays, weekdays, type='', grade='') => {
     });
   }
   // if (grade ==='H10' || grade ==='H11') console.log (commClassDays)
+  // console.log(examDays[1].date);
+  let classCounts = [
+    { "term": 1, "classes": 0, "offs": 0 },
+    { "term": 2, "classes": 0, "offs": 0 },
+    { "term": 3, "classes": 0, "offs": 0 }
+  ];
+
+typedClassDays.forEach(day => {
+  let thisDay = moment(day.date);
+  let termIndex = thisDay.isBefore(moment(examDays[0].date)) ? 0 :  //term 1
+                  thisDay.isBetween(moment(examDays[1].date), moment(examDays[2].date)) ? 1 : //term 2
+                  thisDay.isBetween(moment(examDays[3].date), moment(examDays[4].date)) ? 2 : undefined; //term 3
+
+  if (termIndex !== undefined) {
+    (day.description !== 'Off')? classCounts[termIndex].classes++: classCounts[termIndex].offs++;
+  }
+
+});
+
   typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
+
+  // Add class number
+  let termIndex = 0;
+  let countdown = 0; // start at 0
+
+  typedClassDays = typedClassDays.map(day => {
+  if (day.description !== 'Off' && day.description !== 'Exam') {
+    day.countdown = countdown; // assign first, then increment
+    countdown++;
+  } else if (day.description === 'Exam' || day.description === 'Off') {
+    day.countdown = null; // set countdown to null if the day is an Exam day
+  }
+
+  // If we've reached the end of a term, move to the next term
+  if (countdown >= classCounts[termIndex].classes && termIndex < classCounts.length - 1) {
+    termIndex++;
+    countdown = 0; // reset to 0 for the next term
+  }
+
+  //one base
+  // if (day.countdown || day.countdown === 0) day.countdown++;
+
+  return day;
+});
+
   return typedClassDays;
 }
