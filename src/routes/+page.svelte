@@ -58,33 +58,23 @@
 2024-02-28	Off	Peace Memorial Day	
 2024-02-22	Off	G9 Mock Exam	G9
 2024-02-21	Off	G9 Mock Exam	G9
-2024-02-17	School day (Make up)	for 2024/02/08 Thu	
+2024-02-17	School day (Make up)	for 2024/02/08 Chinese New Year	
 2024-02-16	Class starts at the 3rd period   		`;
 
 	let generatedDatesOutput = '';
-
-	/**@type {String} */
-	let startDate;
-	/**@type {String}*/
-	let endDate;
-
-	// $: {
-	// 	let dates = specialDays.split('\n').map((line) => line.split('\t')[0]);
-	// 	startDate = dates.reduce((a, b) => (a < b ? a : b));
-	// 	endDate = dates.reduce((a, b) => (a > b ? a : b));
-	// }
 
 	/** @type {Number[]}*/
 	let weekdaysArray;
 	$: {
 		weekdaysArray = $checkedWeekdays.map((day) => weekdayIndices[day]);
 	}
-
 	function generateDates() {
-		const specificDatesArray = getDates(specialDays);
-		const classDates = getClassDaysByType(specificDatesArray, weekdaysArray, targetType);
-		generatedDatesOutput = classDates
-			.map((row) => [row.date, row.description, row.note].join('\t'))
+		const specialDaysArray = getDates(specialDays);
+		const classDates = getClassDaysByType(specialDaysArray, weekdaysArray, targetType);
+		generatedDatesOutput = ['#\tDate\tDescription\tNote']
+			.concat(
+				classDates.map((row) => [row.countdown, row.date, row.description, row.note].join('\t'))
+			)
 			.join('\n');
 	}
 </script>
@@ -96,6 +86,9 @@
 		<div id="options">
 			<div id="weekdays">
 				<h3>Days</h3>
+				{#if $checkedWeekdays.length === 0}
+					<p class="warning">Please select at least one weekday!</p>
+				{/if}
 				{#each ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as day}
 					<input type="checkbox" id={day.toLowerCase()} bind:group={$checkedWeekdays} value={day} />
 					<label for={day.toLowerCase()}>{day}</label>
@@ -192,5 +185,9 @@
 		display: flex;
 		flex-direction: column;
 		row-gap: 5px;
+	}
+
+	.warning {
+		color: red;
 	}
 </style>
