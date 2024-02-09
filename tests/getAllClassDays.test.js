@@ -57,5 +57,7 @@ it('has an entry for 2023-09-23 with weekday 1', () => {
   const targetDate = classDates.find(date => date.date === '2023-09-23');
 
   expect(targetDate).toBeDefined();
-  expect(targetDate.weekday).toEqual(1);
+  if (targetDate) {
+    expect(targetDate.weekday).toEqual(1);
+  }
 });
