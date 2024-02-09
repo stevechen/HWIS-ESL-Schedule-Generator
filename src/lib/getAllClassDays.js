@@ -1,12 +1,14 @@
 import moment from "moment";	
 /**
  * Retrieves all class days between the given start and end dates.
- * @param {string} startDate - The start date in the format 'YYYY/MM/DD'.
- * @param {string} endDate - The end date in the format 'YYYY/MM/DD'.
  * @param {string} specialDays - A list of special school days
  * @returns {Array <{ date: String, weekday: Number, description: String, note: String, type: String }>} - A set containing objects with the date and weekday index.
  */
-export const getDates = (startDate, endDate, specialDays) => {
+// export const getDates = (startDate, endDate, specialDays) => {
+export const getDates = (specialDays) => {
+	let dates = specialDays.split('\n').map((line) => line.split('\t')[0]);
+	let startDate = dates.reduce((a, b) => (a < b ? a : b));
+	let endDate = dates.reduce((a, b) => (a > b ? a : b));
 	let dateArray = [];
 	let currentDate = moment(startDate);
 	let specialMap = new Map(specialDays.split("\n").map(item => {

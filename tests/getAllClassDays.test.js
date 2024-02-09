@@ -44,7 +44,7 @@ function countDaysExcludingSundays(startDate, endDate, specialDays) {
 let classDates;
 
 beforeEach(() => {
-  classDates = getDates(startDate, endDate, specialDays);
+  classDates = getDates(specialDays);
 });
 
 it('returns correct number of days without Sundays', () => {

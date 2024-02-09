@@ -58,7 +58,7 @@
 2024-02-28	Off	Peace Memorial Day	
 2024-02-22	Off	G9 Mock Exam	G9
 2024-02-21	Off	G9 Mock Exam	G9
-2024-02-17	School day (Make up)	for 2023/02/08 Thu	
+2024-02-17	School day (Make up)	for 2024/02/08 Thu	
 2024-02-16	Class starts at the 3rd period   		`;
 
 	let generatedDatesOutput = '';
@@ -68,11 +68,11 @@
 	/**@type {String}*/
 	let endDate;
 
-	$: {
-		let dates = specialDays.split('\n').map((line) => line.split('\t')[0]);
-		startDate = dates.reduce((a, b) => (a < b ? a : b));
-		endDate = dates.reduce((a, b) => (a > b ? a : b));
-	}
+	// $: {
+	// 	let dates = specialDays.split('\n').map((line) => line.split('\t')[0]);
+	// 	startDate = dates.reduce((a, b) => (a < b ? a : b));
+	// 	endDate = dates.reduce((a, b) => (a > b ? a : b));
+	// }
 
 	/** @type {Number[]}*/
 	let weekdaysArray;
@@ -81,7 +81,7 @@
 	}
 
 	function generateDates() {
-		const specificDatesArray = getDates(startDate, endDate, specialDays);
+		const specificDatesArray = getDates(specialDays);
 		const classDates = getClassDaysByType(specificDatesArray, weekdaysArray, targetType);
 		generatedDatesOutput = classDates
 			.map((row) => [row.date, row.description, row.note].join('\t'))

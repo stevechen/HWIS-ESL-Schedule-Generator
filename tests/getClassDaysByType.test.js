@@ -7,7 +7,7 @@ import { getClassDaysByType } from "../src/lib/getClassDaysByType";
 let allClassDays;
 
 beforeEach(() => {
-  allClassDays = getDates(startDate, endDate, specialDays);
+  allClassDays = getDates(specialDays);
 });
 
 it('get all classes of class days for CLIL', () => {
