@@ -2,18 +2,18 @@
 import moment from 'moment';
 /**
  * Retrieves all class days for a class type.
- * @param {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>} classDays - result from getAllClassDays
+ * @param {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>} allClassDays - result from getAllClassDays
  * @param {Array <number>} weekdays - which days are class days
  * @param {String} type - CLIC, Comm, G9, H (High school)'.
  * @returns {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>}
  */
-export const getClassDaysByType = (classDays, weekdays, type='', grade='') => {
+export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') => {
   //This should NOT happen
-  if (type==='' && grade==='') alert('Error: No type and no grade are selected!');
-  const newClassDays = classDays.filter(day => weekdays.includes(day.weekday));
+  if (type === '' && grade === '') alert('Error: No type and no grade are selected!');
+  const classDays = allClassDays.filter(day => weekdays.includes(day.weekday));
   // console.log(JSON.stringify(filteredClassDays))
 
-  let typedClassDays = newClassDays.map(day => {
+  let typedClassDays = classDays.map(day => {
     if ((type === 'CLIL' && day.type === 'Comm') || //mismatch junior type disgards the other type events
         (type === 'Comm' || type === 'G9') && day.type === 'CLIL' || //G7/8 Comm or G9 disgards CLIL events
         (type === 'Comm' && day.type === 'G9') ||//G7/8 Comm classes disgards G9 events
@@ -25,18 +25,21 @@ export const getClassDaysByType = (classDays, weekdays, type='', grade='') => {
     return day;
   });
 
-    let examDays = classDays.filter(day => day.description === 'Exam');
+  // get exam days
+  let examDays = allClassDays.filter(day => day.description === 'Exam');
 
   // add 'Oral Exam days for Comm classes
   if (type!=='CLIL') {
-    // get exam days
-    // let examDays = classDays.filter(day => day.description === 'Exam');
     //find the first exam date for each term
-    let firstExamDays = [examDays[0], examDays[2], examDays[4]];
-    if (type ==='H') firstExamDays = [examDays[4]];
+    const firstExamDays = 
+    (type === 'H')
+    ? [examDays[4]]
+    : [examDays[0], examDays[2], examDays[4]];
+    
     //sort in descending order so it would find the nearest none-off days prior to the exam date
     typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
     if (type !=='H') firstExamDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
+
     //optimize the search for the two class days before the next exam by allowing the loop to start from where it left off in the previous iteration
     let startIndex = 0;
     //loop through the first exam date
@@ -89,7 +92,7 @@ typedClassDays.forEach(day => {
 
   typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
 
-  // Add class number
+  // Add class count
   let termIndex = 0;
   let countdown = 0; // start at 0
 
