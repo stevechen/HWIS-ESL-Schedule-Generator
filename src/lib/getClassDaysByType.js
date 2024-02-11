@@ -70,8 +70,9 @@ export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') =>
 
     });
   }
-  // if (grade ==='H10' || grade ==='H11') console.log (commClassDays)
-  // console.log(examDays[1].date);
+
+  // stores each term's class days count and off days count
+  // not using the off days count now
   let classCounts = [
     { "term": 1, "classes": 0, "offs": 0 },
     { "term": 2, "classes": 0, "offs": 0 },
@@ -90,31 +91,32 @@ typedClassDays.forEach(day => {
 
 });
 
-  typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
+  typedClassDays.sort((a, b) => moment(a.date).diff(moment(b.date)));
+// Find the index of the closest class day before the first exam day
+let zeroIndex = typedClassDays.findIndex(day => moment(day.date).isBefore(moment(examDays[0].date)) && day.description !== 'Off');
 
-  // Add class count
-  let termIndex = 0;
-  let countdown = 0; // start at 0
+// Add class count
+let termIndex = 0;
+let countdown = classCounts[termIndex].classes; // start at total classes
 
-  typedClassDays = typedClassDays.map(day => {
-  if (day.description !== 'Off' && day.description !== 'Exam') {
-    day.countdown = countdown; // assign first, then increment
-    countdown++;
-  } else if (day.description === 'Exam' || day.description === 'Off') {
-    day.countdown = null; // set countdown to null if the day is an Exam day
-  }
-
+typedClassDays = typedClassDays.map((day, index) => {
   // If we've reached the end of a term, move to the next term
-  if (countdown >= classCounts[termIndex].classes && termIndex < classCounts.length - 1) {
+  if (countdown <= 0 && termIndex < classCounts.length - 1) {
     termIndex++;
-    countdown = 0; // reset to 0 for the next term
+    countdown = classCounts[termIndex].classes; // reset to total classes for the next term
   }
 
-  //one base
-  // if (day.countdown || day.countdown === 0) day.countdown++;
+  if (index >= zeroIndex && (day.description !== 'Off' && day.description !== 'Exam')) {
+    day.countdown = countdown-1; // assign first
+    countdown--; // then decrement
+  } else {
+    day.countdown = null; // set countdown to null if the day is an Exam day or Off
+  }
 
   return day;
 });
+
+  typedClassDays = typedClassDays.reverse();
 
   return typedClassDays;
 }
