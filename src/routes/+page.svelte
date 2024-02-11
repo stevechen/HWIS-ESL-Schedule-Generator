@@ -1,6 +1,5 @@
 <script>
-	import moment from 'moment';
-	import { writable, derived } from 'svelte/store';
+	import { writable } from 'svelte/store';
 	import { getDates } from '$lib/getAllClassDays.js';
 	import { getClassDaysByType } from '$lib/getClassDaysByType';
 	/**
@@ -68,6 +67,7 @@
 	$: {
 		weekdaysArray = $checkedWeekdays.map((day) => weekdayIndices[day]);
 	}
+
 	function generateDates() {
 		const specialDaysArray = getDates(specialDays);
 		const classDates = getClassDaysByType(specialDaysArray, weekdaysArray, targetType);
@@ -79,6 +79,7 @@
 	}
 </script>
 
+<title>HWIS Schedule Generator</title>
 <main>
 	<!-- <h1>Date Generator</h1> -->
 	<section id="input">
