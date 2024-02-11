@@ -18,6 +18,11 @@
 			const module = await import(`$lib/data/${prefix}-specialDays.js`);
 
 			specialDays = module.specialDays;
+			// trim blank \n lines
+			specialDays = specialDays
+				.split('\n')
+				.filter((line) => line.trim() !== '')
+				.join('\n');
 		} catch (error) {
 			console.error(
 				`Failed to load ${prefix}-specialDays.js, falling back to 2023-2024-1-specialDays.js`,

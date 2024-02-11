@@ -1,5 +1,6 @@
 export const specialDays = 
-`2024-06-28	Exam		
+`
+2024-06-28	Exam		
 2024-06-27	Exam		
 2024-06-26	Exam		
 2024-06-19	G8 Speech Contest		Comm
@@ -30,4 +31,5 @@ export const specialDays =
 2024-02-22	Off	G9 Mock Exam	G9
 2024-02-21	Off	G9 Mock Exam	G9
 2024-02-17	School day (Make up)	for 2024/02/08 Chinese New Year	
-2024-02-16	Class starts at the 3rd period   		`;
+2024-02-16	Class starts at the 3rd period   		
+`;
