@@ -42,7 +42,7 @@
 		flex-direction: column;
 	}
 	textarea {
-		min-width: 50em;
+		min-width: 44em;
 		flex: 1;
 		font-size: 0.8em;
 	}

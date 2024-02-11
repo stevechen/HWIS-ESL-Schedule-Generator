@@ -61,25 +61,25 @@
 <h3>Controls</h3>
 <div id="options">
 	<div id="weekdays">
+		<div id="types">
+			<h3>Type</h3>
+			<input type="radio" id="clil" bind:group={targetType} value="CLIL" />
+			<label for="clil">G7/8 CLIL</label>
+			<input type="radio" id="comm" bind:group={targetType} value="Comm" />
+			<label for="comm">G7/8 Comm</label>
+			<input type="radio" id="g9" bind:group={targetType} value="G9" />
+			<label for="g9">G9</label>
+			<input type="radio" id="h" bind:group={targetType} value="H" />
+			<label for="h">H10/H11</label>
+		</div>
 		<h3>Days</h3>
 		{#if checkedDaysArray.length === 0}
-			<p class="warning">Please select at least one weekday!</p>
+			<p class="warning">Select at least one day!</p>
 		{/if}
 		{#each $checkedDays as isChecked, index (index)}
 			<input type="checkbox" id={weekdays[index]} bind:checked={$checkedDays[index]} />
 			<label for={weekdays[index]}>{weekdays[index]}</label>
 		{/each}
-	</div>
-	<div id="types">
-		<h3>Type</h3>
-		<input type="radio" id="clil" bind:group={targetType} value="CLIL" />
-		<label for="clil">CLIL</label>
-		<input type="radio" id="comm" bind:group={targetType} value="Comm" />
-		<label for="comm">Comm</label>
-		<input type="radio" id="g9" bind:group={targetType} value="G9" />
-		<label for="g9">G9</label>
-		<input type="radio" id="h" bind:group={targetType} value="H" />
-		<label for="h">H</label>
 	</div>
 </div>
 
