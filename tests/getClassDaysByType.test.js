@@ -1,5 +1,5 @@
 import { expect, it, beforeEach } from "vitest";
-import { schoolEvents } from "./schoolEvents";
+import { schoolEvents, schoolEvents2 } from "./schoolEvents";
 import { getDates } from "$lib/getAllClassDays";
 import { getClassDaysByType } from "$lib/getClassDaysByType";
 
@@ -64,7 +64,7 @@ it('H10 class has no CLIL or Comm entries', () => {
   expect(clilDaysCount).toBe(0);
   expect(commDaysCount).toBe(0);
 });
-it('H11 class has no CLIL  or Comm entries', () => {
+it('H11 class has no CLIL or Comm entries', () => {
   let classDays = getClassDaysByType(allClassDays, [3], 'H');
    // no CLIL nor Comm
   let clilDaysCount = classDays.filter(day => day.note === 'WB check').length;
@@ -82,12 +82,16 @@ it('G7/8 Comm class 6 Oral exam days inserted', () => {
   expect(oralExamDaysCount).toBe(6);
 });
 
-it('G9 Comm class 6 Oral exam days inserted', () => {
+it('G9 class has the right number of Oral exam days inserted', () => {
   let classDays = getClassDaysByType(allClassDays, [1, 3], 'G9');
+  let classDays2 = getClassDaysByType(allClassDays = getDates(schoolEvents2), [1, 4], 'G9');
    // 6 oral exams, 2 before each exam
   let oralExamDaysCount = classDays.filter(day => day.description === 'Oral Exam').length;
+  let oralExamDaysCount2 = classDays2.filter(day => day.description === 'Oral Exam').length;
 
   expect(oralExamDaysCount).toBe(6);
+  expect(oralExamDaysCount2).toBe(4);
+
 });
 
 it('H10/11 Comm class 2 Oral exam days inserted', () => {
