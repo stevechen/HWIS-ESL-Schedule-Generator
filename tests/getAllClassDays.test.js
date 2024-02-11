@@ -1,53 +1,53 @@
 import moment from "moment";
 import { expect, it, beforeEach } from "vitest";
 import { getDates } from "../src/lib/getAllClassDays";
-import { specialDays } from './specialDays';
+import { schoolEvents } from './schoolEvents';
 
 /**
  * Retrieves all class days between the given start and end dates.
- * @param {String} specialDays - A list of special school days
+ * @param {String} schoolEvents - A list of special school days
  * @returns {Number} The number of days between the start and end dates, excluding Sundays and Saturdays, but includes special Saturdays.
 */
-function countDaysExcludingSundays(specialDays) {
-  	let dates = specialDays.split('\n').map((line) => line.split('\t')[0]);
-    let start = dates.reduce((a, b) => (a < b ? a : b));
-    let end = dates.reduce((a, b) => (a > b ? a : b));
-    let totalDays = 0;
-    let saturdays = 0;
-    let sundays = 0;
-    let specialSaturdays = 0;
+function countDaysExcludingSundays(schoolEvents) {
+  let dates = schoolEvents.split('\n').map((line) => line.split('\t')[0]);
+  let start = dates.reduce((a, b) => (a < b ? a : b));
+  let end = dates.reduce((a, b) => (a > b ? a : b));
+  let totalDays = 0;
+  let saturdays = 0;
+  let sundays = 0;
+  let specialSaturdays = 0;
 
-    // Parse specialDays and count Saturdays
-    const specialDaysArray = specialDays.split('\n');
-    specialDaysArray.forEach(day => {
-        const date = moment(day.split('\t')[0]);
-        if (date.day() === 6) { // 6 stands for Saturday. These are the working Saturdays make up for another holiday
-            specialSaturdays++;
-        }
-    });
+  // Parse schoolEvents and count Saturdays
+  const schoolEventsArray = schoolEvents.split('\n');
+  schoolEventsArray.forEach(day => {
+      const date = moment(day.split('\t')[0]);
+      if (date.day() === 6) { // 6 stands for Saturday. These are the working Saturdays make up for another holiday
+          specialSaturdays++;
+      }
+  });
 
-    for (let currentDay = moment(start); currentDay.isSameOrBefore(end); currentDay.add(1, 'days')) {
-        totalDays++;
-        if (currentDay.day() === 0) { // 0 stands for Sunday
-            sundays++;
-        }
-        if (currentDay.day() === 6) {
-          saturdays++;
-        }
-    }
+  for (let currentDay = moment(start); currentDay.isSameOrBefore(end); currentDay.add(1, 'days')) {
+      totalDays++;
+      if (currentDay.day() === 0) { // 0 stands for Sunday
+          sundays++;
+      }
+      if (currentDay.day() === 6) {
+        saturdays++;
+      }
+  }
 
-    return totalDays - saturdays - sundays + specialSaturdays;
+  return totalDays - saturdays - sundays + specialSaturdays;
 }
 
 /** @type {Array <{ date: String, weekday: Number }>} */
 let classDates;
 
 beforeEach(() => {
-  classDates = getDates(specialDays);
+  classDates = getDates(schoolEvents);
 });
 
 it('returns correct number of days without Sundays', () => {
-  let days = countDaysExcludingSundays(specialDays);
+  let days = countDaysExcludingSundays(schoolEvents);
 
   expect(classDates.length).toEqual(days);
 });

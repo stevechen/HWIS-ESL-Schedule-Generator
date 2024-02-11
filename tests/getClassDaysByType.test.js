@@ -1,29 +1,37 @@
 import { expect, it, beforeEach } from "vitest";
-import { specialDays, startDate, endDate } from "./specialDays";
-import { getDates } from "../src/lib/getAllClassDays";
-import { getClassDaysByType } from "../src/lib/getClassDaysByType";
+import { schoolEvents } from "./schoolEvents";
+import { getDates } from "$lib/getAllClassDays";
+import { getClassDaysByType } from "$lib/getClassDaysByType";
 
-/** @type {Array <{ date: String, weekday: Number, description: String, note: String, type: String }>} */
+/** @type {Array <{ countdown: Number | null, date: String, weekday: Number, description: String, note: String, type: String }>} */
 let allClassDays;
 
 beforeEach(() => {
-  allClassDays = getDates(specialDays);
+  allClassDays = getDates(schoolEvents);
 });
 
-it('get all classes of class days for CLIL', () => {
-  const classDays = getClassDaysByType(allClassDays, [1, 3, 5], 'CLIL');
-  // days should not have any days other than indicated weekdays
-  let otherDaysCount = classDays.filter(day => day.weekday===2 || day.weekday===4).length;
+it('gets the right weekday classes', () => {
+  /** An array to hold the days for communication classes.
+ * @type {Array <any>}
+ */
+  const commClassDays=[];
+  /** An array to hold the days for CLIL classes.
+ * @type {Array <any>}
+*/
+  const clilClassDays=[];
+  [1, 2, 3, 4, 5, 6].forEach((weekday, index) => {
+    commClassDays[index] = getClassDaysByType(allClassDays, [weekday],'Comm')
+    clilClassDays[index] = getClassDaysByType(allClassDays, [weekday],'CLIL')
 
-  expect(otherDaysCount).toBe(0);
-});
+    let returnedCommDays = commClassDays[index].length;
+    let filteredCommDays = commClassDays[index].filter(day => day.weekday === weekday).length;
+    expect(returnedCommDays).equals(filteredCommDays)
 
-it('get all classes of class days for Comm', () => {
-  const classDays = getClassDaysByType(allClassDays, [2, 4],'Comm');
-  // days should not have any days other than indicated weekdays
-  let otherDaysCount = classDays.filter(day => day.weekday === 3 || day.weekday === 3 || day.weekday === 5).length;
+    let returnedClilDays = clilClassDays[index].length;
+    let filteredClilDays = clilClassDays[index].filter(day => day.weekday === weekday).length;
+    expect(returnedClilDays).equals(filteredClilDays)
 
-  expect(otherDaysCount).toBe(0);
+  });
 });
 
 it('G7/8 Comm class has Comm but no CLIL nor G9 entries', () => {
