@@ -2,6 +2,32 @@
 	import { writable } from 'svelte/store';
 	import { getDates } from '$lib/getAllClassDays.js';
 	import { getClassDaysByType } from '$lib/getClassDaysByType';
+	import { onMount } from 'svelte';
+
+	onMount(async () => {
+		//load default specialDays.js should make new .js file every semester
+		let prefix = '';
+		let thisYear = new Date().getFullYear();
+
+		if (new Date().getMonth() < 5) {
+			prefix = `${thisYear - 1}-${thisYear}-2`;
+		} else {
+			prefix = `${thisYear}-${thisYear + 1}-1`;
+		}
+		try {
+			const module = await import(`$lib/data/${prefix}-specialDays.js`);
+
+			specialDays = module.specialDays;
+		} catch (error) {
+			console.error(
+				`Failed to load ${prefix}-specialDays.js, falling back to 2023-2024-1-specialDays.js`,
+				error
+			);
+			const fallbackModule = await import('$lib/data/2023-2024-1-specialDays.js');
+			specialDays = fallbackModule.specialDays;
+		}
+	});
+
 	/**
 	 * An object that maps weekday names to their corresponding indices.
 	 * @type {Object.<string, number>}
@@ -23,42 +49,9 @@
 		Sat: 6
 	};
 
+	let targetType = 'CLIL'; //default
 	let checkedWeekdays = writable(['Tue', 'Fri']); // Set default weekdays
-
-	let targetType = 'G9'; //default
-
-	let specialDays = `2024-06-28	Exam		
-2024-06-27	Exam		
-2024-06-26	Exam		
-2024-06-19	G8 Speech Contest		Comm
-2024-06-14		WB check	CLIL
-2024-06-13		WB check	CLIL
-2024-06-12		WB check	CLIL
-2024-06-11		WB check	CLIL
-2024-06-10	Off	Dragon Boat Festival	
-2024-06-07		Passport check	Comm
-2024-06-06		Passport check	Comm
-2024-06-05	G7 Speech Contest	Passport check	Comm
-2024-06-04		Passport check	Comm
-2024-06-03	Graduation Ceremony	Passport check	Comm
-2024-05-19	Senior High School Entrance Exam		G9
-2024-05-18	Senior High School Entrance Exam		G9
-2024-05-17	Half day off (Students only)		
-2024-05-15	Exam		
-2024-05-14	Exam		
-2024-04-29	Off	Make-up holiday for School day	
-2024-04-27	School Anniversary		
-2024-04-17	Off	G9 Mock Exam	G9
-2024-04-16	Off	G9 Mock Exam	G9
-2024-04-05	Off	Spring Break	
-2024-04-04	Off	Spring Break	
-2024-03-29	Exam		
-2024-03-28	Exam		
-2024-02-28	Off	Peace Memorial Day	
-2024-02-22	Off	G9 Mock Exam	G9
-2024-02-21	Off	G9 Mock Exam	G9
-2024-02-17	School day (Make up)	for 2024/02/08 Chinese New Year	
-2024-02-16	Class starts at the 3rd period   		`;
+	let specialDays = '';
 
 	let generatedDatesOutput = '';
 
