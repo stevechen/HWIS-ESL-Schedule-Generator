@@ -1,7 +1,10 @@
 
 import moment from 'moment';
 /**
- * Retrieves all class days for a class type.
+ * Retrieves all class days for a class type. Need input from getAllClassDays() that contains class days mixed with event days.
+ * - filters out event descriptions and notes if type is mismatched
+ * - add oral exam days for all execpt CLIL (rules are different for g7/8, g9, H10/11)
+ * - add class countdown column
  * @param {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>} allClassDays - result from getAllClassDays
  * @param {Array <number>} weekdays - which days are class days
  * @param {String} type - CLIC, Comm, G9, H (High school)'.
