@@ -10,6 +10,7 @@
 
 	/** @type {Array <String>} - array of weekdays for checkbox labels */
 	let weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+	// let checkedDays = writable([true, false, true, false, true]);
 	let checkedDays = writable([true, false, true, false, true]);
 	/**@type {Array <Number>} - days that are checked */
 	let checkedDaysArray;
@@ -24,6 +25,9 @@
 	/**@type {String}*/
 	let schoolEvents = '';
 
+	/**
+	 * @param {String}file
+	 */
 	async function loadSchoolEvents(file) {
 		try {
 			const module = await import(`$lib/data/${file}-schoolEvents.js`);
@@ -36,6 +40,7 @@
 			return null;
 		}
 	}
+
 	onMount(async () => {
 		const monthOfMay = 5;
 		const prefix =
@@ -44,6 +49,21 @@
 				: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}-1`;
 		schoolEvents = (await loadSchoolEvents(prefix)) || (await loadSchoolEvents('2023-2024-1'));
 	});
+
+	let touched = false;
+
+	// Update touched to true whenever an input changes
+	$: touched = Boolean(targetType) || Boolean($checkedDays.length) || Boolean(schoolEvents);
+
+	// Only call generateDates() if the inputs have been touched
+	$: {
+		touched = true;
+	}
+
+	$: if (touched) {
+		generateDates();
+		touched = false;
+	}
 
 	function generateDates() {
 		const allClassDays = getDates(schoolEvents.trim());
@@ -93,8 +113,7 @@
 			</span>
 		</button>
 	</h3>
-	<textarea rows="15" bind:value={schoolEvents} />
-	<button id="generate" on:click={generateDates}>Generate</button>
+	<textarea rows="15" bind:value={schoolEvents} on:blur={generateDates} />
 </div>
 
 <style>
@@ -135,11 +154,6 @@
 		min-width: 50em;
 		flex: 1;
 		font-size: 0.8em;
-	}
-
-	#generate {
-		display: block;
-		margin: 0 auto;
 	}
 
 	.warning {
