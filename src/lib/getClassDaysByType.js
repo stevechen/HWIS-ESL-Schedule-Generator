@@ -10,19 +10,31 @@ import moment from 'moment';
 export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') => {
   //This should NOT happen
   if (type === '' && grade === '') alert('Error: No type and no grade are selected!');
-  const classDays = allClassDays.filter(day => weekdays.includes(day.weekday));
-  // console.log(JSON.stringify(filteredClassDays))
+  const CLASS_DAYS = allClassDays.filter(day => weekdays.includes(day.weekday));
 
-  let typedClassDays = classDays.map(day => {
-    if ((type === 'CLIL' && day.type === 'Comm') || //mismatch junior type disgards the other type events
-        (type === 'Comm' || type === 'G9') && day.type === 'CLIL' || //G7/8 Comm or G9 disgards CLIL events
-        (type === 'Comm' && day.type === 'G9') ||//G7/8 Comm classes disgards G9 events
-        (type === 'H') && (day.type === 'CLIL' || day.type === 'Comm')) //H class disgards Junior events
+  const GRAD_DAYS = allClassDays.filter(day => day.description.includes('Graduation'));
+  const GRAD_DAY = GRAD_DAYS.length > 0 ? moment(GRAD_DAYS[0].date) : null;
+
+
+  let typedClassDays = CLASS_DAYS.map(classDay => {
+    if ((type === 'CLIL' && classDay.type === 'Comm') || //mismatch junior type disgards the other type events
+        (type === 'Comm' || type === 'G9') && classDay.type === 'CLIL' || //G7/8 Comm or G9 disgards CLIL events
+        (type === 'Comm' && classDay.type === 'G9') ||//G7/8 Comm classes disgards G9 events
+        (type === 'H') && (classDay.type === 'CLIL' || classDay.type === 'Comm')) //H class disgards Junior events
     {
-      day.description = '';
-      day.note = '';
+      classDay.description = '';
+      classDay.note = '';
     }
-    return day;
+
+    return classDay;
+  }).filter(classDay => {
+    // Exclude null days
+    if (classDay === null) return false;
+
+    // Exclude days after graduationDay when type is 'G9'
+    if (type === 'G9' && GRAD_DAY && moment(classDay.date).isAfter(GRAD_DAY)) return false;
+
+    return true;
   });
 
   // get exam days
@@ -32,9 +44,11 @@ export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') =>
   if (type!=='CLIL') {
     //find the first exam date for each term
     const firstExamDays = 
-    (type === 'H')
-    ? [examDays[4]]
-    : [examDays[0], examDays[2], examDays[4]];
+      (type === 'H')
+      ? [examDays[4]]
+      : GRAD_DAY
+        ? [examDays[0], examDays[2]]
+        : [examDays[0], examDays[2], examDays[4]];
     
     //sort in descending order so it would find the nearest none-off days prior to the exam date
     typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
@@ -79,42 +93,42 @@ export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') =>
     { "term": 3, "classes": 0, "offs": 0 }
   ];
 
-typedClassDays.forEach(day => {
-  let thisDay = moment(day.date);
-  let termIndex = thisDay.isBefore(moment(examDays[0].date)) ? 0 :  //term 1
-                  thisDay.isBetween(moment(examDays[1].date), moment(examDays[2].date)) ? 1 : //term 2
-                  thisDay.isBetween(moment(examDays[3].date), moment(examDays[4].date)) ? 2 : undefined; //term 3
+  typedClassDays.forEach(day => {
+    let thisDay = moment(day.date);
+    let termIndex = thisDay.isBefore(moment(examDays[0].date)) ? 0 :  //term 1
+                    thisDay.isBetween(moment(examDays[1].date), moment(examDays[2].date)) ? 1 : //term 2
+                    thisDay.isBetween(moment(examDays[3].date), moment(examDays[4].date)) ? 2 : undefined; //term 3
 
-  if (termIndex !== undefined) {
-    (day.description !== 'Off')? classCounts[termIndex].classes++: classCounts[termIndex].offs++;
-  }
+    if (termIndex !== undefined) {
+      (day.description !== 'Off')? classCounts[termIndex].classes++: classCounts[termIndex].offs++;
+    }
 
-});
+  });
 
   typedClassDays.sort((a, b) => moment(a.date).diff(moment(b.date)));
-// Find the index of the closest class day before the first exam day
-let zeroIndex = typedClassDays.findIndex(day => moment(day.date).isBefore(moment(examDays[0].date)) && day.description !== 'Off');
+  // Find the index of the closest class day before the first exam day
+  let zeroIndex = typedClassDays.findIndex(day => moment(day.date).isBefore(moment(examDays[0].date)) && day.description !== 'Off');
 
-// Add class count
-let termIndex = 0;
-let countdown = classCounts[termIndex].classes; // start at total classes
+  // Add class count
+  let termIndex = 0;
+  let countdown = classCounts[termIndex].classes; // start at total classes
 
-typedClassDays = typedClassDays.map((day, index) => {
-  // If we've reached the end of a term, move to the next term
-  if (countdown <= 0 && termIndex < classCounts.length - 1) {
-    termIndex++;
-    countdown = classCounts[termIndex].classes; // reset to total classes for the next term
-  }
+  typedClassDays = typedClassDays.map((day, index) => {
+    // If we've reached the end of a term, move to the next term
+    if (countdown <= 0 && termIndex < classCounts.length - 1) {
+      termIndex++;
+      countdown = classCounts[termIndex].classes; // reset to total classes for the next term
+    }
 
-  if (index >= zeroIndex && (day.description !== 'Off' && day.description !== 'Exam')) {
-    day.countdown = countdown-1; // assign first
-    countdown--; // then decrement
-  } else {
-    day.countdown = null; // set countdown to null if the day is an Exam day or Off
-  }
+    if (index >= zeroIndex && (day.description !== 'Off' && day.description !== 'Exam')) {
+      day.countdown = countdown-1; // assign first
+      countdown--; // then decrement
+    } else {
+      day.countdown = null; // set countdown to null if the day is an Exam day or Off
+    }
 
-  return day;
-});
+    return day;
+  });
 
   typedClassDays = typedClassDays.reverse();
 
