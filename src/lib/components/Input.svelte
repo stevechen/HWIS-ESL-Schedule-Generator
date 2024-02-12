@@ -66,11 +66,16 @@
 	}
 
 	function generateDates() {
-		const allClassDays = getDates(schoolEvents.trim());
-		const classDates = getClassDaysByType(allClassDays, checkedDaysArray, targetType);
+		const ALL_CLASS_DAYS = getDates(
+			schoolEvents
+				.split('\n') // split the string into lines
+				.filter((line) => line.trim() !== '') // filter out empty lines
+				.join('\n') // join the lines back together
+		);
+		const CLASS_DATES = getClassDaysByType(ALL_CLASS_DAYS, checkedDaysArray, targetType);
 		let generatedDatesOutput = ['#\tDate\tDescription\tNote']
 			.concat(
-				classDates.map((row) => [row.countdown, row.date, row.description, row.note].join('\t'))
+				CLASS_DATES.map((row) => [row.countdown, row.date, row.description, row.note].join('\t'))
 			)
 			.join('\n');
 		// Dispatch the event with the data to the parent
@@ -113,7 +118,7 @@
 			</span>
 		</button>
 	</h3>
-	<textarea rows="15" bind:value={schoolEvents} on:blur={generateDates} />
+	<textarea id="events" rows="15" bind:value={schoolEvents} on:blur={generateDates} />
 </div>
 
 <style>
@@ -150,7 +155,7 @@
 		row-gap: 5px;
 	}
 
-	textarea {
+	#events {
 		min-width: 50em;
 		flex: 1;
 		font-size: 0.8em;
