@@ -36,13 +36,21 @@
 		background: lightblue;
 		padding-bottom: 1em;
 	}
+
+	@media (max-width: 58em) {
+		main {
+			flex-direction: column;
+			justify-content: flex-start;
+		}
+	}
+
 	#input,
 	#output {
 		display: flex;
 		flex-direction: column;
 	}
 	textarea {
-		min-width: 44em;
+		min-width: 58em;
 		flex: 1;
 		font-size: 0.8em;
 	}
