@@ -66,12 +66,7 @@
 	}
 
 	function generateDates() {
-		const ALL_CLASS_DAYS = getDates(
-			schoolEvents
-				.split('\n') // split the string into lines
-				.filter((line) => line.trim() !== '') // filter out empty lines
-				.join('\n') // join the lines back together
-		);
+		const ALL_CLASS_DAYS = getDates(schoolEvents);
 		const CLASS_DATES = getClassDaysByType(ALL_CLASS_DAYS, checkedDaysArray, targetType);
 		let generatedDatesOutput = ['#\tDate\tDescription\tNote']
 			.concat(
@@ -114,7 +109,7 @@
 		<button class="info">
 			ℹ️
 			<span class="info_note">
-				Copy a table from Excel with 4 fields: date, description, note, type
+				Copy a table from spreadsheet with 4 fields: date, description, note, type
 			</span>
 		</button>
 	</h3>
@@ -122,18 +117,16 @@
 </div>
 
 <style>
+	h3 {
+		font-size: 0.9em;
+		margin-bottom: 0.3em;
+	}
+
 	#options {
 		display: flex;
 		flex-direction: column;
 		border: 1px solid gray;
-	}
-	#options h3 {
-		font-size: 0.9em;
-	}
-	#range,
-	#weekdays,
-	#types {
-		padding: 0.5em;
+		padding: 0 0.5em 0.5em 0.5em;
 	}
 
 	button.info {
@@ -146,6 +139,7 @@
 
 	button.info:hover .info_note {
 		display: inline;
+		font-size: 0.8em;
 	}
 
 	#schoolEvents {

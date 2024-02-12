@@ -44,6 +44,11 @@
 		}
 	}
 
+	h3 {
+		font-size: 0.9em;
+		margin-bottom: 0.3em;
+	}
+
 	#input,
 	#output {
 		display: flex;

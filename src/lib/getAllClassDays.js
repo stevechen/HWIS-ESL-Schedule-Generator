@@ -6,6 +6,10 @@ import moment from "moment";
  */
 // export const getDates = (startDate, endDate, specialDays) => {
 export const getDates = (schoolEvents) => {
+	schoolEvents = schoolEvents.split('\n') // split the string into lines
+				.filter((line) => line.trim() !== '') // filter out empty lines
+				.join('\n'); // join the lines back together
+
 	let dates = schoolEvents.split('\n')
     .map((line) => line.split('\t')[0])
 	let startDate = dates.reduce((a, b) => (a < b ? a : b));
