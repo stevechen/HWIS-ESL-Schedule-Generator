@@ -7,12 +7,12 @@ import moment from 'moment';
  * - add class countdown column
  * @param {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>} allClassDays - result from getAllClassDays
  * @param {Array <number>} weekdays - which days are class days
- * @param {String} type - CLIC, Comm, G9, H (High school)'.
+ * @param {String} targetType - CLIC, Comm, G9, H (High school)'.
  * @returns {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>}
  */
-export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') => {
+export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade='') => {
   //This should NOT happen
-  if (type === '' && grade === '') alert('Error: No type and no grade are selected!');
+  if (targetType === '' && grade === '') alert('Error: No type and no grade are selected!');
   const CLASS_DAYS = allClassDays.filter(day => weekdays.includes(day.weekday));
 
   const GRAD_DAYS = allClassDays.filter(day => day.description.includes('Graduation'));
@@ -20,10 +20,16 @@ export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') =>
 
 
   let typedClassDays = CLASS_DAYS.map(classDay => {
-    if ((type === 'CLIL' && classDay.type === 'Comm') || //mismatch junior type disgards the other type events
-        (type === 'Comm' || type === 'G9') && classDay.type === 'CLIL' || //G7/8 Comm or G9 disgards CLIL events
-        (type === 'Comm' && classDay.type === 'G9') ||//G7/8 Comm classes disgards G9 events
-        (type === 'H') && (classDay.type === 'CLIL' || classDay.type === 'Comm')) //H class disgards Junior events
+    const IS_TYPE_G7_G8_CLIL_VS_COMM = (targetType === 'CLIL' && classDay.type === 'Comm');
+    const IS_TYPE_G7_TO_G9_COMM_VS_CLIL = ((targetType === 'Comm' || targetType === 'G9') && classDay.type === 'CLIL');
+    const IS_TYPE_G7_G8_COMM_VS_G9 = (targetType === 'Comm' && classDay.type === 'G9');
+    const IS_TYPE_H_VS_G7_G8_CLIL_OR_G7_TO_G9_COMM = (targetType === 'H') && (classDay.type === 'CLIL' || classDay.type === 'Comm'|| classDay.type === 'G9' );
+
+
+    if (IS_TYPE_G7_G8_CLIL_VS_COMM || //mismatch junior type disgards the other type events
+        IS_TYPE_G7_TO_G9_COMM_VS_CLIL || //G7/8 Comm or G9 disgards CLIL events
+        IS_TYPE_G7_G8_COMM_VS_G9 ||//G7/8 Comm classes disgards G9 events
+        IS_TYPE_H_VS_G7_G8_CLIL_OR_G7_TO_G9_COMM) //H class disgards Junior events
     {
       classDay.description = '';
       classDay.note = '';
@@ -35,7 +41,7 @@ export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') =>
     if (classDay === null) return false;
 
     // Exclude days after graduationDay when type is 'G9'
-    if (type === 'G9' && GRAD_DAY && moment(classDay.date).isAfter(GRAD_DAY)) return false;
+    if (targetType === 'G9' && GRAD_DAY && moment(classDay.date).isAfter(GRAD_DAY)) return false;
 
     return true;
   });
@@ -44,10 +50,10 @@ export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') =>
   let examDays = allClassDays.filter(day => day.description === 'Exam');
 
   // add 'Oral Exam days for Comm classes
-  if (type!=='CLIL') {
+  if (targetType!=='CLIL') {
     //find the first exam date for each term
     const firstExamDays = 
-      (type === 'H')
+      (targetType === 'H')
       ? [examDays[4]]
       : GRAD_DAY
         ? [examDays[0], examDays[2]]
@@ -55,7 +61,7 @@ export const getClassDaysByType = (allClassDays, weekdays, type='', grade='') =>
     
     //sort in descending order so it would find the nearest none-off days prior to the exam date
     typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
-    if (type !=='H') firstExamDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
+    if (targetType !=='H') firstExamDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
 
     //optimize the search for the two class days before the next exam by allowing the loop to start from where it left off in the previous iteration
     let startIndex = 0;

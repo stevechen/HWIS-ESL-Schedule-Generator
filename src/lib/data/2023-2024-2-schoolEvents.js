@@ -21,15 +21,15 @@ export const schoolEvents =
 2024-05-14	Exam		
 2024-04-29	Off	Make-up holiday for School day	
 2024-04-27	School Anniversary		
-2024-04-17	Off	G9 Mock Exam	G9
-2024-04-16	Off	G9 Mock Exam	G9
+2024-04-17	Off	Mock Exam	G9
+2024-04-16	Off	Mock Exam	G9
 2024-04-05	Off	Spring Break	
 2024-04-04	Off	Spring Break	
 2024-03-29	Exam		
 2024-03-28	Exam		
 2024-02-28	Off	Peace Memorial Day	
-2024-02-22	Off	G9 Mock Exam	G9
-2024-02-21	Off	G9 Mock Exam	G9
+2024-02-22	Off	Mock Exam	G9
+2024-02-21	Off	Mock Exam	G9
 2024-02-17	School day (Make up)	for 2024/02/08 Chinese New Year	
 2024-02-16	Class starts at the 3rd period   		
 `;
