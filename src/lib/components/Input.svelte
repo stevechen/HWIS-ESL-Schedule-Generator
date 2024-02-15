@@ -22,18 +22,22 @@
 			.filter((index) => index !== null); // filter out null valuse created by unchecked checkboxes
 	}
 
-	/**@type {String}*/
+	/**@type {String | null}*/
 	let schoolEvents = '';
 
 	/**
-	 * @param {String}file
+	 * Load school events from a specific file.
+	 * @param {String} file - The name of the file to load.
+	 * @returns {Promise <String | null>} - The school events as a string, or null if an error occurred.
+	 * The returned string is processed by splitting it into lines (each line is a String),
+	 * filtering out empty lines, and then joining the lines back together.
 	 */
 	async function loadSchoolEvents(file) {
 		try {
 			const module = await import(`$lib/data/${file}-schoolEvents.js`);
 			return module.schoolEvents
 				.split('\n')
-				.filter((line) => line.trim() !== '')
+				.filter((/** @type {string} */ line) => line.trim() !== '')
 				.join('\n');
 		} catch (error) {
 			console.error(`Failed to load ${file}-schoolEvents.js`, error);
@@ -56,10 +60,6 @@
 	$: touched = Boolean(targetType) || Boolean($checkedDays.length) || Boolean(schoolEvents);
 
 	// Only call generateDates() if the inputs have been touched
-	$: {
-		touched = true;
-	}
-
 	$: if (touched) {
 		generateDates();
 		touched = false;
