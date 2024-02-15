@@ -13,10 +13,17 @@ import moment from 'moment';
 export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade='') => {
   //This should NOT happen
   if (targetType === '' && grade === '') alert('Error: No type and no grade are selected!');
+  // debugger;
   const CLASS_DAYS = allClassDays.filter(day => weekdays.includes(day.weekday));
 
-  const GRAD_DAYS = allClassDays.filter(day => day.description.includes('Graduation'));
-  const GRAD_DAY = GRAD_DAYS.length > 0 ? moment(GRAD_DAYS[0].date) : null;
+  /** @type {Object | null} */
+  let grad_day = null;
+
+  // gard_day is only valid if it's G9
+  if (targetType === 'G9') {
+    const GRAD_DAYS_ARRAY = allClassDays.filter(day => day.description.includes('Graduation'));
+    grad_day = GRAD_DAYS_ARRAY.length > 0 ? moment(GRAD_DAYS_ARRAY[0].date) : null;
+  };
 
 
   let typedClassDays = CLASS_DAYS.map(classDay => {
@@ -41,7 +48,7 @@ export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade=
     if (classDay === null) return false;
 
     // Exclude days after graduationDay when type is 'G9'
-    if (targetType === 'G9' && GRAD_DAY && moment(classDay.date).isAfter(GRAD_DAY)) return false;
+    if (targetType === 'G9' && grad_day && moment(classDay.date).isAfter(grad_day)) return false;
 
     return true;
   });
@@ -55,7 +62,7 @@ export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade=
     const firstExamDays = 
       (targetType === 'H')
       ? [examDays[4]]
-      : GRAD_DAY
+      : grad_day
         ? [examDays[0], examDays[2]]
         : [examDays[0], examDays[2], examDays[4]];
     
@@ -74,8 +81,10 @@ export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade=
       for (let index = startIndex; index < typedClassDays.length; index++) {
         let commClassDay = typedClassDays[index];
         let allClassDay = moment(commClassDay.date);
+        // debugger;
         // collect the date if it's earlier than the exam day and it's not an off day
         if (allClassDay.isBefore(examDate) && commClassDay.description !== 'Off') {
+          // debugger;
           // mark matching day as 'Oral Exam'
           typedClassDays[index].description = 'Oral Exam';
           daysMatched++;
