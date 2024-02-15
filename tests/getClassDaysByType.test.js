@@ -5,9 +5,12 @@ import { getClassDaysByType } from "$lib/getClassDaysByType";
 
 /** @type {Array <{ countdown: Number | null, date: String, weekday: Number, description: String, note: String, type: String }>} */
 let allClassDays;
+/** @type {Array <{ countdown: Number | null, date: String, weekday: Number, description: String, note: String, type: String }>} */
+let allClassDays2;
 
 beforeEach(() => {
   allClassDays = getDates(schoolEvents);
+  allClassDays2 = getDates(schoolEvents2);
 });
 
 it('gets the right weekday classes', () => {
@@ -78,8 +81,14 @@ it('G7/8 Comm class 6 Oral exam days inserted', () => {
   let classDays = getClassDaysByType(allClassDays, [2, 4], 'Comm');
    // 6 oral exams, 2 before each exam
   let oralExamDaysCount = classDays.filter(day => day.description === 'Oral Exam').length;
-
+  
   expect(oralExamDaysCount).toBe(6);
+
+  let classDays2 = getClassDaysByType(allClassDays2, [2, 5], 'Comm');
+   // 6 oral exams, 2 before each exam
+  let oralExamDaysCount2 = classDays2.filter(day => day.description === 'Oral Exam').length;
+  
+  expect(oralExamDaysCount2).toBe(6);
 });
 
 it('G9 class has the right number of Oral exam days inserted', () => {
