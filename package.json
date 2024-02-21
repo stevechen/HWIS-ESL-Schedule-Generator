@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "test": "vitest",
     "test:integration": "playwright test",
-    "test:unit": "vitest"
+    "test:unit": "vitest",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.28.1",
@@ -33,6 +34,8 @@
   },
   "type": "module",
   "dependencies": {
-    "moment": "^2.30.1"
+    "@vercel/analytics": "^1.2.2",
+    "moment": "^2.30.1",
+    "playwright": "^1.41.2"
   }
 }
