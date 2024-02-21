@@ -28,12 +28,14 @@ export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade=
 
   let typedClassDays = CLASS_DAYS.map(classDay => {
     const IS_TYPE_G7_G8_CLIL_VS_COMM = (targetType === 'CLIL' && classDay.type === 'Comm');
+    const IS_TYPE_G7_G8_CLIL_VS_G9 = (targetType === 'CLIL' && classDay.type === 'G9');
     const IS_TYPE_G7_TO_G9_COMM_VS_CLIL = ((targetType === 'Comm' || targetType === 'G9') && classDay.type === 'CLIL');
     const IS_TYPE_G7_G8_COMM_VS_G9 = (targetType === 'Comm' && classDay.type === 'G9');
     const IS_TYPE_H_VS_G7_G8_CLIL_OR_G7_TO_G9_COMM = (targetType === 'H') && (classDay.type === 'CLIL' || classDay.type === 'Comm'|| classDay.type === 'G9' );
 
 
     if (IS_TYPE_G7_G8_CLIL_VS_COMM || //mismatch junior type disgards the other type events
+        IS_TYPE_G7_G8_CLIL_VS_G9 || //G7/8 CLIL remove G9 events
         IS_TYPE_G7_TO_G9_COMM_VS_CLIL || //G7/8 Comm or G9 disgards CLIL events
         IS_TYPE_G7_G8_COMM_VS_G9 ||//G7/8 Comm classes disgards G9 events
         IS_TYPE_H_VS_G7_G8_CLIL_OR_G7_TO_G9_COMM) //H class disgards Junior events
