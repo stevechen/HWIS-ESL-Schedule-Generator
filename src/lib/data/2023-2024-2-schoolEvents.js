@@ -28,6 +28,7 @@ export const schoolEvents =
 2024-04-04	Off	Spring Break	
 2024-03-29	Exam		
 2024-03-28	Exam		
+2024-03-01	Off	Field trip	G9
 2024-02-28	Off	Peace Memorial Day	
 2024-02-22	Off	Mock Exam	G9
 2024-02-21	Off	Mock Exam	G9

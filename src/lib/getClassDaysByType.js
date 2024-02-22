@@ -4,65 +4,57 @@ import moment from 'moment';
  * Retrieves all class days for a class type. Need input from getAllClassDays() that contains class days mixed with event days.
  * - filters out event descriptions and notes if type is mismatched
  * - add oral exam days for all execpt CLIL (rules are different for g7/8, g9, H10/11)
- * - add class countdown column
+ * - remove days after graduation for G9
+ * - add a class countdown column
  * @param {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>} allClassDays - result from getAllClassDays
- * @param {Array <number>} weekdays - which days are class days
- * @param {String} targetType - CLIC, Comm, G9, H (High school)'.
- * @returns {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>}
+ * @param {Array <number>} weekdays - which weekdays are class days
+ * @param {String} selectedClassType - CLIC, Comm, G9, H (High school)'.
+ * @returns {Array <{countdown: Number|null, date: String, weekday: Number, description: String, note: String, type: String}>} - typed classes list
  */
-export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade='') => {
+export const getClassDaysByType = (allClassDays, weekdays, selectedClassType='', grade='') => {
   //This should NOT happen
-  if (targetType === '' && grade === '') alert('Error: No type and no grade are selected!');
-  // debugger;
-  const CLASS_DAYS = allClassDays.filter(day => weekdays.includes(day.weekday));
+  if (selectedClassType === '' && grade === '') alert('Error: No type and no grade are selected!');
+  const GENERIC_CLASS_DAYS = allClassDays.filter(day => weekdays.includes(day.weekday));
 
   /** @type {Object | null} */
   let grad_day = null;
 
-  // gard_day is only valid if it's G9
-  if (targetType === 'G9') {
+  // setup gard_day for G9
+  if (selectedClassType === 'G9') {
     const GRAD_DAYS_ARRAY = allClassDays.filter(day => day.description.includes('Graduation'));
     grad_day = GRAD_DAYS_ARRAY.length > 0 ? moment(GRAD_DAYS_ARRAY[0].date) : null;
   };
 
+  // compose classes according to selected class type
+  let typedClassDays = GENERIC_CLASS_DAYS.map(genericClassDay => {
+    const SHOULD_INCLUDE_DAY_ATTRIBUTE = (
+      genericClassDay.type === '' || //generic event
+      selectedClassType === genericClassDay.type || //matched type
+      selectedClassType === 'G9' && genericClassDay.type === 'Comm' //G9 should include Comm evnets
+    )? true: false;
 
-  let typedClassDays = CLASS_DAYS.map(classDay => {
-    const IS_TYPE_G7_G8_CLIL_VS_COMM = (targetType === 'CLIL' && classDay.type === 'Comm');
-    const IS_TYPE_G7_G8_CLIL_VS_G9 = (targetType === 'CLIL' && classDay.type === 'G9');
-    const IS_TYPE_G7_TO_G9_COMM_VS_CLIL = ((targetType === 'Comm' || targetType === 'G9') && classDay.type === 'CLIL');
-    const IS_TYPE_G7_G8_COMM_VS_G9 = (targetType === 'Comm' && classDay.type === 'G9');
-    const IS_TYPE_H_VS_G7_G8_CLIL_OR_G7_TO_G9_COMM = (targetType === 'H') && (classDay.type === 'CLIL' || classDay.type === 'Comm'|| classDay.type === 'G9' );
-
-
-    if (IS_TYPE_G7_G8_CLIL_VS_COMM || //mismatch junior type disgards the other type events
-        IS_TYPE_G7_G8_CLIL_VS_G9 || //G7/8 CLIL remove G9 events
-        IS_TYPE_G7_TO_G9_COMM_VS_CLIL || //G7/8 Comm or G9 disgards CLIL events
-        IS_TYPE_G7_G8_COMM_VS_G9 ||//G7/8 Comm classes disgards G9 events
-        IS_TYPE_H_VS_G7_G8_CLIL_OR_G7_TO_G9_COMM) //H class disgards Junior events
-    {
-      classDay.description = '';
-      classDay.note = '';
+    if( !SHOULD_INCLUDE_DAY_ATTRIBUTE) {
+      genericClassDay.description = '';
+      genericClassDay.note = '';
     }
 
-    return classDay;
+    return genericClassDay;
   }).filter(classDay => {
     // Exclude null days
     if (classDay === null) return false;
-
-    // Exclude days after graduationDay when type is 'G9'
-    if (targetType === 'G9' && grad_day && moment(classDay.date).isAfter(grad_day)) return false;
-
+    // Exclude days after graduationDay when 'G9' is selected
+    if (selectedClassType === 'G9' && grad_day && moment(classDay.date).isAfter(grad_day)) return false;
     return true;
   });
 
-  // get exam days
+  // get all exam days
   let examDays = allClassDays.filter(day => day.description === 'Exam');
 
   // add 'Oral Exam days for Comm classes
-  if (targetType!=='CLIL') {
+  if (selectedClassType!=='CLIL') {
     //find the first exam date for each term
     const firstExamDays = 
-      (targetType === 'H')
+      (selectedClassType === 'H')
       ? [examDays[4]]
       : grad_day
         ? [examDays[0], examDays[2]]
@@ -70,30 +62,26 @@ export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade=
     
     //sort in descending order so it would find the nearest none-off days prior to the exam date
     typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
-    if (targetType !=='H') firstExamDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
+    if (selectedClassType !=='H') firstExamDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
 
-    //optimize the search for the two class days before the next exam by allowing the loop to start from where it left off in the previous iteration
+    //Search for the two class days before the next exam by allowing the loop to start from where it left off in the previous iteration
     let startIndex = 0;
-    //loop through the first exam date
+    //loop through the first exam dates array
     firstExamDays.forEach(theDay => {
-      // if (grade === 'G7') console.log('theDay: ' + JSON.stringify(theDay));
       let examDate = moment(theDay.date);
       let daysMatched = 0;
-      //compare first eaxm date with all comm class days
+      //compare first eaxm date with all sorted Comm class days
       for (let index = startIndex; index < typedClassDays.length; index++) {
         let commClassDay = typedClassDays[index];
         let allClassDay = moment(commClassDay.date);
-        // debugger;
         // collect the date if it's earlier than the exam day and it's not an off day
         if (allClassDay.isBefore(examDate) && commClassDay.description !== 'Off') {
-          // debugger;
           // mark matching day as 'Oral Exam'
           typedClassDays[index].description = 'Oral Exam';
           daysMatched++;
-          // console.log(commClassDays[index].date)
         }
 
-        // if two days are marked
+        // if two days are marked, stop comparing
         if (daysMatched >= 2) {
           // set starting point for the next iteration
           startIndex += index;
@@ -125,8 +113,9 @@ export const getClassDaysByType = (allClassDays, weekdays, targetType='', grade=
 
   });
 
+  //Adding countdown
   typedClassDays.sort((a, b) => moment(a.date).diff(moment(b.date)));
-  // Find the index of the closest class day before the first exam day
+  // Find the index of the closest non-off class day before the first exam day
   let zeroIndex = typedClassDays.findIndex(day => moment(day.date).isBefore(moment(examDays[0].date)) && day.description !== 'Off');
 
   // Add class count
