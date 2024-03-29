@@ -456,10 +456,6 @@
 		}
 	}
 
-	h1 {
-		font-size: 1.3em;
-	}
-
 	fieldset {
 		border: none;
 		margin-bottom: 1em;

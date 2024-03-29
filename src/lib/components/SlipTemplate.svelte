@@ -29,9 +29,10 @@
 	<div class="assignment row">
 		<div>
 			<p class="assignment name">
-				The following assignment <span class="stress"
-					>[{$assignment.type.english}] {student.status.english}</span
-				> and will affect the ESL scores.
+				The following assignment
+				<span class="stress">
+					[{$assignment.type.english}] {student.status.english}
+				</span> and will affect the ESL scores.
 			</p>
 			<p class="assignment name chinese">
 				貴子弟ESL課程的功課 <span class="stress"
@@ -42,13 +43,6 @@
 	</div>
 	<div class="status row">
 		<div class="info">
-			<!-- <p>
-				The Assignment 未完成作業:
-				<span class="stress">
-					{$assignment.type.english} /
-					{$assignment.type.chinese}
-				</span>
-			</p> -->
 			<p class="stress zero">若未於補繳日前繳交，此功課成績為零。</p>
 			<p class="note">*功課內容請查 Google Classroom.</p>
 		</div>
