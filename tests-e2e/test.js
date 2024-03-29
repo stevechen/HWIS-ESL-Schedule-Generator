@@ -131,3 +131,42 @@ test('should update communication slips according to manual assignment type chan
   await expect(page.locator('span:text("Oral Exam"), span:text("期末考口試")')).toHaveCount(4);
 });
 
+test('Assign date and Late Date show up correctly on SlipTemplate cards', async ({ page, context }) => {
+  // Navigate to your page
+  await page.goto(`${BASE_URL}/commslip`);
+
+  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+
+  // Type in the Assign date and Late Date
+  const assignDate = '01/01';
+  const lateDate = '12/31';
+  await page.fill('#assigned', assignDate);
+  await page.fill('#late', lateDate);
+
+  // Assert that the dates are correctly displayed on the SlipTemplate cards
+  const assignDateOnCard = await page.$eval('#assigned', el => el.value);
+  const lateDateOnCard = await page.$eval('#late', el => el.value);
+  expect(assignDateOnCard).toBe(assignDate);
+  expect(lateDateOnCard).toBe(lateDate);
+
+  const assignDateInParagraph = await page.textContent('.date.assigned > p');
+  expect(assignDateInParagraph).toContain(assignDate);
+
+  const lateDateInParagraph = await page.textContent('.date.late > p');
+  expect(lateDateInParagraph).toContain(lateDate);
+});
+
+
+test('change status manually changes card status', async ({ page, context }) => {
+  // Navigate to your page
+  await page.goto(`${BASE_URL}/commslip`);
+
+  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+
+  await page.click('tr:nth-child(2) > td > select');
+  await page.selectOption('tr:nth-child(2) > td > select', { value: "1" });
+
+  await expect(page.locator('.slip:nth-child(2) .assignment.name:nth-child(1) span')).toContainText("wasn't completed");
+  
+});
+
