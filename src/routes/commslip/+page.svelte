@@ -43,7 +43,7 @@
 		const assignmentType = ASSIGNMENTS_TYPES.find((type) => type.type === selectedType);
 
 		if (assignmentType) {
-			assignmentInput.set({
+			assignmentRadio.set({
 				type: assignmentType.type,
 				english: assignmentType.english,
 				chinese: assignmentType.chinese
@@ -88,8 +88,8 @@
 	let className;
 
 	//default to passport
-	let assignmentInput = writable(ASSIGNMENTS_TYPES.find((type) => type.type === 'passport'));
-	$: selectedTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === $assignmentInput.type);
+	let assignmentRadio = writable(ASSIGNMENTS_TYPES.find((type) => type.type === 'passport'));
+	$: selectedTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === $assignmentRadio.type);
 	$: (className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num} ${$ESLClass.type}`),
 		(assignedDateFormatted = processDate($assignedInput)),
 		(dueDateFormatted = processDate($dueInput)),
@@ -180,10 +180,11 @@
 	});
 
 	/**
-	 *
-	 * @param {Number} index
-	 * @param {String} key
-	 * @param {Number} value
+	 * Updates the table data with a new value for a given student and key.
+	 * This function assumes the `students` array contains objects with a known structure.
+	 * @param {number} index - The index of the student in the table data array.
+	 * @param {string} key - The key representing the property to update, which can include dot notation for nested properties.
+	 * @param {*} value - The new value to set for the specified key.
 	 */
 	function updateTableData(index, key, value) {
 		tableData.update((students) => {
@@ -203,33 +204,17 @@
 	$: $tableData = $students; // update tableData whenever students changes
 
 	/**
-	 *
 	 * @param {string} studentId
 	 * @param {string} newStatusCode
 	 */
 	function handleStatusChange(studentId, newStatusCode) {
 		$tableData = $tableData.map((student) => {
 			if (student.id === studentId) {
-				const status = STATUS.find((status) => status.code === Number(newStatusCode));
+				let status = STATUS.find((status) => status.code === Number(newStatusCode));
 				return { ...student, status: status ? status.text : student.status };
 			}
 			return student;
 		});
-	}
-
-	//enable tab keys insertion to create a new field
-	function handleKeyDown(e) {
-		if (e.key === 'Tab') {
-			e.preventDefault();
-			const start = e.target.selectionStart;
-			const end = e.target.selectionEnd;
-
-			// set textarea value to: text before caret + tab + text after caret
-			e.target.value = e.target.value.substring(0, start) + '\t' + e.target.value.substring(end);
-
-			// put caret at right position again
-			e.target.selectionStart = e.target.selectionEnd = start + 1;
-		}
 	}
 
 	/**
@@ -279,7 +264,7 @@
 <main class="control">
 	<!-- <h1>Communication Slip Generator</h1> -->
 	<fieldset class="classInfo">
-		<legend>Grade:</legend>
+		<legend>Class:</legend>
 		<div>
 			{#each GRADES as grade}
 				<input type="radio" id={grade} bind:group={$ESLClass.grade} value={grade} />
@@ -313,7 +298,7 @@
 		<legend>Type:</legend>
 		{#each ASSIGNMENTS_TYPES as type}
 			{#if (($ESLClass.type === 'CLIL' && type.type === 'workbook') || $ESLClass.type === 'Comm') && !($ESLClass.grade === 'G9' && type.type === 'workbook')}
-				<input type="radio" id={type.type} bind:group={$assignmentInput.type} value={type.type} />
+				<input type="radio" id={type.type} bind:group={$assignmentRadio.type} value={type.type} />
 				<label for={type.type}>{type.english}</label>
 			{/if}
 		{/each}
@@ -341,7 +326,6 @@
 			cols="30"
 			rows="10"
 			bind:value={$studentsInput}
-			on:keydown={(e) => handleKeyDown(e)}
 			on:paste={(e) => handlePaste(e)}
 		></textarea>
 	</fieldset>
@@ -363,24 +347,28 @@
 				<tr>
 					<td
 						><input
+							class="id"
 							bind:value={student.id}
 							on:input={(e) => updateTableData(i, 'id', e.target.value)}
 						/></td
 					>
 					<td
 						><input
+							class="chinese_name"
 							bind:value={student.name.chinese}
 							on:input={(e) => updateTableData(i, 'name.chinese', e.target.value)}
 						/></td
 					>
 					<td
 						><input
+							class="english_name"
 							bind:value={student.name.english}
 							on:input={(e) => updateTableData(i, 'name.english', e.target.value)}
 						/></td
 					>
 					<td
 						><input
+							class="chinese_class"
 							bind:value={student.cClass}
 							on:input={(e) => updateTableData(i, 'cClass', e.target.value)}
 						/></td
