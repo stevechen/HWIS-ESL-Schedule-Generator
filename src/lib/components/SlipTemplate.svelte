@@ -17,13 +17,14 @@
 	<div class="studentInfo row">
 		<div>
 			<p class="id">Student ID 學號: {student.id}</p>
-			<p class="chinese class">Chinese Class 班級: {student.cClass}</p>
+			<p class="chinese_class">Chinese Class 班級: {student.cClass}</p>
 		</div>
 		<div>
 			<p class="name">
-				Chinese / English Name 姓名: {student.name.chinese} / {student.name.english}
+				Chinese / English Name 姓名: <span class="chinese_name">{student.name.chinese}</span> /
+				<span class="english_name">{student.name.english}</span>
 			</p>
-			<p class="esl class">ESL Class ESL 組別: {$assignment.esl}</p>
+			<p class="esl_class">ESL Class ESL 組別: {$assignment.esl}</p>
 		</div>
 	</div>
 	<div class="assignment row">
@@ -63,7 +64,6 @@
 			<img src="/sig.png" alt="" />
 		</div>
 		<div class="parent signature stress">
-			<!-- <p>Parent's signature</p> -->
 			<p class="title chinese">家長簽名 <span class="pen">🖊️</span></p>
 		</div>
 	</div>
