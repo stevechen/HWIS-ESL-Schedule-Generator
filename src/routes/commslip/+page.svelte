@@ -1,5 +1,6 @@
 <script>
 	import { writable, derived } from 'svelte/store';
+	import TabBar from '$lib/components/TabBar.svelte';
 	// import Table from 'svelte-table';
 	import moment from 'moment';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
@@ -42,7 +43,11 @@
 		const assignmentType = ASSIGNMENTS_TYPES.find((type) => type.type === selectedType);
 
 		if (assignmentType) {
-			assignmentInput.set(assignmentType.type);
+			assignmentInput.set({
+				type: assignmentType.type,
+				english: assignmentType.english,
+				chinese: assignmentType.chinese
+			});
 		}
 	}
 
@@ -84,7 +89,7 @@
 
 	//default to passport
 	let assignmentInput = writable(ASSIGNMENTS_TYPES.find((type) => type.type === 'passport'));
-
+	$: selectedTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === $assignmentInput.type);
 	$: (className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num} ${$ESLClass.type}`),
 		(assignedDateFormatted = processDate($assignedInput)),
 		(dueDateFormatted = processDate($dueInput)),
@@ -92,7 +97,10 @@
 		assignment.update((value) => ({
 			...value,
 			esl: className,
-			type: $assignmentInput,
+			type: {
+				english: selectedTypeDetails.english,
+				chinese: selectedTypeDetails.chinese
+			},
 			assigned: assignedDateFormatted,
 			due: dueDateFormatted,
 			late: lateDateFormatted
@@ -267,8 +275,9 @@
 	}
 </script>
 
+<TabBar />
 <main class="control">
-	<h1>Communication Slip Generator</h1>
+	<!-- <h1>Communication Slip Generator</h1> -->
 	<fieldset class="classInfo">
 		<legend>Grade:</legend>
 		<div>
@@ -304,7 +313,7 @@
 		<legend>Type:</legend>
 		{#each ASSIGNMENTS_TYPES as type}
 			{#if (($ESLClass.type === 'CLIL' && type.type === 'workbook') || $ESLClass.type === 'Comm') && !($ESLClass.grade === 'G9' && type.type === 'workbook')}
-				<input type="radio" id={type.type} bind:group={$assignmentInput} value={type.type} />
+				<input type="radio" id={type.type} bind:group={$assignmentInput.type} value={type.type} />
 				<label for={type.type}>{type.english}</label>
 			{/if}
 		{/each}

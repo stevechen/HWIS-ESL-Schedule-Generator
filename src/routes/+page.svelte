@@ -1,5 +1,6 @@
 <script>
 	import Input from '$lib/components/Input.svelte';
+	import TabBar from '$lib/components/TabBar.svelte';
 
 	let generatedDatesOutput = '';
 	/**
@@ -12,6 +13,7 @@
 </script>
 
 <title>HWIS Schedule Generator</title>
+<TabBar />
 <main>
 	<section id="input">
 		<Input on:generate={handleMessage} />
