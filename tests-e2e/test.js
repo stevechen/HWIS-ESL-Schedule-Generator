@@ -131,7 +131,7 @@ test('should update communication slips according to manual assignment type chan
   await expect(page.locator('span:text("Oral Exam"), span:text("期末考口試")')).toHaveCount(4);
 });
 
-test('Assign date and Late Date show up correctly on SlipTemplate cards', async ({ page, context }) => {
+test('should update assigned date and late date on slips', async ({ page, context }) => {
   // Navigate to your page
   await page.goto(`${BASE_URL}/commslip`);
 
@@ -156,17 +156,28 @@ test('Assign date and Late Date show up correctly on SlipTemplate cards', async 
   expect(lateDateInParagraph).toContain(lateDate);
 });
 
-
-test('change status manually changes card status', async ({ page, context }) => {
+test('should update slip fields with manual data change', async ({ page, context }) => {
   // Navigate to your page
   await page.goto(`${BASE_URL}/commslip`);
 
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
 
+  await page.fill('tr:nth-child(2) .id', '5555555');
+  await expect(page.locator('.slip:nth-child(2) .id')).toContainText("5555555");
+
+  await page.fill('tr:nth-child(2) .chinese_name', '王八');
+  await expect(page.locator('.slip:nth-child(2) .chinese_name')).toContainText("王八");
+
+  await page.fill('tr:nth-child(2) .english_name', 'Mary Jane');
+  await expect(page.locator('.slip:nth-child(2) .english_name')).toContainText("Mary Jane");
+
+  await page.fill('tr:nth-child(2) .chinese_class', 'J112');
+  await expect(page.locator('.slip:nth-child(2) .chinese_class')).toContainText("J112");
+
   await page.click('tr:nth-child(2) > td > select');
   await page.selectOption('tr:nth-child(2) > td > select', { value: "1" });
 
   await expect(page.locator('.slip:nth-child(2) .assignment.name:nth-child(1) span')).toContainText("wasn't completed");
-  
 });
+
 
