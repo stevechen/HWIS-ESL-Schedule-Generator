@@ -155,7 +155,8 @@
 					id: '',
 					name: { english: '', chinese: '' },
 					cClass: '',
-					status: STATUS[0].text
+					status: STATUS[0].text,
+					selected: true
 				};
 
 				studentDataArray.forEach((data) => {
@@ -171,7 +172,8 @@
 				});
 				return student;
 			})
-			.filter((student) => student !== null);
+			.filter((student) => student !== null)
+			.sort((a, b) => a.name.english.localeCompare(b.name.english)); // Sort students by their English name
 	});
 
 	/**
@@ -283,6 +285,7 @@
 		{#if $tableData.length}
 			<thead>
 				<tr>
+					<th>✓</th>
 					<th>ID</th>
 					<th>C. Name</th>
 					<th>English Name</th>
@@ -294,35 +297,34 @@
 		<tbody>
 			{#each $tableData as student, i (student.id)}
 				<tr>
-					<td>
+					<td class="student-checkbox">
+						<input type="checkbox" bind:checked={student.selected} />
+					</td>
+					<td class="student-id">
 						<input
-							class="student-id"
 							bind:value={student.id}
 							on:input={(e) => updateTableData(i, 'id', e.target.value)}
 						/>
 					</td>
-					<td>
+					<td class="chinese-name">
 						<input
-							class="chinese-name"
 							bind:value={student.name.chinese}
 							on:input={(e) => updateTableData(i, 'name.chinese', e.target.value)}
 						/>
 					</td>
-					<td>
+					<td class="english-name">
 						<input
-							class="english-name"
 							bind:value={student.name.english}
 							on:input={(e) => updateTableData(i, 'name.english', e.target.value)}
 						/>
 					</td>
-					<td>
+					<td class="chinese-class">
 						<input
-							class="chinese-class"
 							bind:value={student.cClass}
 							on:input={(e) => updateTableData(i, 'cClass', e.target.value)}
 						/>
 					</td>
-					<td>
+					<td class="status">
 						<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
 							{#each STATUS as status}
 								<option value={status.code} selected={status.code === student.status.code}>
@@ -385,11 +387,8 @@
 </main>
 
 <div id="b5-print" class="b5-size">
-	<!-- {#each $students as student, i} -->
-	{#each $tableData as student, i}
-		{#if student}
-			<SlipTemplate {student} />
-		{/if}
+	{#each $tableData.filter((student) => student.selected) as student, i}
+		<SlipTemplate {student} />
 	{/each}
 </div>
 
@@ -399,7 +398,6 @@
 			Geneva, Verdana, sans-serif;
 		/* width: 182mm; */
 		width: 172mm;
-
 		margin: 0 auto;
 		padding: 0.5em;
 		border: 1px dotted gray;
@@ -407,9 +405,6 @@
 	}
 
 	.b5-size {
-		/* ISO B5 */
-		/* width: 176mm; */
-		/* height: 250mm; */
 		/* JIS B5 */
 		width: 182mm;
 		/* height: 257mm; */
@@ -517,10 +512,8 @@
 	}
 
 	table {
-		/* width: 100%; Make the table fill the container */
 		border-collapse: collapse; /* Remove space between borders */
-		margin-left: 2.5em;
-		/* margin: 0 auto; */
+		margin-left: 1.5em;
 	}
 
 	th {
@@ -535,28 +528,28 @@
 		padding: 4px; /* Padding inside cells */
 	}
 
-	td:nth-of-type(1) {
-		width: 4em;
+	td.student-id {
+		width: 3.5em;
 	}
 
-	td:nth-of-type(2) {
+	td.chinese-name {
 		width: 5.5em;
 	}
 
-	td:nth-of-type(3) {
+	td.english-name {
 		width: 10em;
 	}
 
-	td:nth-of-type(4) {
+	td.chinese-class {
 		width: 3.5em;
 	}
 
 	td input {
 		width: 100%; /* Make input fill the cell */
-		border: none; /* Remove input border */
-		background-color: transparent; /* Remove background */
-		padding: 0; /* Remove padding */
-		margin: 0; /* Remove margin */
+		border: none;
+		background-color: transparent;
+		padding: 0;
+		margin: 0;
 		box-sizing: border-box; /* Include padding and border in the element's size */
 	}
 
