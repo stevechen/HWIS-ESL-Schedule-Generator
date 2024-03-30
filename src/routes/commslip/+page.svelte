@@ -1,10 +1,9 @@
 <script>
 	import { writable, derived } from 'svelte/store';
-	import TabBar from '$lib/components/TabBar.svelte';
-	// import Table from 'svelte-table';
-	import moment from 'moment';
-	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 	import { assignment } from '$lib/stores/commslip';
+	import moment from 'moment';
+	import TabBar from '$lib/components/TabBar.svelte';
+	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 
 	let showHints = true; // Hints are visible by default
 	//default
@@ -26,30 +25,7 @@
 		num: '2'
 	});
 
-	const GRADES = ['G7', 'G8', 'G9'];
 	const CLASS_TYPE = ['Comm', 'CLIL'];
-
-	$: {
-		// automatically switch to Comm if G9 is chosen
-		if ($ESLClass.grade === 'G9') {
-			ESLClass.update((value) => ({ ...value, type: 'Comm' }));
-		}
-
-		//auto default assignment type default selection based on class type
-		const assignmentDefaultTypeMap = { CLIL: 'workbook', Comm: 'passport' };
-		const ESLClassType = $ESLClass.type;
-
-		const selectedType = assignmentDefaultTypeMap[ESLClassType];
-		const assignmentType = ASSIGNMENTS_TYPES.find((type) => type.type === selectedType);
-
-		if (assignmentType) {
-			assignmentRadio.set({
-				type: assignmentType.type,
-				english: assignmentType.english,
-				chinese: assignmentType.chinese
-			});
-		}
-	}
 
 	/**
 	 * @typedef {Object} AssignmentType
@@ -106,26 +82,50 @@
 			late: lateDateFormatted
 		}));
 
+	$: if ($ESLClass.type === 'CLIL' || $ESLClass.type === 'Comm') {
+		const newType = $ESLClass.type === 'CLIL' ? 'workbook' : 'passport';
+		const assignmentTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === newType);
+
+		assignment.update((currentAssignment) => ({
+			...currentAssignment,
+			type: assignmentTypeDetails
+		}));
+	}
+
+	$: {
+		// automatically switch to Comm if G9 is chosen
+		if ($ESLClass.grade === 'G9') {
+			ESLClass.update((value) => ({ ...value, type: 'Comm' }));
+		}
+
+		//auto default assignment type default selection based on class type
+		const assignmentDefaultTypeMap = { CLIL: 'workbook', Comm: 'passport' };
+		const ESLClassType = $ESLClass.type;
+
+		const selectedType = assignmentDefaultTypeMap[ESLClassType];
+		const assignmentType = ASSIGNMENTS_TYPES.find((type) => type.type === selectedType);
+
+		if (assignmentType) {
+			assignmentRadio.set({
+				type: assignmentType.type,
+				english: assignmentType.english,
+				chinese: assignmentType.chinese
+			});
+		}
+	}
+
 	let assignedInput = writable('');
 
-	/**
-	 * @type {string | null}
-	 */
+	/** @type {string | null} */
 	let assignedDateFormatted;
 	let dueInput = writable('');
-	/**
-	 * @type {string | null}
-	 */
+	/** @type {string | null}*/
 	let dueDateFormatted;
 	let lateInput = writable('');
-	/**
-	 * @type {string | null}
-	 */
+	/** @type {string | null}*/
 	let lateDateFormatted;
 
-	/**
-	 * @param {moment.MomentInput} input
-	 */
+	/** @param {moment.MomentInput} input */
 	function processDate(input) {
 		const date = moment(input).format('MM/DD');
 		return date === 'Invalid date' ? null : date;
@@ -169,11 +169,6 @@
 						student.name.english = data;
 					}
 				});
-
-				// if (!student.id || !student.name.english || !student.cClass) {
-				// 	let isValid = false;
-				// 	let errorMessage = 'Invalid data format';
-				// }
 				return student;
 			})
 			.filter((student) => student !== null);
@@ -217,29 +212,22 @@
 		});
 	}
 
-	/**
-	 * Handles the paste event and processes the pasted text.
-	 * @param {ClipboardEvent} e - The paste event object.
-	 */
+	let grade = 'G7?';
+	/** @param {ClipboardEvent} e - The paste event object. */
 	function handlePaste(e) {
 		e.preventDefault(); // Prevent the default paste action
 
 		// Ensure e.target is an HTMLElement using type assertion with JSDoc
-		if (!(e.target instanceof HTMLElement)) {
-			return; // Exit the function if e.target is not an HTMLElement
-		}
+		if (!(e.target instanceof HTMLElement)) return; // Exit the function if e.target is not an HTMLElement
 
 		// Get the pasted text from the clipboard
 		const pastedText = (e.clipboardData || window.clipboardData).getData('text');
 
 		// Strip blank lines from the pasted text
-
 		const modifiedText = pastedText
-			.split('\n') // Split the text into lines
+			.split('\n')
 			.filter(
-				/**
-				 * @param {string} line
-				 */
+				/** @param {string} line */
 				(line) => line.trim() !== ''
 			) // Filter out empty lines
 			.join('\n'); // Join the lines back together without appending default status code
@@ -251,26 +239,105 @@
 		const today = moment().format('MM/DD'); // Format today's date as needed
 		dueInput.set(today); // Set the dueInput store with today's date
 
-		// Hide the textarea after pasting
-
+		// Hide the textarea & hints after pasting
 		e.target.style.display = 'none';
-
-		// Hide the hints
 		showHints = false;
+
+		grade = determineGradeFromText(pastedText);
+		ESLClass.update((current) => ({ ...current, grade }));
+	}
+
+	/** @param {string} pastedText*/
+	function determineGradeFromText(pastedText) {
+		const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
+		if (gradeMatch) {
+			const matchCode = Number(gradeMatch[0].charAt(1));
+			if (matchCode >= 1 && matchCode <= 3) {
+				return `G${matchCode + 6}`;
+			}
+		}
+		return 'Unknown Grade'; // Return a default value or handle the case differently
 	}
 </script>
 
 <TabBar />
 <main class="control">
 	<!-- <h1>Communication Slip Generator</h1> -->
-	<fieldset class="classInfo">
-		<legend>Class:</legend>
-		<div>
-			{#each GRADES as grade}
-				<input type="radio" id={grade} bind:group={$ESLClass.grade} value={grade} />
-				<label for={grade}>{grade}</label>
+	<fieldset class="students">
+		<legend>
+			<span class="title">Students:</span>
+			<span class="hints {showHints ? '' : 'hide'}">
+				{`Paste Excel student rows with fields: [ID, Chinese Name, English Name, Chinese Class]`}
+			</span>
+		</legend>
+		<textarea
+			id="sList"
+			cols="30"
+			rows="10"
+			bind:value={$studentsInput}
+			on:paste={(e) => handlePaste(e)}
+		></textarea>
+	</fieldset>
+
+	<table class="student-table">
+		{#if $tableData.length}
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>C. Name</th>
+					<th>English Name</th>
+					<th>C. Class</th>
+					<th>Status</th>
+				</tr>
+			</thead>
+		{/if}
+		<tbody>
+			{#each $tableData as student, i (student.id)}
+				<tr>
+					<td>
+						<input
+							class="student-id"
+							bind:value={student.id}
+							on:input={(e) => updateTableData(i, 'id', e.target.value)}
+						/>
+					</td>
+					<td>
+						<input
+							class="chinese-name"
+							bind:value={student.name.chinese}
+							on:input={(e) => updateTableData(i, 'name.chinese', e.target.value)}
+						/>
+					</td>
+					<td>
+						<input
+							class="english-name"
+							bind:value={student.name.english}
+							on:input={(e) => updateTableData(i, 'name.english', e.target.value)}
+						/>
+					</td>
+					<td>
+						<input
+							class="chinese-class"
+							bind:value={student.cClass}
+							on:input={(e) => updateTableData(i, 'cClass', e.target.value)}
+						/>
+					</td>
+					<td>
+						<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
+							{#each STATUS as status}
+								<option value={status.code} selected={status.code === student.status.code}>
+									{status.text.english}
+								</option>
+							{/each}
+						</select>
+					</td>
+				</tr>
 			{/each}
-		</div>
+		</tbody>
+	</table>
+	<fieldset class="class-info">
+		<div class="legend">Class:</div>
+		<div>{grade}</div>
 		<div>
 			<input type="radio" id="ele" bind:group={$ESLClass.level} value="Elementary" />
 			<label for="ele">Ele</label>
@@ -294,8 +361,8 @@
 		</div>
 	</fieldset>
 
-	<fieldset>
-		<legend>Type:</legend>
+	<fieldset class="assignment-type">
+		<div class="legend">Type:</div>
 		{#each ASSIGNMENTS_TYPES as type}
 			{#if (($ESLClass.type === 'CLIL' && type.type === 'workbook') || $ESLClass.type === 'Comm') && !($ESLClass.grade === 'G9' && type.type === 'workbook')}
 				<input type="radio" id={type.type} bind:group={$assignmentRadio.type} value={type.type} />
@@ -305,7 +372,7 @@
 	</fieldset>
 
 	<fieldset class="dates">
-		<legend>Dates:</legend>
+		<div class="legend">Dates:</div>
 		<label class={`${!$assignment.assigned ? 'warning' : ''}`} for="assigned">Assigned: </label>
 		<input type="text" name="" id="assigned" bind:value={$assignedInput} />
 		<label class={`${!$assignment.due ? 'warning' : ''}`} for="due">Due: </label>
@@ -313,81 +380,6 @@
 		<label class={`${!$assignment.late ? 'warning' : ''}`} for="late">Late: </label>
 		<input type="text" name="" id="late" bind:value={$lateInput} />
 	</fieldset>
-
-	<fieldset class="students">
-		<legend>
-			Students:
-			<span class="hints {showHints ? '' : 'hide'}">
-				{`Copy data from Excel: [ID, Chinese Name, English Name, Chinese Class] separate by a tab.`}
-			</span>
-		</legend>
-		<textarea
-			id="sList"
-			cols="30"
-			rows="10"
-			bind:value={$studentsInput}
-			on:paste={(e) => handlePaste(e)}
-		></textarea>
-	</fieldset>
-
-	<table>
-		{#if $tableData.length}
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>C. Name</th>
-					<th>English Name</th>
-					<th>C. Class</th>
-					<th>Status</th>
-				</tr>
-			</thead>
-		{/if}
-		<tbody>
-			{#each $tableData as student, i (student.id)}
-				<tr>
-					<td
-						><input
-							class="id"
-							bind:value={student.id}
-							on:input={(e) => updateTableData(i, 'id', e.target.value)}
-						/></td
-					>
-					<td
-						><input
-							class="chinese_name"
-							bind:value={student.name.chinese}
-							on:input={(e) => updateTableData(i, 'name.chinese', e.target.value)}
-						/></td
-					>
-					<td
-						><input
-							class="english_name"
-							bind:value={student.name.english}
-							on:input={(e) => updateTableData(i, 'name.english', e.target.value)}
-						/></td
-					>
-					<td
-						><input
-							class="chinese_class"
-							bind:value={student.cClass}
-							on:input={(e) => updateTableData(i, 'cClass', e.target.value)}
-						/></td
-					>
-					<td>
-						<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
-							{#each STATUS as status}
-								<option value={status.code} selected={status.code === student.status.code}>
-									{status.text.english}
-								</option>
-							{/each}
-						</select>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-
-	<br />
 
 	<button id="print" on:click={() => window.print()}>Print</button>
 </main>
@@ -427,9 +419,6 @@
 
 	@media print {
 		.b5-size {
-			/* ISO B5 */
-			/* width: 176mm; */
-			/* height: 250mm; */
 			/* JIS B5 */
 			width: 182mm;
 			/* height: 257mm; */
@@ -437,7 +426,6 @@
 			display: flex;
 			flex-flow: column;
 		}
-
 		.control {
 			display: none;
 			visibility: hidden;
@@ -446,34 +434,67 @@
 
 	fieldset {
 		border: none;
-		margin-bottom: 1em;
+		margin-bottom: 0.5em;
 	}
 
-	.classInfo {
-		display: table;
-		border-collapse: collapse;
+	.student-table {
+		margin-bottom: 0.5em;
 	}
 
-	.classInfo > div {
-		display: table-cell;
-		/* border: 1px solid gray; */
-		padding: 0 0.5em;
+	.class-info {
+		display: flex;
+		flex-direction: row;
+		justify-content: left;
+		align-items: left;
+	}
+
+	.class-info > div:not(.legend) {
 		border-right: 1px solid gray;
+		padding: 0 0.5em;
 	}
 
-	.classInfo > div:last-of-type {
+	.class-info .legend {
+		font-weight: 600;
+	}
+
+	.class-info > div:last-of-type {
 		border-right: none;
 	}
 
-	.classInfo input[type='text'] {
+	.class-info input[type='text'] {
 		width: 2em;
 	}
 
+	.assignment-type,
+	.dates {
+		display: flex;
+		flex-direction: row;
+		justify-content: left;
+		align-items: left;
+	}
+
+	.assignment-type .legend,
+	.dates .legend {
+		font-weight: 600;
+	}
+
+	.assignment-type > label {
+		padding-right: 0.5em;
+	}
+
+	.dates > label {
+		padding-left: 1em;
+		padding-right: 0.5em;
+	}
 	.dates input {
 		margin-right: 1em;
 		width: 6em;
 	}
 
+	.students span.title {
+		font-size: 1em;
+		font-weight: 600;
+	}
 	.students span {
 		font-size: 0.7em;
 	}
