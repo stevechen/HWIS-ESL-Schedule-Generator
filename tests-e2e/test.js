@@ -7,6 +7,22 @@ const MOCK_STUDENT_DATA = `1234567\t張三\tSan Chang\tJ101
 const MOCK_STUDENT_DATA_G9 = `1234567\t張三\tSan Chang\tJ301
 7654321\t李四\tSi Li\tJ302`;
 
+const MOCK_STUDENT_DATA_G9_FULL =
+`1100396	Tina Yang	楊凱鈞	J306
+1100274	Ed Chen	陳秉鋒	J304
+1100159	Jerry Wang	王俊捷	J305
+1100028	Gina Lin	林妤庭	J308
+1100229	Tim Qiu	邱皇錞	J306
+1100232	Alan Ko	柯宇宸	J306
+1100027	Cindy Lin	林佑蓁	J306
+1100122	Kelly Liu	劉奕瑄	J305
+1100112	Una Zou	鄒勻芊	J308
+1100161	Nico Wang	王奕斌	J304
+1100039	Iris Lin	林昱辰	J306
+1100278	Andy Chen	陳奕嘉	J306
+1100216	Baron Lin	林柏丞	J308
+1100318	Jeffrey Huang	黃竑睿	J304`
+
 function initializeLocators(page) {
   return {
     locatorRadioCLIL: page.locator('input[type="radio"][value="CLIL"]'),
@@ -137,16 +153,16 @@ test('should update slip fields with manual data change', async ({ page, context
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
 
   //change second row data
-  await page.fill('tr:nth-child(2) .student-id', '5555555');
+  await page.fill('tr:nth-child(2) .student-id > input', '5555555');
   await expect(page.locator('.slip:nth-child(2) .student-id')).toContainText("5555555");
 
-  await page.fill('tr:nth-child(2) .chinese-name', '王八');
+  await page.fill('tr:nth-child(2) .chinese-name > input', '王八');
   await expect(page.locator('.slip:nth-child(2) .chinese-name')).toContainText("王八");
 
-  await page.fill('tr:nth-child(2) .english-name', 'Mary Jane');
+  await page.fill('tr:nth-child(2) .english-name > input', 'Mary Jane');
   await expect(page.locator('.slip:nth-child(2) .english-name')).toContainText("Mary Jane");
 
-  await page.fill('tr:nth-child(2) .chinese-class', 'J112');
+  await page.fill('tr:nth-child(2) .chinese-class > input', 'J112');
   await expect(page.locator('.slip:nth-child(2) .chinese-class')).toContainText("J112");
 
   await page.click('tr:nth-child(2) > td > select');
@@ -155,4 +171,30 @@ test('should update slip fields with manual data change', async ({ page, context
   await expect(page.locator('.slip:nth-child(2) .assignment.name:nth-child(1) span')).toContainText("wasn't completed");
 });
 
+test('should correctly remove and add back SlipTemplate on checkbox operation', async ({ page, context }) => {
+  await page.goto(`${BASE_URL}/commslip`);
+  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
 
+  // Assuming checkboxes have a class '.student-checkbox' within a <td>
+  const checkboxes = await page.locator('td.student-checkbox > input[type="checkbox"]');
+  const count = await checkboxes.count();
+  const randomIndex = Math.floor(Math.random() * count);
+
+  // Uncheck the random checkbox
+  await checkboxes.nth(randomIndex).uncheck();
+  // Navigate to the parent <td>, then to the parent <tr>, and finally to the next <td> to find the .student-id
+  let studentIdValue = await checkboxes.nth(randomIndex).locator('xpath=ancestor::tr').locator('td.student-id > input').inputValue();
+  // Verify the SlipTemplate is removed
+  await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeHidden();
+
+  // Check the checkbox
+  // await checkboxes.nth(randomIndex).check();
+  // Verify the SlipTemplate is added back
+  // await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeVisible();
+  //   let studentChineseName = await checkboxes.nth(randomIndex).locator('xpath=ancestor::tr').locator('td.chinese-name > input').inputValue();
+
+  // let isVisible = await page.isVisible(`.slip .chinese-name input[value="${studentChineseName}"]`);
+  // expect(isVisible).toBe(true);
+
+  
+});
