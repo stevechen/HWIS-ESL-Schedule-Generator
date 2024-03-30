@@ -1,8 +1,6 @@
 <script>
 	import { assignment } from '$lib/stores/commslip';
-	// import '@fortawesome/fontawesome-free/css/all.min.css';
 	export let student = {
-		//default
 		id: '',
 		name: { english: '', chinese: '' },
 		cClass: '',

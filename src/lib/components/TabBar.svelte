@@ -7,25 +7,41 @@
 	$: currentPage = get(page).url.pathname;
 </script>
 
-<nav class="tab-bar">
-	<a href="/" class:active={currentPage === '/'}>Schedule Generator</a>
-	<a href="/commslip" class:active={currentPage === '/commslip'}>Communication Slip Generator</a>
+<nav class="tab-bar no-print">
+	<a href="/" class:active={currentPage === '/'}>Schedule</a>
+	<a href="/commslip" class:active={currentPage === '/commslip'}>Communication Slip</a>
 </nav>
 
 <style>
+	@media print {
+		.no-print {
+			display: none;
+			visibility: hidden;
+			height: 0;
+			overflow: hidden;
+		}
+	}
 	.tab-bar {
 		display: flex;
-		justify-content: space-around;
-		padding: 10px;
+		justify-content: center;
 		background-color: #f0f0f0;
-		margin-bottom: 5px;
+		margin-bottom: 3px;
 	}
 	.tab-bar a {
 		text-decoration: none;
-		color: black;
+		color: darkgray;
 		font-weight: bold;
+		padding: 0.5em 2em;
 	}
+
+	.tab-bar a:not(.active):hover {
+		color: white;
+		background-color: darkred;
+		cursor: pointer;
+	}
+
 	.tab-bar .active {
-		color: blue;
+		color: black;
+		background-color: white;
 	}
 </style>

@@ -12,7 +12,7 @@
 	}
 </script>
 
-<title>HWIS Schedule Generator</title>
+<title>HWIS ESL Tools</title>
 <TabBar />
 <main>
 	<section id="input">
@@ -35,7 +35,6 @@
 		font-size: 0.8em;
 		font-family: Verdana, Geneva, Tahoma, sans-serif;
 		min-height: calc(100vh - 2.3em);
-		background: lightblue;
 		padding-bottom: 1em;
 	}
 

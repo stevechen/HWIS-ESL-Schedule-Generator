@@ -127,6 +127,7 @@
 		flex-direction: column;
 		border: 1px solid gray;
 		padding: 0 0.5em 0.5em 0.5em;
+		border-radius: 10px;
 	}
 
 	button.info {
