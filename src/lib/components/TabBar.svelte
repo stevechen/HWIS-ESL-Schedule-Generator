@@ -43,5 +43,6 @@
 	.tab-bar .active {
 		color: black;
 		background-color: white;
+		cursor: default;
 	}
 </style>
