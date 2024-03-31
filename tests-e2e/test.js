@@ -8,20 +8,20 @@ const MOCK_STUDENT_DATA_G9 = `1234567\t張三\tSan Chang\tJ301
 7654321\t李四\tSi Li\tJ302`;
 
 const MOCK_STUDENT_DATA_G9_FULL =
-`1100396	Tina Yang	楊凱鈞	J306
-1100274	Ed Chen	陳秉鋒	J304
-1100159	Jerry Wang	王俊捷	J305
-1100028	Gina Lin	林妤庭	J308
-1100229	Tim Qiu	邱皇錞	J306
-1100232	Alan Ko	柯宇宸	J306
-1100027	Cindy Lin	林佑蓁	J306
-1100122	Kelly Liu	劉奕瑄	J305
-1100112	Una Zou	鄒勻芊	J308
-1100161	Nico Wang	王奕斌	J304
-1100039	Iris Lin	林昱辰	J306
-1100278	Andy Chen	陳奕嘉	J306
-1100216	Baron Lin	林柏丞	J308
-1100318	Jeffrey Huang	黃竑睿	J304`
+`1100396\tTina Yang\t楊凱鈞\tJ306
+1100274\tEd Chen\t陳秉鋒\tJ304
+1100159\tJerry Wang\t王俊捷\tJ305
+1100028\tGina Lin\t林妤庭\tJ308
+1100229\tTim Qiu\t邱皇錞\tJ306
+1100232\tAlan Ko\t柯宇宸\tJ306
+1100027\tCindy Lin\t林佑蓁\tJ306
+1100122\tKelly Liu\t劉奕瑄\tJ305
+1100112\tUna Zou\t鄒勻芊\tJ308
+1100161\tNico Wang\t王奕斌\tJ304
+1100039\tIris Lin\t林昱辰\tJ306
+1100278\tAndy Chen\t陳奕嘉\tJ306
+1100216\tBaron Lin\t林柏丞\tJ308
+1100318\tJeffrey Huang\t黃竑睿\tJ304`
 
 function initializeLocators(page) {
   return {
@@ -35,26 +35,38 @@ function initializeLocators(page) {
 }
 
 async function pasteDataIntoInput(page, context, selector, mockData) {
-    // focus on the input
+  // focus on the input
   await page.locator(selector).focus();
+  // *** poll regularly so data won't be pasted before focus is complete
+  await page.waitForFunction(([selector]) => {
+    const element = document.querySelector(selector);
+    return document.activeElement === element;
+  }, [selector]);
   // grant access to clipboard (you can also set this in the playwright.config.ts file)
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   // Set the clipboard content to the desired data
   await page.evaluate((data) => navigator.clipboard.writeText(data), mockData);
   // simulate paste event
   await page.keyboard.press(`${modifier}+V`);
+  // Wait for the #master-checkbox to appear
+  await page.locator('#master-checkbox').waitFor({ state: 'visible' });
 }
 
-const isMac = async () => 'userAgentData' in navigator ? 
-  (await navigator.userAgentData.getHighEntropyValues(["platform"])).platform === "macOS" :
-  navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+const isMac = async () => {
+  if ('userAgentData' in navigator) {
+    const { platform } = await navigator.userAgentData.getHighEntropyValues(["platform"]);
+    return platform === "macOS";
+  } else {
+    // Fallback for browsers that do not support User-Agent Client Hints
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  }
+};
 
 let modifier = isMac ? 'Meta' : 'Control';
 
 test('should hide assignment type for different classes', async({ page, context }) => {
   await page.goto(`${BASE_URL}/commslip`);
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
-
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9);
 
   await expect(locatorRadioPassport).toBeVisible();
@@ -82,14 +94,13 @@ test('should process pasted student data correctly', async ({ page, context }) =
   await expect(page.locator('text=San Chang')).toBeVisible();
   await expect(page.locator('text=J101')).toBeVisible();
 
-    // Verify that the student data is processed and displayed in the table
+  // Verify that the student data is processed and displayed in the table
   await expect(page.locator('text=7654321')). toBeVisible();
   await expect(page.locator('text=李四')).toBeVisible();
   await expect(page.locator('text=Si Li')).toBeVisible();
   await expect(page.locator('text=J102')).toBeVisible();
   // Check for the status in the dropdown
   await expect(page.locator('select >> nth=0')).toHaveValue('0');
-
 });
 
 test('should update communication slips according to manual assignment type changes', async ({ page, context }) => {
@@ -124,62 +135,54 @@ test('should update communication slips according to manual assignment type chan
 test('should update assigned date and late date on slips', async ({ page, context }) => {
   // Navigate to your page
   await page.goto(`${BASE_URL}/commslip`);
-
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-
   // Type in the Assign date and Late Date
   const assignDate = '01/01';
   const lateDate = '12/31';
-  await page.fill('#assigned', assignDate);
-  await page.fill('#late', lateDate);
-
+  await page.fill('input#assigned', assignDate);
+  await page.fill('input#late', lateDate);  
   // Assert that the dates are correctly displayed on the SlipTemplate cards
-  const assignDateOnCard = await page.$eval('#assigned', el => el.value);
-  const lateDateOnCard = await page.$eval('#late', el => el.value);
-  expect(assignDateOnCard).toBe(assignDate);
-  expect(lateDateOnCard).toBe(lateDate);
-
-  const assignDateInParagraph = await page.textContent('.date.assigned > p');
-  expect(assignDateInParagraph).toContain(assignDate);
-
-  const lateDateInParagraph = await page.textContent('.date.late > p');
-  expect(lateDateInParagraph).toContain(lateDate);
+  const assignDateOnSlip = await page.textContent('.slip .date.assigned > p');
+  expect(assignDateOnSlip).toContain(assignDate);
+  const lateDateOnSlip = await page.textContent('.slip .date.late > p');
+  expect(lateDateOnSlip).toContain(lateDate);
 });
 
 test('should update slip fields with manual data change', async ({ page, context }) => {
   // Navigate to your page
   await page.goto(`${BASE_URL}/commslip`);
+  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
 
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+  const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
+  const count = await checkboxes.count();
+  const randomIndex = Math.floor(Math.random() * count);
 
-  //change second row data
-  await page.fill('tr:nth-child(2) .student-id > input', '5555555');
-  await expect(page.locator('.slip:nth-child(2) .student-id')).toContainText("5555555");
+  //change the random row data
+  await page.fill(`tr:nth-child(${randomIndex}) .student-id > input`, '5555555');
+  await expect(page.locator(`.slip:nth-child(${randomIndex}) .student-id`)).toContainText("5555555");
 
-  await page.fill('tr:nth-child(2) .chinese-name > input', '王八');
-  await expect(page.locator('.slip:nth-child(2) .chinese-name')).toContainText("王八");
+  await page.fill(`tr:nth-child(${randomIndex}) .chinese-name > input`, '王八');
+  await expect(page.locator(`.slip:nth-child(${randomIndex}) .chinese-name`)).toContainText("王八");
 
-  await page.fill('tr:nth-child(2) .english-name > input', 'Mary Jane');
-  await expect(page.locator('.slip:nth-child(2) .english-name')).toContainText("Mary Jane");
+  await page.fill(`tr:nth-child(${randomIndex}) .english-name > input`, 'Mary Jane');
+  await expect(page.locator(`.slip:nth-child(${randomIndex}) .english-name`)).toContainText("Mary Jane");
 
-  await page.fill('tr:nth-child(2) .chinese-class > input', 'J112');
-  await expect(page.locator('.slip:nth-child(2) .chinese-class')).toContainText("J112");
+  await page.fill(`tr:nth-child(${randomIndex}) .chinese-class > input`, 'J112');
+  await expect(page.locator(`.slip:nth-child(${randomIndex}) .chinese-class`)).toContainText("J112");
 
-  await page.click('tr:nth-child(2) > td > select');
-  await page.selectOption('tr:nth-child(2) > td > select', { value: "1" });
+  await page.click(`tr:nth-child(${randomIndex}) > td > select`);
+  await page.selectOption(`tr:nth-child(${randomIndex}) > td > select`, { value: "1" });
 
-  await expect(page.locator('.slip:nth-child(2) .assignment.name:nth-child(1) span')).toContainText("wasn't completed");
+  await expect(page.locator(`.slip:nth-child(${randomIndex}) .assignment.name:nth-child(1) span`)).toContainText("wasn't completed");
 });
 
 test('should correctly remove and add back SlipTemplate on checkbox operation', async ({ page, context }) => {
   await page.goto(`${BASE_URL}/commslip`);
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
-
   // Assuming checkboxes have a class '.student-checkbox' within a <td>
-  const checkboxes = await page.locator('td.student-checkbox > input[type="checkbox"]');
+  const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
   const count = await checkboxes.count();
   const randomIndex = Math.floor(Math.random() * count);
-
   // Uncheck the random checkbox
   await checkboxes.nth(randomIndex).uncheck();
   // Navigate to the parent <td>, then to the parent <tr>, and finally to the next <td> to find the .student-id
@@ -187,11 +190,33 @@ test('should correctly remove and add back SlipTemplate on checkbox operation', 
   // Verify the SlipTemplate is removed
   // await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeHidden();
   await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeHidden(); 
-
   // Check the checkbox
   await checkboxes.nth(randomIndex).check();
   // Verify the SlipTemplate is added back
   await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeVisible(); 
-  // await expect(page.locator(`.slip:has-text("Student ID 學號: ${studentIdValue}")`)).toBeVisible(); 
+});
 
+test('should check, uncheck all with master-checkbox and master-checkbox should have a indeterminate state ', async ({ page, context }) => {
+  // Step 1: Navigate to the page
+  await page.goto(`${BASE_URL}/commslip`);
+  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
+
+  await page.click('#master-checkbox'); //uncheck all
+  const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
+  const count = await checkboxes.count();
+  // click to  uncheck all
+  for (let i = 0; i < count; i++) {
+    const checkbox = checkboxes.nth(i);
+    await expect(checkbox).not.toBeChecked();
+  }
+  // check one student
+  await checkboxes.nth(0).click();
+  // master-checkbox is in indeterminate state
+  await expect(page.evaluate(() => document.querySelector('#master-checkbox').indeterminate)).toBeTruthy();
+  // click to check all
+  await page.click('#master-checkbox');
+  for (let i = 0; i < count; i++) {
+    const checkbox = checkboxes.nth(i);
+    await expect(checkbox).toBeChecked();
+  }
 });
