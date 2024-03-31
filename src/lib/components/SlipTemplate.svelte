@@ -10,7 +10,7 @@
 
 <div class="slip">
 	<div class="title row">
-		<p class="formTitle">ESL Communication Slip / ESL 課程溝通事項</p>
+		<h2 class="form-title">ESL Communication Slip / ESL 課程溝通事項</h2>
 	</div>
 	<div class="studentInfo row">
 		<div>
@@ -128,14 +128,14 @@
 	}
 
 	.row div,
-	.formTitle {
+	.form-title {
 		display: table-cell;
 		border-right: 1px solid gray;
 		border-bottom: 1px solid gray;
 		padding: 0 0.5em;
 	}
 
-	.formTitle {
+	.form-title {
 		text-align: center;
 		font-weight: 900;
 		padding: 0.5em;
