@@ -185,16 +185,13 @@ test('should correctly remove and add back SlipTemplate on checkbox operation', 
   // Navigate to the parent <td>, then to the parent <tr>, and finally to the next <td> to find the .student-id
   let studentIdValue = await checkboxes.nth(randomIndex).locator('xpath=ancestor::tr').locator('td.student-id > input').inputValue();
   // Verify the SlipTemplate is removed
-  await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeHidden();
+  // await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeHidden();
+  await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeHidden(); 
 
   // Check the checkbox
-  // await checkboxes.nth(randomIndex).check();
+  await checkboxes.nth(randomIndex).check();
   // Verify the SlipTemplate is added back
-  // await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeVisible();
-  //   let studentChineseName = await checkboxes.nth(randomIndex).locator('xpath=ancestor::tr').locator('td.chinese-name > input').inputValue();
+  await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeVisible(); 
+  // await expect(page.locator(`.slip:has-text("Student ID 學號: ${studentIdValue}")`)).toBeVisible(); 
 
-  // let isVisible = await page.isVisible(`.slip .chinese-name input[value="${studentChineseName}"]`);
-  // expect(isVisible).toBe(true);
-
-  
 });
