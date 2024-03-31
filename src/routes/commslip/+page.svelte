@@ -1,5 +1,5 @@
 <script>
-	import { writable, derived } from 'svelte/store';
+	import { writable, derived, get } from 'svelte/store';
 	import { assignment } from '$lib/stores/commslip';
 	import moment from 'moment';
 	import TabBar from '$lib/components/TabBar.svelte';
@@ -197,7 +197,7 @@
 		});
 	}
 
-	let tableData = writable($students); // create a new store for the table data
+	let tableData = writable([]); // create a new store for the table data
 	$: $tableData = $students; // update tableData whenever students changes
 
 	/**
@@ -260,6 +260,45 @@
 		}
 		return 'Unknown Grade'; // Return a default value or handle the case differently
 	}
+
+	let allSelected = false; // Tracks the master checkbox state
+
+	// Derived store to manage the master checkbox state
+	const allStudentsSelected = derived(tableData, ($tableData) => {
+		const allChecked = $tableData.every((student) => student.selected);
+		const anyChecked = $tableData.some((student) => student.selected);
+		// Return an object with both states
+		return {
+			checked: allChecked,
+			indeterminate: !allChecked && anyChecked
+		};
+	});
+
+	// Function to toggle all student checkboxes
+	function toggleAllStudents() {
+		const currentState = get(allStudentsSelected); // Use Svelte's get to unwrap the store value
+		const newState = !currentState.checked || currentState.indeterminate;
+		tableData.update((students) => {
+			students.forEach((student) => (student.selected = newState));
+			return students;
+		});
+	}
+
+	// Ensure this reactive statement runs whenever $tableData changes
+	$: allSelected = $allStudentsSelected.checked
+		? true
+		: $allStudentsSelected.indeterminate
+			? 'indeterminate'
+			: false;
+
+	// Reactive statement for indeterminate state now relies on allStudentsSelected
+	$: if (typeof window !== 'undefined') {
+		//only attempts to manipulate the DOM when it is available
+		const checkbox = document.querySelector('thead input[type="checkbox"]');
+		if (checkbox) {
+			checkbox.indeterminate = allSelected === 'indeterminate';
+		}
+	}
 </script>
 
 <TabBar />
@@ -285,7 +324,14 @@
 		{#if $tableData.length}
 			<thead>
 				<tr>
-					<th>✓</th>
+					<th>
+						<input
+							id="master-checkbox"
+							type="checkbox"
+							bind:checked={allSelected}
+							on:change={toggleAllStudents}
+						/>
+					</th>
 					<th>ID</th>
 					<th>C. Name</th>
 					<th>English Name</th>
