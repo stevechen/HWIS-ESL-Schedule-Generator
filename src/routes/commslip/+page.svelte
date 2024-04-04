@@ -1,6 +1,7 @@
 <script>
 	import { writable, derived, get } from 'svelte/store';
 	import { assignment } from '$lib/stores/commslip';
+	import { onMount, onDestroy } from 'svelte';
 	import moment from 'moment';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
@@ -302,19 +303,32 @@
 
 	let signatureImage = writable(''); // Use this to bind the image source in SlipTemplate
 
+	onMount(() => {
+		const img = new Image();
+		console.log('Loading image from:', img.src);
+		img.onload = () => {
+			// Image exists and is loaded, update signatureImage to its path
+			signatureImage.set('sig.png');
+		};
+		img.onerror = (e) => {
+			// Image doesn't exist, do nothing or log an error if needed
+		};
+		img.src = 'sig.png'; // Adjust the path as necessary
+	});
+
 	function handleFileSelect(event) {
 		const file = event.target.files[0];
 		if (!file) return;
 
-		// Check if the file size is under 200KB
-		if (file.size > 200 * 1024) {
-			alert('File size should be under 200KB.');
-			return;
-		}
-
 		// Check if the file type is JPG or PNG
 		if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
 			alert('Only JPG and PNG files are allowed.');
+			return;
+		}
+
+		// Check if the file size is under 100KB
+		if (file.size > 100 * 1024) {
+			alert('File size should be under 100KB.');
 			return;
 		}
 
@@ -324,7 +338,7 @@
 		// Use an Image object to load the file and check its height
 		const img = new Image();
 		img.onload = () => {
-			URL.revokeObjectURL(img.src); // Clean up the URL object
+			// URL.revokeObjectURL(img.src); // Clean up the URL object
 
 			// Check if the image height is greater than 165px
 			if (img.height <= 160) {
@@ -363,6 +377,14 @@
 			reader.readAsDataURL(file);
 		}
 	}
+
+	onDestroy(() => {
+		// If the image URL is still set, revoke it before the component is destroyed
+		const currentFileURL = get(signatureImage);
+		if (currentFileURL) {
+			URL.revokeObjectURL(currentFileURL);
+		}
+	});
 </script>
 
 <TabBar />
@@ -501,12 +523,14 @@
 	>
 		{#if $signatureImage}
 			<img class="signature-preview" src={$signatureImage} alt="Signature Preview" />
+		{:else}
+			Drop signature image here or
+			<button
+				on:click={() => document.getElementById('signature-upload').click()}
+				class="action-button"
+				>browse
+			</button>
 		{/if}
-		Drop signature image here or
-		<button
-			on:click={() => document.getElementById('signature-upload').click()}
-			class="action-button">browse</button
-		>
 	</div>
 	<input
 		type="file"
@@ -531,6 +555,7 @@
 		/* width: 182mm; */
 		width: 172mm;
 		margin: 0 auto;
+		margin-bottom: 1em;
 		padding: 0.5em;
 		border: 1px dotted gray;
 		border-radius: 1em;
@@ -629,6 +654,7 @@
 	.students textarea {
 		min-width: 45em;
 		max-width: 90%;
+		height: 3em;
 	}
 
 	.warning {
