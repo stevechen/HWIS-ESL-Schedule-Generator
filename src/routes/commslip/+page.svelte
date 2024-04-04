@@ -23,7 +23,7 @@
 		grade: 'G7',
 		level: 'Elementary',
 		type: 'Comm',
-		num: '2'
+		num: ''
 	});
 
 	const CLASS_TYPE = ['Comm', 'CLIL'];
@@ -66,7 +66,9 @@
 
 	//default to passport
 	let assignmentRadio = writable(ASSIGNMENTS_TYPES.find((type) => type.type === 'passport'));
+
 	$: selectedTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === $assignmentRadio.type);
+
 	$: (className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num} ${$ESLClass.type}`),
 		(assignedDateFormatted = processDate($assignedInput)),
 		(dueDateFormatted = processDate($dueInput)),
@@ -215,7 +217,7 @@
 		});
 	}
 
-	let grade = 'G7?';
+	let grade = 'Unknown';
 	/** @param {ClipboardEvent} e - The paste event object. */
 	function handlePaste(e) {
 		e.preventDefault(); // Prevent the default paste action
@@ -237,10 +239,6 @@
 
 		// Update the studentsInput store with the modified text
 		studentsInput.set(modifiedText);
-
-		// Auto-load today's date into the "due" input
-		const today = moment().format('MM/DD'); // Format today's date as needed
-		dueInput.set(today); // Set the dueInput store with today's date
 
 		// Hide the textarea & hints after pasting
 		e.target.style.display = 'none';
@@ -305,6 +303,8 @@
 
 	onMount(() => {
 		const img = new Image();
+		const today = moment().format('MM/DD'); // Format today's date as needed
+		dueInput.set(today);
 		console.log('Loading image from:', img.src);
 		img.onload = () => {
 			// Image exists and is loaded, update signatureImage to its path
@@ -403,6 +403,7 @@
 			rows="10"
 			bind:value={$studentsInput}
 			on:paste={(e) => handlePaste(e)}
+			class={`${$tableData.length === 0 || allSelected === false ? 'warning' : ''}`}
 		></textarea>
 	</fieldset>
 
@@ -491,7 +492,7 @@
 			{/each}
 		</div>
 		<div>
-			<input type="text" bind:value={$ESLClass.num} />
+			<input type="text" bind:value={$ESLClass.num} class={`${!$ESLClass.num ? 'warning' : ''}`} />
 		</div>
 	</fieldset>
 
@@ -507,12 +508,30 @@
 
 	<fieldset class="dates">
 		<div class="legend">Dates:</div>
-		<label class={`${!$assignment.assigned ? 'warning' : ''}`} for="assigned">Assigned: </label>
-		<input type="text" name="" id="assigned" bind:value={$assignedInput} />
-		<label class={`${!$assignment.due ? 'warning' : ''}`} for="due">Due: </label>
-		<input type="text" name="" id="due" bind:value={$dueInput} />
-		<label class={`${!$assignment.late ? 'warning' : ''}`} for="late">Late: </label>
-		<input type="text" name="" id="late" bind:value={$lateInput} />
+		<label for="assigned">Assigned: </label>
+		<input
+			type="text"
+			name=""
+			id="assigned"
+			bind:value={$assignedInput}
+			class={`${!$assignment.assigned ? 'warning' : ''}`}
+		/>
+		<label for="due">Due: </label>
+		<input
+			type="text"
+			name=""
+			id="due"
+			bind:value={$dueInput}
+			class={`${!$assignment.due ? 'warning' : ''}`}
+		/>
+		<label for="late">Late: </label>
+		<input
+			type="text"
+			name=""
+			id="late"
+			bind:value={$lateInput}
+			class={`${!$assignment.assigned ? 'warning' : ''}`}
+		/>
 	</fieldset>
 
 	<div
@@ -549,6 +568,17 @@
 </div>
 
 <style>
+	/* prevents x axis shifting when the scrollbar appears */
+	@media screen {
+		:global(html),
+		:global(body) {
+			overflow-y: scroll; /* Apply only for screen viewing */
+			scrollbar-width: thin; /* For Firefox */
+		}
+		:global(body) {
+			overflow-y: overlay; /* For WebKit browsers */
+		}
+	}
 	main {
 		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
 			Geneva, Verdana, sans-serif;
@@ -565,7 +595,6 @@
 		/* JIS B5 */
 		width: 182mm;
 		/* height: 257mm; */
-
 		margin: 0 auto;
 	}
 
@@ -659,6 +688,7 @@
 
 	.warning {
 		color: red;
+		border: 1px solid red;
 	}
 
 	.hints.hide {
@@ -734,9 +764,11 @@
 		display: inline-block;
 		border: 2px dashed #ccc;
 		padding: 5px 20px;
+		margin-left: 10px;
 		text-align: center;
 		cursor: pointer;
-		width: 500px;
+		width: 470px;
+		height: 55px;
 	}
 	.drag-over {
 		border-color: #000; /* Change border color when dragging over */
