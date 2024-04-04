@@ -96,11 +96,6 @@
 		border-top: 1px solid gray;
 	}
 
-	.slip:nth-of-type(1) {
-		/* first card always have about 4.32mm top margin for unknown reason */
-		margin-top: 3.002mm;
-	}
-
 	@media print {
 		@page {
 			margin: 0;
@@ -113,6 +108,7 @@
 			page-break-inside: avoid;
 		}
 
+		/* no margin-top for the first card, because it's auto added for unknown reason*/
 		.slip:nth-of-type(3n + 4) {
 			break-before: page;
 			margin-top: 6.422mm;
