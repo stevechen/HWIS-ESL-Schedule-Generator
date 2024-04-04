@@ -299,6 +299,70 @@
 			checkbox.indeterminate = allSelected === 'indeterminate';
 		}
 	}
+
+	let signatureImage = writable(''); // Use this to bind the image source in SlipTemplate
+
+	function handleFileSelect(event) {
+		const file = event.target.files[0];
+		if (!file) return;
+
+		// Check if the file size is under 200KB
+		if (file.size > 200 * 1024) {
+			alert('File size should be under 200KB.');
+			return;
+		}
+
+		// Check if the file type is JPG or PNG
+		if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
+			alert('Only JPG and PNG files are allowed.');
+			return;
+		}
+
+		// Create a URL for the file
+		const fileURL = URL.createObjectURL(file);
+
+		// Use an Image object to load the file and check its height
+		const img = new Image();
+		img.onload = () => {
+			URL.revokeObjectURL(img.src); // Clean up the URL object
+
+			// Check if the image height is greater than 165px
+			if (img.height <= 160) {
+				alert('Image height should be greater than 165px.');
+				return;
+			}
+
+			// If all checks pass, set the image source
+			signatureImage.set(fileURL);
+		};
+		img.onerror = () => {
+			alert('There was an error loading the image.');
+		};
+		img.src = fileURL;
+	}
+
+	function handleDragOver(event) {
+		event.preventDefault(); // Prevent default behavior (Prevent file from being opened)
+		event.target.classList.add('drag-over'); // Optional: Add a class for styling
+	}
+
+	function handleDragLeave(event) {
+		event.target.classList.remove('drag-over'); // Optional: Remove the class when dragging leaves
+	}
+
+	function handleDrop(event) {
+		event.preventDefault();
+		event.target.classList.remove('drag-over'); // Remove styling class
+
+		const file = event.dataTransfer.files[0]; // Get the dropped file
+		if (file && file.type.startsWith('image/')) {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				signatureImage.set(e.target.result); // Update the image source
+			};
+			reader.readAsDataURL(file);
+		}
+	}
 </script>
 
 <TabBar />
@@ -429,12 +493,34 @@
 		<input type="text" name="" id="late" bind:value={$lateInput} />
 	</fieldset>
 
-	<button id="print" on:click={() => window.print()}>Print</button>
+	<div
+		id="signature-drop-zone"
+		on:dragover={handleDragOver}
+		on:drop={handleDrop}
+		on:dragleave={handleDragLeave}
+	>
+		{#if $signatureImage}
+			<img class="signature-preview" src={$signatureImage} alt="Signature Preview" />
+		{/if}
+		Drop signature image here or
+		<button
+			on:click={() => document.getElementById('signature-upload').click()}
+			class="action-button">browse</button
+		>
+	</div>
+	<input
+		type="file"
+		id="signature-upload"
+		accept="image/*"
+		style="display: none;"
+		on:change={handleFileSelect}
+	/>
+	<button id="print" on:click={() => window.print()} class="action-button">Print</button>
 </main>
 
 <div id="b5-print" class="b5-size">
 	{#each $tableData.filter((student) => student.selected) as student, i}
-		<SlipTemplate {student} />
+		<SlipTemplate {student} signatureSrc={$signatureImage} />
 	{/each}
 </div>
 
@@ -604,7 +690,7 @@
 		background-color: #eef; /* Optional: highlight on focus */
 	}
 
-	#print {
+	.action-button {
 		background-color: #0ea5e9;
 		color: white;
 		border: none;
@@ -614,7 +700,23 @@
 		font-weight: 600;
 	}
 
-	#print:hover {
+	.action-button:hover {
 		background-color: #0369a1;
+	}
+
+	#signature-drop-zone {
+		display: inline-block;
+		border: 2px dashed #ccc;
+		padding: 5px 20px;
+		text-align: center;
+		cursor: pointer;
+		width: 500px;
+	}
+	.drag-over {
+		border-color: #000; /* Change border color when dragging over */
+	}
+
+	.signature-preview {
+		height: 14mm;
 	}
 </style>

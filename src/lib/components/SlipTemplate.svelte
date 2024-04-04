@@ -6,6 +6,7 @@
 		cClass: '',
 		status: { english: "hasn't been submitted", chinese: '未繳交' }
 	};
+	export let signatureSrc = '';
 </script>
 
 <div class="slip">
@@ -59,7 +60,9 @@
 		<div class="teacher signature">
 			<p>Teacher's signature</p>
 			<p class="title chinese">ESL 老師簽名：</p>
-			<img src="/sig.png" alt="" />
+			{#if signatureSrc}
+				<img src={signatureSrc} alt="Teacher's Signature" />
+			{/if}
 		</div>
 		<div class="parent signature stress">
 			<p class="title chinese">家長簽名 <span class="pen">🖊️</span></p>
