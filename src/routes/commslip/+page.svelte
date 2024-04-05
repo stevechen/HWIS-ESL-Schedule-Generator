@@ -1,43 +1,14 @@
 <script>
-	import { writable, derived, get } from 'svelte/store';
 	import { assignment } from '$lib/stores/commslip';
+	import { writable, derived, get } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
 	import moment from 'moment';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 
-	let showHints = true; // Hints are visible by default
-	//default
-	/**
-	 * @typedef {Object} ESLClass
-	 * @property {string} grade
-	 * @property {string} level
-	 * @property {'CLIL'|'Comm'} type - This is either 'CLIL' or 'Comm'.
-	 * @property {string} num
-	 */
-
-	/**
-	 * @type {import('svelte/store').Writable<ESLClass>}
-	 */
-	let ESLClass = writable({
-		grade: 'G7',
-		level: 'Elementary',
-		type: 'Comm',
-		num: ''
-	});
-
+	// Constants and Enums------------------------------------------------------------
 	const CLASS_TYPE = ['Comm', 'CLIL'];
 
-	/**
-	 * @typedef {Object} AssignmentType
-	 * @property {string} type - The type of the assignment.
-	 * @property {string} english - The English description of the assignment.
-	 * @property {string} chinese - The Chinese description of the assignment.
-	 */
-
-	/**
-	 * @type {AssignmentType[]}
-	 */
 	const ASSIGNMENTS_TYPES = [
 		{ type: 'passport', english: 'Passport', chinese: '英文護照' },
 		{ type: 'recording', english: 'Recording', chinese: '錄影(錄音)' },
@@ -45,27 +16,88 @@
 		{ type: 'exam', english: 'Oral Exam', chinese: '期末考口試' }
 	];
 
-	/**
-	 * @typedef {Object} Status
-	 * @property {number} code - The status code.
-	 * @property {{english: string, chinese: string}} text - The status text in different languages.
-	 */
-
-	/**
-	 * @type {Status[]}
-	 */
 	const STATUS = [
 		{ code: 0, text: { english: "hasn't been submitted", chinese: '未繳交' } },
 		{ code: 1, text: { english: "wasn't completed", chinese: '完成度不佳' } }
 	];
 
-	/**
-	 * @type {string}
-	 */
-	let className;
+	let showHints = true; // Hints are visible by default
+	let className = '';
 
-	//default to passport
-	let assignmentRadio = writable(ASSIGNMENTS_TYPES.find((type) => type.type === 'passport'));
+	let grade = 'Unknown';
+
+	let allSelected = false; // Tracks the master checkbox state
+
+	// Reactive Statements and Stores------------------------------------------------------------
+	let studentsData = writable([]);
+
+	let assignedInput = writable('');
+
+	/** @type {string | null} */
+	let assignedDateFormatted;
+	let dueInput = writable('');
+	/** @type {string | null}*/
+	let dueDateFormatted;
+	let lateInput = writable('');
+
+	let studentsInput = writable('');
+
+	let ESLClass = writable({
+		//with defaults
+		grade: '',
+		level: 'Elementary',
+		type: 'Comm',
+		num: ''
+	});
+
+	let students = derived(studentsInput, ($studentsInput) => {
+		// First, split the input into lines and filter out empty lines
+		let lines = $studentsInput.split('\n').filter((line) => line.trim() !== '');
+
+		// If after filtering there are no lines, return an empty array
+		if (lines.length === 0) {
+			return [];
+		}
+
+		// Process each line to create student objects
+		return (
+			lines
+				.map((row) => {
+					let studentDataFields = row.split('\t');
+
+					let student = {
+						id: '',
+						name: { english: '', chinese: '' },
+						cClass: '',
+						status: STATUS[0].text,
+						selected: true
+					};
+
+					studentDataFields.forEach((field) => {
+						if (/^\d{7}$/.test(field)) {
+							student.id = field;
+						} else if (/^[JH]\d{3}$/.test(field)) {
+							student.cClass = field;
+						} else if (/[\u4e00-\u9fa5]/.test(field)) {
+							student.name.chinese = field;
+						} else if (/^[a-zA-Z]+(\s[a-zA-Z]+){1,2}$/.test(field)) {
+							student.name.english = field;
+						}
+					});
+					return student;
+				})
+				// Ensure no null students are included and sort by English name
+				.filter((student) => student !== null)
+				.sort((a, b) => a.name.english.localeCompare(b.name.english))
+		);
+	});
+
+	let assignmentRadio = writable(ASSIGNMENTS_TYPES.find((type) => type.type === 'passport')); //default to passport
+
+	let signatureImage = writable(''); // Use this to bind the image source in SlipTemplate
+
+	/** @type {string | null}*/
+	let lateDateFormatted;
 
 	$: selectedTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === $assignmentRadio.type);
 
@@ -102,92 +134,52 @@
 		}
 
 		//auto default assignment type default selection based on class type
-		const assignmentDefaultTypeMap = { CLIL: 'workbook', Comm: 'passport' };
-		const ESLClassType = $ESLClass.type;
+		const ASSIGNMENT_DEFAULT_TYPE_MAP = { CLIL: 'workbook', Comm: 'passport' };
 
-		const selectedType = assignmentDefaultTypeMap[ESLClassType];
-		const assignmentType = ASSIGNMENTS_TYPES.find((type) => type.type === selectedType);
+		const SELECTED_TYPE = ASSIGNMENT_DEFAULT_TYPE_MAP[$ESLClass.type];
+		const ASSIGNMENT_TYPE = ASSIGNMENTS_TYPES.find((type) => type.type === SELECTED_TYPE);
 
-		if (assignmentType) {
+		if (ASSIGNMENT_TYPE) {
 			assignmentRadio.set({
-				type: assignmentType.type,
-				english: assignmentType.english,
-				chinese: assignmentType.chinese
+				type: ASSIGNMENT_TYPE.type,
+				english: ASSIGNMENT_TYPE.english,
+				chinese: ASSIGNMENT_TYPE.chinese
 			});
 		}
 	}
 
-	let assignedInput = writable('');
+	// Ensure this reactive statement runs whenever $studentsData changes
+	$: allSelected = $allStudentsSelected.checked
+		? true
+		: $allStudentsSelected.indeterminate
+			? 'indeterminate'
+			: false;
 
-	/** @type {string | null} */
-	let assignedDateFormatted;
-	let dueInput = writable('');
-	/** @type {string | null}*/
-	let dueDateFormatted;
-	let lateInput = writable('');
-	/** @type {string | null}*/
-	let lateDateFormatted;
-
-	/** @param {moment.MomentInput} input */
-	function processDate(input) {
-		const date = moment(input).format('MM/DD');
-		return date === 'Invalid date' ? null : date;
+	// indeterminate state relies on allStudentsSelected
+	$: if (typeof window !== 'undefined') {
+		//only attempts to manipulate the DOM when it is available
+		const checkbox = document.querySelector('thead input[type="checkbox"]');
+		if (checkbox) {
+			checkbox.indeterminate = allSelected === 'indeterminate';
+		}
 	}
 
-	let studentsInput = writable('');
-	let sanitizedStudentsInput = derived(
-		studentsInput,
-		($studentsInput) =>
-			$studentsInput
-				.split('\n') // split the string into lines
-				.filter((line) => line.trim() !== '') // filter out empty lines
-				.join('\n') // join the lines back together
-	);
+	$: studentsData.set($students);
 
-	let students = derived(sanitizedStudentsInput, ($sanitizedStudentsInput) => {
-		if ($sanitizedStudentsInput.trim() === '') {
-			return [];
-		}
-
-		return $sanitizedStudentsInput
-			.split('\n')
-			.map((row) => {
-				let studentDataArray = row.split('\t');
-
-				let student = {
-					id: '',
-					name: { english: '', chinese: '' },
-					cClass: '',
-					status: STATUS[0].text,
-					selected: true
-				};
-
-				studentDataArray.forEach((data) => {
-					if (/^\d{7}$/.test(data)) {
-						student.id = data;
-					} else if (/^[JH]\d{3}$/.test(data)) {
-						student.cClass = data;
-					} else if (/[\u4e00-\u9fa5]/.test(data)) {
-						student.name.chinese = data;
-					} else if (/^[a-zA-Z]+(\s[a-zA-Z]+){1,2}$/.test(data)) {
-						student.name.english = data;
-					}
-				});
-				return student;
-			})
-			.filter((student) => student !== null)
-			.sort((a, b) => a.name.english.localeCompare(b.name.english)); // Sort students by their English name
+	// Derived store to manage the master checkbox state
+	const allStudentsSelected = derived(studentsData, ($studentsData) => {
+		const allChecked = $studentsData.every((student) => student.selected);
+		const anyChecked = $studentsData.some((student) => student.selected);
+		// Return an object with both states
+		return {
+			checked: allChecked,
+			indeterminate: !allChecked && anyChecked
+		};
 	});
 
-	/**
-	 * Updates the table data with a new value for a given student and key.
-	 * This function assumes the `students` array contains objects with a known structure.
-	 * @param {number} index - The index of the student in the table data array.
-	 * @param {string} key - The key representing the property to update, which can include dot notation for nested properties.
-	 * @param {*} value - The new value to set for the specified key.
-	 */
-	function updateTableData(index, key, value) {
-		tableData.update((students) => {
+	// Component Logic------------------------------------------------------------
+	function updateStudentsData(index, key, value) {
+		studentsData.update((students) => {
 			if (key === 'status.code') {
 				students[index].status = STATUS.find((status) => status.code === Number(value)).text;
 			} else if (key.includes('.')) {
@@ -200,15 +192,42 @@
 		});
 	}
 
-	let tableData = writable([]); // create a new store for the table data
-	$: $tableData = $students; // update tableData whenever students changes
+	//indeterminate can't be set through Svelte binding. So going manual here
+	function toggleAllStudents() {
+		const currentState = get(allStudentsSelected); // Use Svelte's get to unwrap the store value
+		const newState = !currentState.checked || currentState.indeterminate;
+		studentsData.update((students) => {
+			students.forEach((student) => (student.selected = newState));
+			return students;
+		});
+	}
 
+	// Utility Functions------------------------------------------------------------
+	/** @param {moment.MomentInput} input */
+	function processDate(input) {
+		const date = moment(input).format('MM/DD');
+		return date === 'Invalid date' ? null : date;
+	}
+
+	/** @param {string} pastedText*/
+	function determineGradeFromText(pastedText) {
+		const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
+		if (gradeMatch) {
+			const matchCode = Number(gradeMatch[0].charAt(1));
+			if (matchCode >= 1 && matchCode <= 3) {
+				return `G${matchCode + 6}`;
+			}
+		}
+		return 'Unknown Grade'; // Return a default value or handle the case differently
+	}
+
+	// Event Handlers------------------------------------------------------------
 	/**
 	 * @param {string} studentId
 	 * @param {string} newStatusCode
 	 */
 	function handleStatusChange(studentId, newStatusCode) {
-		$tableData = $tableData.map((student) => {
+		$studentsData = $studentsData.map((student) => {
 			if (student.id === studentId) {
 				let status = STATUS.find((status) => status.code === Number(newStatusCode));
 				return { ...student, status: status ? status.text : student.status };
@@ -217,7 +236,6 @@
 		});
 	}
 
-	let grade = 'Unknown';
 	/** @param {ClipboardEvent} e - The paste event object. */
 	function handlePaste(e) {
 		e.preventDefault(); // Prevent the default paste action
@@ -248,87 +266,16 @@
 		ESLClass.update((current) => ({ ...current, grade }));
 	}
 
-	/** @param {string} pastedText*/
-	function determineGradeFromText(pastedText) {
-		const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
-		if (gradeMatch) {
-			const matchCode = Number(gradeMatch[0].charAt(1));
-			if (matchCode >= 1 && matchCode <= 3) {
-				return `G${matchCode + 6}`;
-			}
-		}
-		return 'Unknown Grade'; // Return a default value or handle the case differently
-	}
-
-	let allSelected = false; // Tracks the master checkbox state
-
-	// Derived store to manage the master checkbox state
-	const allStudentsSelected = derived(tableData, ($tableData) => {
-		const allChecked = $tableData.every((student) => student.selected);
-		const anyChecked = $tableData.some((student) => student.selected);
-		// Return an object with both states
-		return {
-			checked: allChecked,
-			indeterminate: !allChecked && anyChecked
-		};
-	});
-
-	// Function to toggle all student checkboxes
-	function toggleAllStudents() {
-		const currentState = get(allStudentsSelected); // Use Svelte's get to unwrap the store value
-		const newState = !currentState.checked || currentState.indeterminate;
-		tableData.update((students) => {
-			students.forEach((student) => (student.selected = newState));
-			return students;
-		});
-	}
-
-	// Ensure this reactive statement runs whenever $tableData changes
-	$: allSelected = $allStudentsSelected.checked
-		? true
-		: $allStudentsSelected.indeterminate
-			? 'indeterminate'
-			: false;
-
-	// Reactive statement for indeterminate state now relies on allStudentsSelected
-	$: if (typeof window !== 'undefined') {
-		//only attempts to manipulate the DOM when it is available
-		const checkbox = document.querySelector('thead input[type="checkbox"]');
-		if (checkbox) {
-			checkbox.indeterminate = allSelected === 'indeterminate';
-		}
-	}
-
-	let signatureImage = writable(''); // Use this to bind the image source in SlipTemplate
-
-	onMount(() => {
-		const img = new Image();
-		const today = moment().format('MM/DD'); // Format today's date as needed
-		dueInput.set(today);
-		console.log('Loading image from:', img.src);
-		img.onload = () => {
-			// Image exists and is loaded, update signatureImage to its path
-			signatureImage.set('sig.png');
-		};
-		img.onerror = (e) => {
-			// Image doesn't exist, do nothing or log an error if needed
-		};
-		img.src = 'sig.png'; // Adjust the path as necessary
-	});
-
 	function handleFileSelect(event) {
 		const file = event.target.files[0];
 		if (!file) return;
 
-		// Check if the file type is JPG or PNG
-		if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
-			alert('Only JPG and PNG files are allowed.');
-			return;
-		}
-
-		// Check if the file size is under 100KB
-		if (file.size > 100 * 1024) {
-			alert('File size should be under 100KB.');
+		// Check if the file type is JPG or PNG and is under 100KB
+		if (
+			(!file.type.match('image/jpeg') && !file.type.match('image/png')) ||
+			file.size > 100 * 1024
+		) {
+			alert('Only JPG and PNG file under 100KB is allowed.');
 			return;
 		}
 
@@ -337,6 +284,7 @@
 
 		// Use an Image object to load the file and check its height
 		const img = new Image();
+
 		img.onload = () => {
 			// URL.revokeObjectURL(img.src); // Clean up the URL object
 
@@ -378,6 +326,23 @@
 		}
 	}
 
+	// Lifecycle Hooks------------------------------------------------------------
+	onMount(async () => {
+		const today = moment().format('MM/DD'); // Format today's date as needed
+		dueInput.set(today);
+
+		const img = new Image();
+
+		img.onload = () => {
+			// Image exists and is loaded, update signatureImage to its path
+			signatureImage.set('sig.png');
+		};
+		img.onerror = (e) => {
+			// Image doesn't exist, do nothing or log an error if needed
+		};
+		img.src = 'sig.png'; // Adjust the path as necessary
+	});
+
 	onDestroy(() => {
 		// If the image URL is still set, revoke it before the component is destroyed
 		const currentFileURL = get(signatureImage);
@@ -403,12 +368,12 @@
 			rows="10"
 			bind:value={$studentsInput}
 			on:paste={(e) => handlePaste(e)}
-			class={`${$tableData.length === 0 || allSelected === false ? 'warning' : ''}`}
+			class={`${$studentsData.length === 0 || allSelected === false ? 'warning' : ''}`}
 		></textarea>
 	</fieldset>
 
 	<table class="student-table">
-		{#if $tableData.length}
+		{#if $studentsData.length}
 			<thead>
 				<tr>
 					<th>
@@ -428,7 +393,7 @@
 			</thead>
 		{/if}
 		<tbody>
-			{#each $tableData as student, i (student.id)}
+			{#each $studentsData as student, i (student.id)}
 				<tr>
 					<td class="student-checkbox">
 						<input type="checkbox" bind:checked={student.selected} />
@@ -436,25 +401,25 @@
 					<td class="student-id">
 						<input
 							bind:value={student.id}
-							on:input={(e) => updateTableData(i, 'id', e.target.value)}
+							on:input={(e) => updateStudentsData(i, 'id', e.target.value)}
 						/>
 					</td>
 					<td class="chinese-name">
 						<input
 							bind:value={student.name.chinese}
-							on:input={(e) => updateTableData(i, 'name.chinese', e.target.value)}
+							on:input={(e) => updateStudentsData(i, 'name.chinese', e.target.value)}
 						/>
 					</td>
 					<td class="english-name">
 						<input
 							bind:value={student.name.english}
-							on:input={(e) => updateTableData(i, 'name.english', e.target.value)}
+							on:input={(e) => updateStudentsData(i, 'name.english', e.target.value)}
 						/>
 					</td>
 					<td class="chinese-class">
 						<input
 							bind:value={student.cClass}
-							on:input={(e) => updateTableData(i, 'cClass', e.target.value)}
+							on:input={(e) => updateStudentsData(i, 'cClass', e.target.value)}
 						/>
 					</td>
 					<td class="status">
@@ -539,30 +504,21 @@
 		on:dragover={handleDragOver}
 		on:drop={handleDrop}
 		on:dragleave={handleDragLeave}
+		on:click={() => document.getElementById('signature-upload').click()}
 	>
 		{#if $signatureImage}
 			<img class="signature-preview" src={$signatureImage} alt="Signature Preview" />
 		{:else}
-			Drop signature image here or
-			<button
-				on:click={() => document.getElementById('signature-upload').click()}
-				class="action-button"
-				>browse
-			</button>
+			<p>Drop signature image here or</p>
+			<button id="browse" class="secondary action-button">browse</button>
 		{/if}
 	</div>
-	<input
-		type="file"
-		id="signature-upload"
-		accept="image/*"
-		style="display: none;"
-		on:change={handleFileSelect}
-	/>
+	<input type="file" id="signature-upload" accept="image/*" on:change={handleFileSelect} />
 	<button id="print" on:click={() => window.print()} class="action-button">Print</button>
 </main>
 
 <div id="b5-print" class="b5-size">
-	{#each $tableData.filter((student) => student.selected) as student, i}
+	{#each $studentsData.filter((student) => student.selected) as student, i}
 		<SlipTemplate {student} signatureSrc={$signatureImage} />
 	{/each}
 </div>
@@ -579,6 +535,7 @@
 			overflow-y: overlay; /* For WebKit browsers */
 		}
 	}
+
 	main {
 		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
 			Geneva, Verdana, sans-serif;
@@ -626,7 +583,6 @@
 		display: flex;
 		flex-direction: row;
 		justify-content: left;
-		align-items: left;
 	}
 
 	.class-info > div:not(.legend) {
@@ -683,7 +639,7 @@
 	.students textarea {
 		min-width: 45em;
 		max-width: 90%;
-		height: 3em;
+		height: 1.5em;
 	}
 
 	.warning {
@@ -758,23 +714,53 @@
 
 	.action-button:hover {
 		background-color: #0369a1;
+		cursor: pointer;
 	}
 
 	#signature-drop-zone {
 		display: inline-block;
 		border: 2px dashed #ccc;
+		border-radius: 10px;
 		padding: 5px 20px;
 		margin-left: 10px;
 		text-align: center;
 		cursor: pointer;
 		width: 470px;
-		height: 55px;
 	}
+
+	#signature-drop-zone p {
+		color: darkgray;
+	}
+
+	#signature-upload {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		border: 0;
+	}
+
 	.drag-over {
 		border-color: #000; /* Change border color when dragging over */
 	}
 
 	.signature-preview {
 		height: 14mm;
+	}
+
+	.secondary.action-button {
+		color: #0ea5e9;
+		background: white;
+		border: 1px solid #0ea5e9;
+	}
+
+	.secondary.action-button:hover {
+		color: #0369a1;
+		background: white;
+		border: 1px solid #0369a1;
+		cursor: pointer;
 	}
 </style>
