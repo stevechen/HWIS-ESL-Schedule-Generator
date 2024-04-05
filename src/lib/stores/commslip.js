@@ -3,7 +3,7 @@ import { writable } from 'svelte/store';
 export const assignment = writable({
   /**  @type {string} */
 	esl: '',
-	type: {english: '', chinese: ''},
+	type: {code: '', english: '', chinese: ''},
   /**  @type {string | null} */
 	assigned: '',
   /**  @type {string | null} */

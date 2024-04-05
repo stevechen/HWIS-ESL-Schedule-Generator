@@ -7,13 +7,18 @@
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 
 	// Constants and Enums------------------------------------------------------------
-	const CLASS_TYPE = ['Comm', 'CLIL'];
-
+	const CLIL = 'CLIL';
+	const COMM = 'Comm';
+	const WORKBOOK = 'workbook';
+	const PASSPORT = 'passport';
+	const RECORDING = 'recording';
+	const EXAM = 'exam';
+	const CLASS_TYPE = [COMM, CLIL];
 	const ASSIGNMENTS_TYPES = [
-		{ type: 'passport', english: 'Passport', chinese: '英文護照' },
-		{ type: 'recording', english: 'Recording', chinese: '錄影(錄音)' },
-		{ type: 'workbook', english: 'Workbook', chinese: '作業本' },
-		{ type: 'exam', english: 'Oral Exam', chinese: '期末考口試' }
+		{ code: PASSPORT, english: 'Passport', chinese: '英文護照' },
+		{ code: RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
+		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
+		{ code: EXAM, english: 'Oral Exam', chinese: '期末考口試' }
 	];
 
 	const STATUS = [
@@ -22,7 +27,6 @@
 	];
 
 	let showHints = true; // Hints are visible by default
-	let className = '';
 
 	let grade = 'Unknown';
 
@@ -32,12 +36,7 @@
 	let studentsData = writable([]);
 
 	let assignedInput = writable('');
-
-	/** @type {string | null} */
-	let assignedDateFormatted;
 	let dueInput = writable('');
-	/** @type {string | null}*/
-	let dueDateFormatted;
 	let lateInput = writable('');
 
 	let studentsInput = writable('');
@@ -46,7 +45,7 @@
 		//with defaults
 		grade: '',
 		level: 'Elementary',
-		type: 'Comm',
+		type: COMM,
 		num: ''
 	});
 
@@ -92,58 +91,52 @@
 		);
 	});
 
-	let assignmentRadio = writable(ASSIGNMENTS_TYPES.find((type) => type.type === 'passport')); //default to passport
+	$: studentsData.set($students);
+
+	let assignmentRadio = writable(ASSIGNMENTS_TYPES.find((type) => type.code === PASSPORT)); //default to passport
 
 	let signatureImage = writable(''); // Use this to bind the image source in SlipTemplate
-
-	/** @type {string | null}*/
-	let lateDateFormatted;
-
-	$: selectedTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === $assignmentRadio.type);
-
-	$: (className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num} ${$ESLClass.type}`),
-		(assignedDateFormatted = processDate($assignedInput)),
-		(dueDateFormatted = processDate($dueInput)),
-		(lateDateFormatted = processDate($lateInput)),
-		assignment.update((value) => ({
-			...value,
-			esl: className,
-			type: {
-				english: selectedTypeDetails.english,
-				chinese: selectedTypeDetails.chinese
-			},
-			assigned: assignedDateFormatted,
-			due: dueDateFormatted,
-			late: lateDateFormatted
-		}));
-
-	$: if ($ESLClass.type === 'CLIL' || $ESLClass.type === 'Comm') {
-		const newType = $ESLClass.type === 'CLIL' ? 'workbook' : 'passport';
-		const assignmentTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.type === newType);
-
-		assignment.update((currentAssignment) => ({
-			...currentAssignment,
-			type: assignmentTypeDetails
-		}));
-	}
 
 	$: {
 		// automatically switch to Comm if G9 is chosen
 		if ($ESLClass.grade === 'G9') {
-			ESLClass.update((value) => ({ ...value, type: 'Comm' }));
+			ESLClass.update((value) => ({ ...value, type: COMM }));
 		}
+	}
 
-		//auto default assignment type default selection based on class type
-		const ASSIGNMENT_DEFAULT_TYPE_MAP = { CLIL: 'workbook', Comm: 'passport' };
+	$: {
+		const className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num} ${$ESLClass.type}`;
+		const assignedDateFormatted = processDate($assignedInput);
+		const dueDateFormatted = processDate($dueInput);
+		const lateDateFormatted = processDate($lateInput);
+		const selectedTypeDetails = ASSIGNMENTS_TYPES.find(
+			(type) => type.code === $assignmentRadio.code
+		);
 
-		const SELECTED_TYPE = ASSIGNMENT_DEFAULT_TYPE_MAP[$ESLClass.type];
-		const ASSIGNMENT_TYPE = ASSIGNMENTS_TYPES.find((type) => type.type === SELECTED_TYPE);
+		assignment.set({
+			...$assignment,
+			esl: className,
+			type: selectedTypeDetails,
+			assigned: assignedDateFormatted,
+			due: dueDateFormatted,
+			late: lateDateFormatted
+		});
+	}
 
-		if (ASSIGNMENT_TYPE) {
+	$: {
+		const newType = $ESLClass.type === CLIL ? WORKBOOK : PASSPORT;
+		const assignmentTypeDetails = ASSIGNMENTS_TYPES.find((type) => type.code === newType);
+
+		if (assignmentTypeDetails) {
+			assignment.update((currentAssignment) => ({
+				...currentAssignment,
+				type: assignmentTypeDetails
+			}));
+
 			assignmentRadio.set({
-				type: ASSIGNMENT_TYPE.type,
-				english: ASSIGNMENT_TYPE.english,
-				chinese: ASSIGNMENT_TYPE.chinese
+				code: assignmentTypeDetails.code,
+				english: assignmentTypeDetails.english,
+				chinese: assignmentTypeDetails.chinese
 			});
 		}
 	}
@@ -163,8 +156,6 @@
 			checkbox.indeterminate = allSelected === 'indeterminate';
 		}
 	}
-
-	$: studentsData.set($students);
 
 	// Derived store to manage the master checkbox state
 	const allStudentsSelected = derived(studentsData, ($studentsData) => {
@@ -450,7 +441,7 @@
 		</div>
 		<div>
 			{#each CLASS_TYPE as type}
-				{#if type !== 'CLIL' || $ESLClass.grade !== 'G9'}
+				{#if type !== CLIL || $ESLClass.grade !== 'G9'}
 					<input type="radio" id={type} bind:group={$ESLClass.type} value={type} />
 					<label for={type}>{type}</label>
 				{/if}
@@ -464,9 +455,9 @@
 	<fieldset class="assignment-type">
 		<div class="legend">Type:</div>
 		{#each ASSIGNMENTS_TYPES as type}
-			{#if (($ESLClass.type === 'CLIL' && type.type === 'workbook') || $ESLClass.type === 'Comm') && !($ESLClass.grade === 'G9' && type.type === 'workbook')}
-				<input type="radio" id={type.type} bind:group={$assignmentRadio.type} value={type.type} />
-				<label for={type.type}>{type.english}</label>
+			{#if (($ESLClass.type === CLIL && type.code === WORKBOOK) || $ESLClass.type === COMM) && !($ESLClass.grade === 'G9' && type.code === WORKBOOK)}
+				<input type="radio" id={type.code} bind:group={$assignmentRadio.code} value={type.code} />
+				<label for={type.code}>{type.english}</label>
 			{/if}
 		{/each}
 	</fieldset>
@@ -495,7 +486,7 @@
 			name=""
 			id="late"
 			bind:value={$lateInput}
-			class={`${!$assignment.assigned ? 'warning' : ''}`}
+			class={`${!$assignment.late ? 'warning' : ''}`}
 		/>
 	</fieldset>
 

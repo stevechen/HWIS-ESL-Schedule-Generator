@@ -171,7 +171,7 @@
 	.teacher.signature img {
 		position: absolute;
 		top: 2mm;
-		left: 27mm;
+		left: 34mm;
 		height: 14mm;
 	}
 
