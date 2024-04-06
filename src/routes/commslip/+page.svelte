@@ -213,6 +213,33 @@
 		}
 		return 'Unknown Grade'; // Return a default value or handle the case differently
 	}
+	/** @param {File} file*/
+	function validateAndSetImage(file) {
+		if (
+			(!file.type.match('image/jpeg') && !file.type.match('image/png')) ||
+			file.size > 100 * 1024
+		) {
+			alert('Only JPG and PNG file under 100KB is allowed.');
+			return false;
+		}
+
+		const fileURL = URL.createObjectURL(file);
+		const img = new Image();
+		img.onload = () => {
+			if (img.height <= 160) {
+				alert('Image height should be greater than 165px.');
+				URL.revokeObjectURL(img.src); // Clean up the URL object
+				return;
+			}
+			signatureImage.set(fileURL);
+		};
+		img.onerror = () => {
+			alert('There was an error loading the image.');
+			URL.revokeObjectURL(img.src); // Clean up the URL object
+		};
+		img.src = fileURL;
+		return true;
+	}
 
 	// Event Handlers------------------------------------------------------------
 	/**
@@ -261,39 +288,7 @@
 
 	function handleFileSelect(event) {
 		const file = event.target.files[0];
-		if (!file) return;
-
-		// Check if the file type is JPG or PNG and is under 100KB
-		if (
-			(!file.type.match('image/jpeg') && !file.type.match('image/png')) ||
-			file.size > 100 * 1024
-		) {
-			alert('Only JPG and PNG file under 100KB is allowed.');
-			return;
-		}
-
-		// Create a URL for the file
-		const fileURL = URL.createObjectURL(file);
-
-		// Use an Image object to load the file and check its height
-		const img = new Image();
-
-		img.onload = () => {
-			// URL.revokeObjectURL(img.src); // Clean up the URL object
-
-			// Check if the image height is greater than 165px
-			if (img.height <= 160) {
-				alert('Image height should be greater than 165px.');
-				return;
-			}
-
-			// If all checks pass, set the image source
-			signatureImage.set(fileURL);
-		};
-		img.onerror = () => {
-			alert('There was an error loading the image.');
-		};
-		img.src = fileURL;
+		validateAndSetImage(file);
 	}
 
 	function handleDragOver(event) {
@@ -310,13 +305,8 @@
 		event.target.classList.remove('drag-over'); // Remove styling class
 
 		const file = event.dataTransfer.files[0]; // Get the dropped file
-		if (file && file.type.startsWith('image/')) {
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				signatureImage.set(e.target.result); // Update the image source
-			};
-			reader.readAsDataURL(file);
-		}
+		if (file) validateAndSetImage(file);
+		if (!file) return;
 	}
 
 	// Lifecycle Hooks------------------------------------------------------------
