@@ -49,7 +49,7 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
   // simulate paste event
   await page.keyboard.press(`${modifier}+V`);
   // Wait for the #master-checkbox to appear
-  await page.locator('#master-checkbox').waitFor({ state: 'visible' });
+  await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout:6000 });
 }
 
 const isMac = async () => {
@@ -220,3 +220,98 @@ test('should check, uncheck all with master-checkbox and master-checkbox should 
     await expect(checkbox).toBeChecked();
   }
 });
+test.describe('signature upload', () => {
+  async function uploadImage(page, image) {
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'browse' }).click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles(`./tests-e2e/fixtures/${image}`);
+  }
+
+  test('should upload valid signature png image', async ({ page, context }) => {
+    // Navigate to your Svelte application page
+    await page.goto(`${BASE_URL}/commslip`);
+    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await uploadImage(page, 'sig_test.png');
+
+    await expect(page.getByText('Drop signature image here or')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
+    await expect(page.locator('.signature-preview')).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
+  });
+
+    test('should upload valid signature jpeg image', async ({ page, context }) => {
+    // Navigate to your Svelte application page
+    await page.goto(`${BASE_URL}/commslip`);
+    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await uploadImage(page, 'sig_test.jpeg');
+
+    await expect(page.getByText('Drop signature image here or')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
+    await expect(page.locator('.signature-preview')).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
+  });
+
+  test('should reject signature images that does is too big', async ({ page, context  }) => {
+    // Navigate to your Svelte application page
+    await page.goto(`${BASE_URL}/commslip`);
+    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await uploadImage(page, 'sig_big.jpg');
+
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toEqual('Only JPG and PNG file under 100KB is allowed.');
+      dialog.dismiss().catch(() => {});
+    });
+  });
+
+  test('should reject signature images that is not jpg or png', async ({ page, context  }) => {
+    // Navigate to your Svelte application page
+    await page.goto(`${BASE_URL}/commslip`);
+    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await uploadImage(page, 'sig_bmp.bmp');
+
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toEqual('Only JPG and PNG file under 100KB is allowed.');
+      dialog.dismiss().catch(() => {});
+    });
+  });
+
+  test('should reject signature images that does is too short in height', async ({ page, context  }) => {
+    // Navigate to your Svelte application page
+    await page.goto(`${BASE_URL}/commslip`);
+    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await uploadImage(page, 'sig_short.png');
+
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toEqual('Image height should be greater than 165px.');
+      dialog.dismiss().catch(() => {});
+    });
+  });
+});
+
+// test('should upload valid signature image with drag & drop', async ({ page, context }) => {
+//   // Navigate to your Svelte application page
+//   await page.goto(`${BASE_URL}/commslip`);
+
+//   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+
+// // Read your file into a buffer.
+//   const buffer = readFileSync('./tests-e2e/fixtures/sig_test.png');
+
+//   // Create the DataTransfer and File
+//   const dataTransfer = await page.evaluateHandle((data) => {
+//       const dt = new DataTransfer();
+//       // Convert the buffer to a hex array
+//       const file = new File([data.toString('hex')], 'sig_test.png', { type: 'img/*' });
+//       dt.items.add(file);
+//       return dt;
+//   }, buffer);
+
+//   // Now dispatch
+//   await page.dispatchEvent('div#signature-drop-zone', 'drop', { dataTransfer });
+
+//   // await expect(page.getByText('Drop signature image here or')).toBeHidden();
+//   await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
+//   await expect(page.locator('.signature-preview')).toBeVisible();
+//   await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
+// });
