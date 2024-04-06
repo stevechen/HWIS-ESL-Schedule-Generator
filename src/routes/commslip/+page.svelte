@@ -35,10 +35,6 @@
 	// Reactive Statements and Stores------------------------------------------------------------
 	let studentsData = writable([]);
 
-	let assignedInput = writable('');
-	let dueInput = writable('');
-	let lateInput = writable('');
-
 	let studentsInput = writable('');
 
 	let ESLClass = writable({
@@ -106,9 +102,9 @@
 
 	$: {
 		const className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num} ${$ESLClass.type}`;
-		const assignedDateFormatted = processDate($assignedInput);
-		const dueDateFormatted = processDate($dueInput);
-		const lateDateFormatted = processDate($lateInput);
+		const assignedDateFormatted = processDate($assignment.assigned);
+		const dueDateFormatted = processDate($assignment.due);
+		const lateDateFormatted = processDate($assignment.late);
 		const selectedTypeDetails = ASSIGNMENTS_TYPES.find(
 			(type) => type.code === $assignmentRadio.code
 		);
@@ -320,7 +316,7 @@
 	// Lifecycle Hooks------------------------------------------------------------
 	onMount(async () => {
 		const today = moment().format('MM/DD'); // Format today's date as needed
-		dueInput.set(today);
+		$assignment.due = today;
 
 		const img = new Image();
 
@@ -469,24 +465,27 @@
 			type="text"
 			name=""
 			id="assigned"
-			bind:value={$assignedInput}
+			bind:value={$assignment.assigned}
 			class={`${!$assignment.assigned ? 'warning' : ''}`}
+			on:input={(e) => assignment.update((n) => ({ ...n, assigned: e.target.value }))}
 		/>
 		<label for="due">Due: </label>
 		<input
 			type="text"
 			name=""
 			id="due"
-			bind:value={$dueInput}
+			bind:value={$assignment.due}
 			class={`${!$assignment.due ? 'warning' : ''}`}
+			on:input={(e) => assignment.update((n) => ({ ...n, due: e.target.value }))}
 		/>
 		<label for="late">Late: </label>
 		<input
 			type="text"
 			name=""
 			id="late"
-			bind:value={$lateInput}
+			bind:value={$assignment.late}
 			class={`${!$assignment.late ? 'warning' : ''}`}
+			on:input={(e) => assignment.update((n) => ({ ...n, late: e.target.value }))}
 		/>
 	</fieldset>
 
