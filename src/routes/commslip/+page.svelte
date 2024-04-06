@@ -1,8 +1,8 @@
 <script>
-	import { assignment } from '$lib/stores/commslip';
+	import { assignment, isValidDate } from '$lib/stores/commslip';
 	import { writable, derived, get } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
-	import moment from 'moment';
+	import { format, parse } from 'date-fns';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 
@@ -190,10 +190,16 @@
 	}
 
 	// Utility Functions------------------------------------------------------------
-	/** @param {moment.MomentInput} input */
+	/** @param {string} input */
 	function processDate(input) {
-		const date = moment(input).format('MM/DD');
-		return date === 'Invalid date' ? null : date;
+		// Assuming the input format is 'MM/DD'
+		const currentYear = new Date().getFullYear();
+		const date = parse(`${currentYear}/${input}`, 'yyyy/MM/dd', new Date());
+
+		// Check if the date is valid, if not return null
+		if (isNaN(date)) return input;
+
+		return format(date, 'MM/dd');
 	}
 
 	/** @param {string} pastedText*/
@@ -315,7 +321,10 @@
 
 	// Lifecycle Hooks------------------------------------------------------------
 	onMount(async () => {
-		const today = moment().format('MM/DD'); // Format today's date as needed
+		// const today = moment().format('MM/DD'); // Format today's date as needed
+		// $assignment.due = today;
+
+		const today = format(new Date(), 'MM/dd'); // Format today's date as 'MM/DD'
 		$assignment.due = today;
 
 		const img = new Image();
@@ -466,7 +475,7 @@
 			name=""
 			id="assigned"
 			bind:value={$assignment.assigned}
-			class={`${!$assignment.assigned ? 'warning' : ''}`}
+			class={`${!$assignment.assigned || !isValidDate($assignment.assigned) ? 'warning' : ''}`}
 			on:input={(e) => assignment.update((n) => ({ ...n, assigned: e.target.value }))}
 		/>
 		<label for="due">Due: </label>
@@ -475,7 +484,7 @@
 			name=""
 			id="due"
 			bind:value={$assignment.due}
-			class={`${!$assignment.due ? 'warning' : ''}`}
+			class={`${!$assignment.due || !isValidDate($assignment.due) ? 'warning' : ''}`}
 			on:input={(e) => assignment.update((n) => ({ ...n, due: e.target.value }))}
 		/>
 		<label for="late">Late: </label>
@@ -484,7 +493,7 @@
 			name=""
 			id="late"
 			bind:value={$assignment.late}
-			class={`${!$assignment.late ? 'warning' : ''}`}
+			class={`${!$assignment.late || !isValidDate($assignment.late) ? 'warning' : ''}`}
 			on:input={(e) => assignment.update((n) => ({ ...n, late: e.target.value }))}
 		/>
 	</fieldset>

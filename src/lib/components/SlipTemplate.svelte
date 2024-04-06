@@ -1,5 +1,5 @@
 <script>
-	import { assignment } from '$lib/stores/commslip';
+	import { assignment, isValidDate } from '$lib/stores/commslip';
 	export let student = {
 		id: '',
 		name: { english: '', chinese: '' },
@@ -47,13 +47,18 @@
 			<p class="note">*功課內容請查 Google Classroom.</p>
 		</div>
 		<div class="date assigned">
-			<p>Assigned date<br />指派日：<br />{$assignment.assigned || ''}</p>
+			<p>
+				Assigned date<br />指派日：<br />{isValidDate($assignment.assigned) && $assignment.assigned}
+			</p>
 		</div>
 		<div class="date due">
-			<p>Due date<br />繳交日：<br />{$assignment.due || ''}</p>
+			<p>Due date<br />繳交日：<br />{isValidDate($assignment.due) && $assignment.due}</p>
 		</div>
 		<div class="date late stress">
-			<p>Make up date<br /><span>補繳日：<br /> {$assignment.late || ''}</span></p>
+			<p>
+				Make up date<br />
+				<span>補繳日：<br /> {isValidDate($assignment.late) && $assignment.late}</span>
+			</p>
 		</div>
 	</div>
 	<div class="signature row">
