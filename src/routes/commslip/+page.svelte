@@ -1,7 +1,9 @@
 <script>
+	// import {faTrash} from '@fortawesome/free-solid-svg-icons'
 	import { assignment, isValidDate } from '$lib/stores/commslip';
 	import { writable, derived, get } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
+
 	import { format, parse } from 'date-fns';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
@@ -309,6 +311,10 @@
 		if (!file) return;
 	}
 
+	function removeSignature(event) {
+		event.stopPropagation(); // This stops the click event from bubbling up to parent elements
+		signatureImage.set(''); // Clear the signature image
+	}
 	// Lifecycle Hooks------------------------------------------------------------
 	onMount(async () => {
 		// const today = moment().format('MM/DD'); // Format today's date as needed
@@ -358,69 +364,71 @@
 		></textarea>
 	</fieldset>
 
-	<table class="student-table">
-		{#if $studentsData.length}
-			<thead>
-				<tr>
-					<th>
-						<input
-							id="master-checkbox"
-							type="checkbox"
-							bind:checked={allSelected}
-							on:change={toggleAllStudents}
-						/>
-					</th>
-					<th>ID</th>
-					<th>C. Name</th>
-					<th>English Name</th>
-					<th>C. Class</th>
-					<th>Status</th>
-				</tr>
-			</thead>
-		{/if}
-		<tbody>
-			{#each $studentsData as student, i (student.id)}
-				<tr>
-					<td class="student-checkbox">
-						<input type="checkbox" bind:checked={student.selected} />
-					</td>
-					<td class="student-id">
-						<input
-							bind:value={student.id}
-							on:input={(e) => updateStudentsData(i, 'id', e.target.value)}
-						/>
-					</td>
-					<td class="chinese-name">
-						<input
-							bind:value={student.name.chinese}
-							on:input={(e) => updateStudentsData(i, 'name.chinese', e.target.value)}
-						/>
-					</td>
-					<td class="english-name">
-						<input
-							bind:value={student.name.english}
-							on:input={(e) => updateStudentsData(i, 'name.english', e.target.value)}
-						/>
-					</td>
-					<td class="chinese-class">
-						<input
-							bind:value={student.cClass}
-							on:input={(e) => updateStudentsData(i, 'cClass', e.target.value)}
-						/>
-					</td>
-					<td class="status">
-						<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
-							{#each STATUS as status}
-								<option value={status.code} selected={status.code === student.status.code}>
-									{status.text.english}
-								</option>
-							{/each}
-						</select>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	{#if $studentsData.length > 0}
+		<table class="student-table">
+			{#if $studentsData.length}
+				<thead>
+					<tr>
+						<th>
+							<input
+								id="master-checkbox"
+								type="checkbox"
+								bind:checked={allSelected}
+								on:change={toggleAllStudents}
+							/>
+						</th>
+						<th>ID</th>
+						<th>C. Name</th>
+						<th>English Name</th>
+						<th>C. Class</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+			{/if}
+			<tbody>
+				{#each $studentsData as student, i (student.id)}
+					<tr>
+						<td class="student-checkbox">
+							<input type="checkbox" bind:checked={student.selected} />
+						</td>
+						<td class="student-id">
+							<input
+								bind:value={student.id}
+								on:input={(e) => updateStudentsData(i, 'id', e.target.value)}
+							/>
+						</td>
+						<td class="chinese-name">
+							<input
+								bind:value={student.name.chinese}
+								on:input={(e) => updateStudentsData(i, 'name.chinese', e.target.value)}
+							/>
+						</td>
+						<td class="english-name">
+							<input
+								bind:value={student.name.english}
+								on:input={(e) => updateStudentsData(i, 'name.english', e.target.value)}
+							/>
+						</td>
+						<td class="chinese-class">
+							<input
+								bind:value={student.cClass}
+								on:input={(e) => updateStudentsData(i, 'cClass', e.target.value)}
+							/>
+						</td>
+						<td class="status">
+							<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
+								{#each STATUS as status}
+									<option value={status.code} selected={status.code === student.status.code}>
+										{status.text.english}
+									</option>
+								{/each}
+							</select>
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	{/if}
 	<fieldset class="class-info">
 		<div class="legend">Class:</div>
 		<div>{grade}</div>
@@ -488,8 +496,9 @@
 		/>
 	</fieldset>
 
-	<div
+	<button
 		id="signature-drop-zone"
+		class:has-signature={$signatureImage}
 		on:dragover={handleDragOver}
 		on:drop={handleDrop}
 		on:dragleave={handleDragLeave}
@@ -497,11 +506,23 @@
 	>
 		{#if $signatureImage}
 			<img class="signature-preview" src={$signatureImage} alt="Signature Preview" />
+			<button
+				id="remove-signature"
+				on:click={(event) => removeSignature(event)}
+				class="trash secondary action-button"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
+					<path
+						fill="currentColor"
+						d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3zM7 6h10v13H7zm2 2v9h2V8zm4 0v9h2V8z"
+					/>
+				</svg>
+			</button>
 		{:else}
 			<p>Drop signature image here or</p>
 			<button id="browse" class="secondary action-button">browse</button>
 		{/if}
-	</div>
+	</button>
 	<input type="file" id="signature-upload" accept="image/*" on:change={handleFileSelect} />
 	<button id="print" on:click={() => window.print()} class="action-button">Print</button>
 </main>
@@ -557,6 +578,10 @@
 			display: none;
 			visibility: hidden;
 		}
+	}
+
+	svg {
+		display: block;
 	}
 
 	fieldset {
@@ -708,13 +733,14 @@
 
 	#signature-drop-zone {
 		display: inline-block;
+		background: #fbfbfb;
 		border: 2px dashed #ccc;
 		border-radius: 10px;
 		padding: 5px 20px;
 		margin-left: 10px;
 		text-align: center;
 		cursor: pointer;
-		width: 470px;
+		width: 540px;
 	}
 
 	#signature-drop-zone p {
@@ -732,24 +758,47 @@
 		border: 0;
 	}
 
+	#signature-drop-zone.has-signature {
+		display: grid;
+		grid-template-columns: auto 2.75em;
+	}
+
 	.drag-over {
 		border-color: #000; /* Change border color when dragging over */
 	}
 
 	.signature-preview {
+		align-self: center;
+		justify-self: center;
 		height: 14mm;
+	}
+
+	#remove-signature {
+		align-self: center;
+		padding: 0.2em;
+		background: #fafafa;
 	}
 
 	.secondary.action-button {
 		color: #0ea5e9;
-		background: white;
+		background: transparent;
 		border: 1px solid #0ea5e9;
 	}
-
 	.secondary.action-button:hover {
 		color: #0369a1;
 		background: white;
 		border: 1px solid #0369a1;
 		cursor: pointer;
+	}
+
+	#print {
+		display: inline-block;
+	}
+
+	main.control {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		flex-wrap: wrap;
 	}
 </style>

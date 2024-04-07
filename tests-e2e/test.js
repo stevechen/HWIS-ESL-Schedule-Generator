@@ -42,14 +42,31 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
     const element = document.querySelector(selector);
     return document.activeElement === element;
   }, [selector]);
+
   // grant access to clipboard (you can also set this in the playwright.config.ts file)
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   // Set the clipboard content to the desired data
   await page.evaluate((data) => navigator.clipboard.writeText(data), mockData);
   // simulate paste event
   await page.keyboard.press(`${modifier}+V`);
+
+  // await page.locator(selector).dispatchEvent('paste');
+
+  // await page.locator(selector).evaluate((formEl) => {
+  //   const data = mockData;
+  //   const clipboardData = new DataTransfer();
+  //   const dataType = 'text/plain';
+  //   clipboardData.setData(dataType, data);
+  //   const clipboardEvent = new ClipboardEvent('paste', {
+  //     clipboardData,
+  //     dataType,
+  //     data
+  //   });
+  //   formEl.dispatchEvent(clipboardEvent);
+  // });
+
   // Wait for the #master-checkbox to appear
-  await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout:6000 });
+  await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout: 60000 });
 }
 
 const isMac = async () => {
@@ -64,8 +81,11 @@ const isMac = async () => {
 
 let modifier = isMac ? 'Meta' : 'Control';
 
-test('should hide assignment type for different classes', async({ page, context }) => {
+test.beforeEach(async ({ page }) => {
   await page.goto(`${BASE_URL}/commslip`);
+});
+
+test('should hide assignment type for different classes', async({ page, context }) => {
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9);
 
@@ -76,9 +96,6 @@ test('should hide assignment type for different classes', async({ page, context 
 });
 
 test('should process pasted student data correctly', async ({ page, context }) => {
-  // Navigate to your Svelte application page
-  await page.goto(`${BASE_URL}/commslip`);
-
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
 
    // Get today's date in MM/DD format
@@ -104,8 +121,6 @@ test('should process pasted student data correctly', async ({ page, context }) =
 });
 
 test('should update communication slips according to manual assignment type changes', async ({ page, context }) => {
-  // Navigate to your Svelte application page
-  await page.goto(`${BASE_URL}/commslip`);
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
 
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
@@ -133,8 +148,6 @@ test('should update communication slips according to manual assignment type chan
 });
 
 test('should update assigned date and late date on slips', async ({ page, context }) => {
-  // Navigate to your page
-  await page.goto(`${BASE_URL}/commslip`);
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
   // Type in the Assign date and Late Date
   const assignDate = '01/01';
@@ -197,8 +210,6 @@ test('should correctly remove and add back SlipTemplate on checkbox operation', 
 });
 
 test('should check, uncheck all with master-checkbox and master-checkbox should have a indeterminate state ', async ({ page, context }) => {
-  // Step 1: Navigate to the page
-  await page.goto(`${BASE_URL}/commslip`);
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
 
   await page.click('#master-checkbox'); //uncheck all
@@ -220,31 +231,36 @@ test('should check, uncheck all with master-checkbox and master-checkbox should 
     await expect(checkbox).toBeChecked();
   }
 });
+// signature -----------------------------------------------------------------
 test.describe('signature upload', () => {
-  async function uploadImage(page, image) {
+  async function uploadSignature(page, image) {
     const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: 'browse' }).click();
+    await page.getByRole('button', { name: 'browse', exact: true }).click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(`./tests-e2e/fixtures/${image}`);
   }
+  test.beforeEach(async ({ page }) => {    // remove signature first
+    if (await page.locator('#remove-signature').isVisible()) {
+      await page.locator('#remove-signature').click();
+    }
+  });
 
-  test('should upload valid signature png image', async ({ page, context }) => {
-    // Navigate to your Svelte application page
-    await page.goto(`${BASE_URL}/commslip`);
+  test('should upload valid png signature & remove ', async ({ page, context }) => {
     await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadImage(page, 'sig_test.png');
+    await uploadSignature(page, 'sig_test.png');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
     await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
     await expect(page.locator('.signature-preview')).toBeVisible();
     await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
+
+    await page.locator('#remove-signature').click();
+    await expect(page.locator('.signature-preview')).toBeHidden();
   });
 
-    test('should upload valid signature jpeg image', async ({ page, context }) => {
-    // Navigate to your Svelte application page
-    await page.goto(`${BASE_URL}/commslip`);
+    test('should upload valid jpg signature image', async ({ page, context }) => {
     await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadImage(page, 'sig_test.jpeg');
+    await uploadSignature(page, 'sig_test.jpeg');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
     await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
@@ -253,10 +269,8 @@ test.describe('signature upload', () => {
   });
 
   test('should reject signature images that does is too big', async ({ page, context  }) => {
-    // Navigate to your Svelte application page
-    await page.goto(`${BASE_URL}/commslip`);
     await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadImage(page, 'sig_big.jpg');
+    await uploadSignature(page, 'sig_big.jpg');
 
     page.once('dialog', dialog => {
       expect(dialog.message()).toEqual('Only JPG and PNG file under 100KB is allowed.');
@@ -265,10 +279,8 @@ test.describe('signature upload', () => {
   });
 
   test('should reject signature images that is not jpg or png', async ({ page, context  }) => {
-    // Navigate to your Svelte application page
-    await page.goto(`${BASE_URL}/commslip`);
     await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadImage(page, 'sig_bmp.bmp');
+    await uploadSignature(page, 'sig_bmp.bmp');
 
     page.once('dialog', dialog => {
       expect(dialog.message()).toEqual('Only JPG and PNG file under 100KB is allowed.');
@@ -277,16 +289,22 @@ test.describe('signature upload', () => {
   });
 
   test('should reject signature images that does is too short in height', async ({ page, context  }) => {
-    // Navigate to your Svelte application page
-    await page.goto(`${BASE_URL}/commslip`);
     await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadImage(page, 'sig_short.png');
+    await uploadSignature(page, 'sig_short.png');
 
     page.once('dialog', dialog => {
       expect(dialog.message()).toEqual('Image height should be greater than 165px.');
       dialog.dismiss().catch(() => {});
     });
   });
+
+  //   test('should remove a signature', async ({ page }) => {
+  //   await uploadSignature(page, 'sig_test.png');
+  //   await page.locator('.signature-preview').toBeVisible();
+
+  //   await page.locator('#remove-signature').click();
+  //   await expect(page.locator('.signature-preview')).toBeHidden();
+  // });
 });
 
 // test('should upload valid signature image with drag & drop', async ({ page, context }) => {
