@@ -3,7 +3,7 @@
 	import { writable, derived, get } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
 
-	import { format, parse } from 'date-fns';
+	import { format, isValid, parse } from 'date-fns';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 
@@ -32,6 +32,9 @@
 	let grade = 'Unknown';
 
 	let allSelected = false; // Tracks the master checkbox state
+
+	let printInvalid = false;
+	let printCaution = false;
 
 	// Reactive Statements and Stores------------------------------------------------------------
 	let studentsData = writable([]);
@@ -102,7 +105,7 @@
 	}
 
 	$: {
-		const className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num} ${$ESLClass.type}`;
+		const className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num ? $ESLClass.num : '?'} ${$ESLClass.type}`;
 		const assignedDateFormatted = processDate($assignment.assigned);
 		const dueDateFormatted = processDate($assignment.due);
 		const lateDateFormatted = processDate($assignment.late);
@@ -153,6 +156,15 @@
 			checkbox.indeterminate = allSelected === 'indeterminate';
 		}
 	}
+
+	$: printInvalid =
+		!$ESLClass.num ||
+		(!$allStudentsSelected.indeterminate && !$allStudentsSelected.checked) ||
+		!$students.length;
+	$: printCaution =
+		!isValidDate($assignment.assigned) ||
+		!isValidDate($assignment.due) ||
+		!isValidDate($assignment.late);
 
 	// Derived store to manage the master checkbox state
 	const allStudentsSelected = derived(studentsData, ($studentsData) => {
@@ -287,6 +299,20 @@
 		ESLClass.update((current) => ({ ...current, grade }));
 	}
 
+	function handleDateInput(event, assignmentKey) {
+		const inputField = event.target;
+		const isValid = isValidDate(inputField.value);
+
+		if (!isValid) {
+			inputField.setCustomValidity('Please enter a valid date in MM/DD format.');
+		} else {
+			inputField.setCustomValidity(''); // Clear custom validity message
+		}
+
+		// Update the assignment store
+		assignment.update((n) => ({ ...n, [assignmentKey]: inputField.value }));
+	}
+
 	function handleFileSelect(event) {
 		const file = event.target.files[0];
 		validateAndSetImage(file);
@@ -348,7 +374,7 @@
 	<!-- <h1>Communication Slip Generator</h1> -->
 	<fieldset class="students">
 		<legend>
-			<span class="title">Students:</span>
+			<span class="title">Students</span>
 			<span class="hints {showHints ? '' : 'hide'}">
 				{`Paste Excel student rows with fields: [ID, Chinese Name, English Name, Chinese Class]`}
 			</span>
@@ -360,6 +386,7 @@
 			bind:value={$studentsInput}
 			on:paste={(e) => handlePaste(e)}
 			class={`${$studentsData.length === 0 || allSelected === false ? 'warning' : ''}`}
+			required
 		></textarea>
 	</fieldset>
 
@@ -429,7 +456,7 @@
 		</table>
 	{/if}
 	<fieldset class="class-info">
-		<div class="legend">Class:</div>
+		<div class="legend">Class</div>
 		<div>{grade}</div>
 		<div>
 			<input type="radio" id="ele" bind:group={$ESLClass.level} value="Elementary" />
@@ -450,12 +477,20 @@
 			{/each}
 		</div>
 		<div>
-			<input type="text" bind:value={$ESLClass.num} class={`${!$ESLClass.num ? 'warning' : ''}`} />
+			<input
+				type="number"
+				id="class-number"
+				bind:value={$ESLClass.num}
+				class={`${!$ESLClass.num ? 'warning' : ''}`}
+				max="9"
+				min="1"
+				required
+			/>
 		</div>
 	</fieldset>
 
 	<fieldset class="assignment-type">
-		<div class="legend">Type:</div>
+		<div class="legend">Type</div>
 		{#each ASSIGNMENTS_TYPES as type}
 			{#if (($ESLClass.type === CLIL && type.code === WORKBOOK) || $ESLClass.type === COMM) && !($ESLClass.grade === 'G9' && type.code === WORKBOOK)}
 				<input type="radio" id={type.code} bind:group={$assignmentRadio.code} value={type.code} />
@@ -465,15 +500,16 @@
 	</fieldset>
 
 	<fieldset class="dates">
-		<div class="legend">Dates:</div>
+		<div class="legend">Dates</div>
 		<label for="assigned">Assigned: </label>
 		<input
 			type="text"
 			name=""
 			id="assigned"
 			bind:value={$assignment.assigned}
-			class={`${!$assignment.assigned || !isValidDate($assignment.assigned) ? 'warning' : ''}`}
-			on:input={(e) => assignment.update((n) => ({ ...n, assigned: e.target.value }))}
+			class={`date ${!$assignment.assigned || !isValidDate($assignment.assigned) ? 'caution' : ''}`}
+			on:input={(e) => handleDateInput(e, 'assigned')}
+			required
 		/>
 		<label for="due">Due: </label>
 		<input
@@ -481,8 +517,9 @@
 			name=""
 			id="due"
 			bind:value={$assignment.due}
-			class={`${!$assignment.due || !isValidDate($assignment.due) ? 'warning' : ''}`}
-			on:input={(e) => assignment.update((n) => ({ ...n, due: e.target.value }))}
+			class={`date ${!$assignment.due || !isValidDate($assignment.due) ? 'caution' : ''}`}
+			on:input={(e) => handleDateInput(e, 'due')}
+			required
 		/>
 		<label for="late">Late: </label>
 		<input
@@ -490,8 +527,9 @@
 			name=""
 			id="late"
 			bind:value={$assignment.late}
-			class={`${!$assignment.late || !isValidDate($assignment.late) ? 'warning' : ''}`}
-			on:input={(e) => assignment.update((n) => ({ ...n, late: e.target.value }))}
+			class={`date ${!$assignment.late || !isValidDate($assignment.late) ? 'caution' : ''}`}
+			on:input={(e) => handleDateInput(e, 'late')}
+			required
 		/>
 	</fieldset>
 
@@ -523,7 +561,15 @@
 		{/if}
 	</button>
 	<input type="file" id="signature-upload" accept="image/*" on:change={handleFileSelect} />
-	<button id="print" on:click={() => window.print()} class="action-button">Print</button>
+	<button
+		id="print"
+		on:click={() => window.print()}
+		class="action-button"
+		class:invalid={printInvalid}
+		class:caution={printCaution}
+	>
+		Print
+	</button>
 </main>
 
 <div id="b5-print" class="b5-size">
@@ -545,6 +591,13 @@
 		}
 	}
 
+	:root {
+		--main-color: #0ea5e9;
+		--main-color-dark: #0369ae;
+		--caution-color: orange;
+		--caution-color-dark: #ff8500;
+	}
+
 	main {
 		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
 			Geneva, Verdana, sans-serif;
@@ -555,6 +608,13 @@
 		padding: 0.5em;
 		border: 1px dotted gray;
 		border-radius: 1em;
+	}
+
+	main.control {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		flex-wrap: wrap;
 	}
 
 	.b5-size {
@@ -611,8 +671,19 @@
 		border-right: none;
 	}
 
-	.class-info input[type='text'] {
-		width: 2em;
+	/* remove click buttons */
+	input[type='number'] {
+		appearance: textfield;
+		-moz-appearance: textfield;
+		height: 1.2em;
+		width: 1.5em;
+		border-radius: 3px;
+		text-align: center;
+	}
+
+	input::-webkit-outer-spin-button,
+	input::-webkit-inner-spin-button {
+		-webkit-appearance: none;
 	}
 
 	.assignment-type,
@@ -641,6 +712,10 @@
 		width: 6em;
 	}
 
+	input.date {
+		text-align: center;
+	}
+
 	.students span.title {
 		font-size: 1em;
 		font-weight: 600;
@@ -655,9 +730,27 @@
 		height: 1.5em;
 	}
 
+	input[type='text'] {
+		border-radius: 3px;
+	}
+
+	input:valid {
+		border-width: 1px;
+	}
+
+	textarea:invalid,
+	input:invalid,
 	.warning {
 		color: red;
 		border: 1px solid red;
+		/* box-shadow:
+			0 2px 4px 0 rgba(255, 0, 0, 0.2),
+			0 4px 10px 0 rgba(255, 0, 0, 0.19); */
+	}
+
+	input.caution:invalid {
+		color: var(--caution-color-dark);
+		border-color: var(--caution-color);
 	}
 
 	.hints.hide {
@@ -716,7 +809,7 @@
 	}
 
 	.action-button {
-		background-color: #0ea5e9;
+		background-color: var(--main-color);
 		color: white;
 		border: none;
 		border-radius: 4px;
@@ -726,10 +819,28 @@
 	}
 
 	.action-button:hover {
-		background-color: #0369a1;
+		background-color: var(--main-color-dark);
 		cursor: pointer;
 	}
 
+	.action-button.caution {
+		background-color: var(--caution-color);
+		/* color: black; */
+	}
+
+	.action-button.caution:hover {
+		background-color: var(--caution-color-dark);
+		/* color: black; */
+	}
+
+	.action-button.invalid,
+	.action-button.caution.invalid,
+	.action-button.invalid:hover,
+	.action-button.caution.invalid:hover {
+		color: white;
+		background-color: red;
+		cursor: default;
+	}
 	#signature-drop-zone {
 		display: inline-block;
 		background: #fbfbfb;
@@ -779,25 +890,18 @@
 	}
 
 	.secondary.action-button {
-		color: #0ea5e9;
+		color: var(--main-color);
 		background: transparent;
-		border: 1px solid #0ea5e9;
+		border: 1px solid var(--main-color);
 	}
 	.secondary.action-button:hover {
-		color: #0369a1;
+		color: var(--main-color-dark);
 		background: white;
-		border: 1px solid #0369a1;
+		border: 1px solid var(--main-color-dark);
 		cursor: pointer;
 	}
 
 	#print {
 		display: inline-block;
-	}
-
-	main.control {
-		display: flex;
-		justify-content: flex-start;
-		align-items: center;
-		flex-wrap: wrap;
 	}
 </style>
