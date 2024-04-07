@@ -1,5 +1,4 @@
 <script>
-	// import {faTrash} from '@fortawesome/free-solid-svg-icons'
 	import { assignment, isValidDate } from '$lib/stores/commslip';
 	import { writable, derived, get } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
@@ -201,7 +200,7 @@
 		// Check if the date is valid, if not return null
 		if (isNaN(date)) return input;
 
-		return format(date, 'MM/dd');
+		return format(date, 'M/d');
 	}
 
 	/** @param {string} pastedText*/

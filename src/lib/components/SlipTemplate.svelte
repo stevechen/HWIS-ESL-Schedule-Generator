@@ -48,16 +48,18 @@
 		</div>
 		<div class="date assigned">
 			<p>
-				Assigned date<br />指派日：<br />{isValidDate($assignment.assigned) && $assignment.assigned}
+				Assigned date<br />指派日：<br />{isValidDate($assignment.assigned)
+					? $assignment.assigned
+					: ''}
 			</p>
 		</div>
 		<div class="date due">
-			<p>Due date<br />繳交日：<br />{isValidDate($assignment.due) && $assignment.due}</p>
+			<p>Due date<br />繳交日：<br />{isValidDate($assignment.due) ? $assignment.due : ''}</p>
 		</div>
 		<div class="date late stress">
 			<p>
 				Make up date<br />
-				<span>補繳日：<br /> {isValidDate($assignment.late) && $assignment.late}</span>
+				<span>補繳日：<br /> {isValidDate($assignment.late) ? $assignment.late : ''}</span>
 			</p>
 		</div>
 	</div>
