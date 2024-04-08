@@ -589,32 +589,295 @@
 		:global(body) {
 			overflow-y: overlay; /* For WebKit browsers */
 		}
-	}
 
-	:root {
-		--main-color: #0ea5e9;
-		--main-color-dark: #0369ae;
-		--caution-color: orange;
-		--caution-color-dark: #ff8500;
-	}
+		:root {
+			--main-color: #0ea5e9;
+			--main-color-dark: #0369ae;
+			--caution-color: orange;
+			--caution-color-dark: #ff8500;
+		}
 
-	main {
-		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
-			Geneva, Verdana, sans-serif;
-		/* width: 182mm; */
-		width: 172mm;
-		margin: 0 auto;
-		margin-bottom: 1em;
-		padding: 0.5em;
-		border: 1px dotted gray;
-		border-radius: 1em;
-	}
+		main.control {
+			display: flex;
+			justify-content: flex-start;
+			align-items: center;
+			flex-wrap: wrap;
+			font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
+				Geneva, Verdana, sans-serif;
+			/* width: 182mm; */
+			width: 172mm;
+			margin: 0 auto;
+			margin-bottom: 1em;
+			padding: 0.5em;
+			border: 1px dotted gray;
+			border-radius: 1em;
+		}
 
-	main.control {
-		display: flex;
-		justify-content: flex-start;
-		align-items: center;
-		flex-wrap: wrap;
+		svg {
+			display: block;
+		}
+
+		fieldset {
+			border: none;
+			margin-bottom: 0.5em;
+		}
+
+		.student-table {
+			margin-bottom: 0.5em;
+		}
+
+		.class-info {
+			display: flex;
+			flex-direction: row;
+			justify-content: left;
+		}
+
+		.class-info > div:not(.legend) {
+			border-right: 1px solid gray;
+			padding: 0 0.5em;
+		}
+
+		.class-info .legend {
+			font-weight: 600;
+		}
+
+		.class-info > div:last-of-type {
+			border-right: none;
+		}
+
+		/* remove click buttons */
+		input[type='number'] {
+			appearance: textfield;
+			-moz-appearance: textfield;
+			height: 1.2em;
+			width: 1.5em;
+			border-radius: 3px;
+			text-align: center;
+		}
+
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+			-webkit-appearance: none;
+		}
+
+		.assignment-type,
+		.dates {
+			display: flex;
+			flex-direction: row;
+			justify-content: left;
+			align-items: left;
+		}
+
+		.assignment-type .legend,
+		.dates .legend {
+			font-weight: 600;
+		}
+
+		.assignment-type > label {
+			padding-right: 0.5em;
+		}
+
+		.dates > label {
+			padding-left: 1em;
+			padding-right: 0.5em;
+		}
+		.dates input {
+			margin-right: 1em;
+			width: 6em;
+		}
+
+		input.date {
+			text-align: center;
+		}
+
+		.students span.title {
+			font-size: 1em;
+			font-weight: 600;
+		}
+		.students span {
+			font-size: 0.7em;
+		}
+
+		.students textarea {
+			min-width: 45em;
+			max-width: 90%;
+			height: 1.5em;
+		}
+
+		input[type='text'] {
+			border-radius: 3px;
+		}
+
+		input:valid {
+			border-width: 1px;
+		}
+
+		textarea:invalid,
+		input:invalid,
+		.warning {
+			color: red;
+			border: 1px solid red;
+			/* box-shadow:
+			0 2px 4px 0 rgba(255, 0, 0, 0.2),
+			0 4px 10px 0 rgba(255, 0, 0, 0.19); */
+		}
+
+		input.caution:invalid {
+			color: var(--caution-color-dark);
+			border-color: var(--caution-color);
+		}
+
+		.hints.hide {
+			display: none;
+		}
+
+		fieldset.students {
+			margin-bottom: 0;
+		}
+
+		table {
+			border-collapse: collapse; /* Remove space between borders */
+			margin-left: 1.5em;
+		}
+
+		th {
+			font-size: 0.8em;
+			font-weight: 300;
+			background-color: lightgray;
+			border: 1px solid lightgray;
+		}
+
+		td {
+			border: 1px solid #ccc; /* Light grey border for a subtle grid */
+			padding: 4px; /* Padding inside cells */
+		}
+
+		td.student-id {
+			width: 3.5em;
+		}
+
+		td.chinese-name {
+			width: 5.5em;
+		}
+
+		td.english-name {
+			width: 10em;
+		}
+
+		td.chinese-class {
+			width: 3.5em;
+		}
+
+		td input {
+			width: 100%; /* Make input fill the cell */
+			border: none;
+			background-color: transparent;
+			padding: 0;
+			margin: 0;
+			box-sizing: border-box; /* Include padding and border in the element's size */
+		}
+
+		td input:focus {
+			outline: none; /* Remove focus outline */
+			background-color: #eef; /* Optional: highlight on focus */
+		}
+
+		.action-button {
+			background-color: var(--main-color);
+			color: white;
+			border: none;
+			border-radius: 4px;
+			padding: 0.5em 1em;
+			margin-left: 1em;
+			font-weight: 600;
+		}
+
+		.action-button:hover {
+			background-color: var(--main-color-dark);
+			cursor: pointer;
+		}
+
+		.action-button.caution {
+			background-color: var(--caution-color);
+			/* color: black; */
+		}
+
+		.action-button.caution:hover {
+			background-color: var(--caution-color-dark);
+			/* color: black; */
+		}
+
+		.action-button.invalid,
+		.action-button.caution.invalid,
+		.action-button.invalid:hover,
+		.action-button.caution.invalid:hover {
+			color: white;
+			background-color: red;
+			cursor: default;
+		}
+		#signature-drop-zone {
+			display: inline-block;
+			background: #fbfbfb;
+			border: 2px dashed #ccc;
+			border-radius: 10px;
+			padding: 5px 20px;
+			margin-left: 10px;
+			text-align: center;
+			cursor: pointer;
+			width: 540px;
+		}
+
+		#signature-drop-zone p {
+			color: darkgray;
+		}
+
+		#signature-upload {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			border: 0;
+		}
+
+		#signature-drop-zone.has-signature {
+			display: grid;
+			grid-template-columns: auto 2.75em;
+		}
+
+		.drag-over {
+			border-color: #000; /* Change border color when dragging over */
+		}
+
+		.signature-preview {
+			align-self: center;
+			justify-self: center;
+			height: 14mm;
+		}
+
+		#remove-signature {
+			align-self: center;
+			padding: 0.2em;
+			background: #fafafa;
+		}
+
+		.secondary.action-button {
+			color: var(--main-color);
+			background: transparent;
+			border: 1px solid var(--main-color);
+		}
+		.secondary.action-button:hover {
+			color: var(--main-color-dark);
+			background: white;
+			border: 1px solid var(--main-color-dark);
+			cursor: pointer;
+		}
+
+		#print {
+			display: inline-block;
+		}
 	}
 
 	.b5-size {
@@ -633,275 +896,11 @@
 			display: flex;
 			flex-flow: column;
 		}
-		.control {
+		main.control {
 			display: none;
 			visibility: hidden;
+			width: 0;
+			height: 0;
 		}
-	}
-
-	svg {
-		display: block;
-	}
-
-	fieldset {
-		border: none;
-		margin-bottom: 0.5em;
-	}
-
-	.student-table {
-		margin-bottom: 0.5em;
-	}
-
-	.class-info {
-		display: flex;
-		flex-direction: row;
-		justify-content: left;
-	}
-
-	.class-info > div:not(.legend) {
-		border-right: 1px solid gray;
-		padding: 0 0.5em;
-	}
-
-	.class-info .legend {
-		font-weight: 600;
-	}
-
-	.class-info > div:last-of-type {
-		border-right: none;
-	}
-
-	/* remove click buttons */
-	input[type='number'] {
-		appearance: textfield;
-		-moz-appearance: textfield;
-		height: 1.2em;
-		width: 1.5em;
-		border-radius: 3px;
-		text-align: center;
-	}
-
-	input::-webkit-outer-spin-button,
-	input::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-	}
-
-	.assignment-type,
-	.dates {
-		display: flex;
-		flex-direction: row;
-		justify-content: left;
-		align-items: left;
-	}
-
-	.assignment-type .legend,
-	.dates .legend {
-		font-weight: 600;
-	}
-
-	.assignment-type > label {
-		padding-right: 0.5em;
-	}
-
-	.dates > label {
-		padding-left: 1em;
-		padding-right: 0.5em;
-	}
-	.dates input {
-		margin-right: 1em;
-		width: 6em;
-	}
-
-	input.date {
-		text-align: center;
-	}
-
-	.students span.title {
-		font-size: 1em;
-		font-weight: 600;
-	}
-	.students span {
-		font-size: 0.7em;
-	}
-
-	.students textarea {
-		min-width: 45em;
-		max-width: 90%;
-		height: 1.5em;
-	}
-
-	input[type='text'] {
-		border-radius: 3px;
-	}
-
-	input:valid {
-		border-width: 1px;
-	}
-
-	textarea:invalid,
-	input:invalid,
-	.warning {
-		color: red;
-		border: 1px solid red;
-		/* box-shadow:
-			0 2px 4px 0 rgba(255, 0, 0, 0.2),
-			0 4px 10px 0 rgba(255, 0, 0, 0.19); */
-	}
-
-	input.caution:invalid {
-		color: var(--caution-color-dark);
-		border-color: var(--caution-color);
-	}
-
-	.hints.hide {
-		display: none;
-	}
-
-	fieldset.students {
-		margin-bottom: 0;
-	}
-
-	table {
-		border-collapse: collapse; /* Remove space between borders */
-		margin-left: 1.5em;
-	}
-
-	th {
-		font-size: 0.8em;
-		font-weight: 300;
-		background-color: lightgray;
-		border: 1px solid lightgray;
-	}
-
-	td {
-		border: 1px solid #ccc; /* Light grey border for a subtle grid */
-		padding: 4px; /* Padding inside cells */
-	}
-
-	td.student-id {
-		width: 3.5em;
-	}
-
-	td.chinese-name {
-		width: 5.5em;
-	}
-
-	td.english-name {
-		width: 10em;
-	}
-
-	td.chinese-class {
-		width: 3.5em;
-	}
-
-	td input {
-		width: 100%; /* Make input fill the cell */
-		border: none;
-		background-color: transparent;
-		padding: 0;
-		margin: 0;
-		box-sizing: border-box; /* Include padding and border in the element's size */
-	}
-
-	td input:focus {
-		outline: none; /* Remove focus outline */
-		background-color: #eef; /* Optional: highlight on focus */
-	}
-
-	.action-button {
-		background-color: var(--main-color);
-		color: white;
-		border: none;
-		border-radius: 4px;
-		padding: 0.5em 1em;
-		margin-left: 1em;
-		font-weight: 600;
-	}
-
-	.action-button:hover {
-		background-color: var(--main-color-dark);
-		cursor: pointer;
-	}
-
-	.action-button.caution {
-		background-color: var(--caution-color);
-		/* color: black; */
-	}
-
-	.action-button.caution:hover {
-		background-color: var(--caution-color-dark);
-		/* color: black; */
-	}
-
-	.action-button.invalid,
-	.action-button.caution.invalid,
-	.action-button.invalid:hover,
-	.action-button.caution.invalid:hover {
-		color: white;
-		background-color: red;
-		cursor: default;
-	}
-	#signature-drop-zone {
-		display: inline-block;
-		background: #fbfbfb;
-		border: 2px dashed #ccc;
-		border-radius: 10px;
-		padding: 5px 20px;
-		margin-left: 10px;
-		text-align: center;
-		cursor: pointer;
-		width: 540px;
-	}
-
-	#signature-drop-zone p {
-		color: darkgray;
-	}
-
-	#signature-upload {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		border: 0;
-	}
-
-	#signature-drop-zone.has-signature {
-		display: grid;
-		grid-template-columns: auto 2.75em;
-	}
-
-	.drag-over {
-		border-color: #000; /* Change border color when dragging over */
-	}
-
-	.signature-preview {
-		align-self: center;
-		justify-self: center;
-		height: 14mm;
-	}
-
-	#remove-signature {
-		align-self: center;
-		padding: 0.2em;
-		background: #fafafa;
-	}
-
-	.secondary.action-button {
-		color: var(--main-color);
-		background: transparent;
-		border: 1px solid var(--main-color);
-	}
-	.secondary.action-button:hover {
-		color: var(--main-color-dark);
-		background: white;
-		border: 1px solid var(--main-color-dark);
-		cursor: pointer;
-	}
-
-	#print {
-		display: inline-block;
 	}
 </style>
