@@ -100,7 +100,7 @@ test('should process pasted student data correctly', async ({ page, context }) =
 
    // Get today's date in MM/DD format
   const today = new Date();
-  const formattedDate = (today.getMonth() + 1).toString().padStart(2, '0') + '/' + today.getDate().toString().padStart(2, '0');
+  const formattedDate = (today.getMonth() + 1).toString() + '/' + today.getDate().toString();
 
   // Check if the due date input field has today's date
   await expect(page.locator('#due')).toHaveValue(formattedDate);
@@ -150,7 +150,7 @@ test('should update communication slips according to manual assignment type chan
 test('should update assigned date and late date on slips', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
   // Type in the Assign date and Late Date
-  const assignDate = '01/01';
+  const assignDate = '1/1';
   const lateDate = '12/31';
   await page.fill('input#assigned', assignDate);
   await page.fill('input#late', lateDate);  
@@ -240,9 +240,8 @@ test.describe('signature upload', () => {
     await fileChooser.setFiles(`./tests-e2e/fixtures/${image}`);
   }
   test.beforeEach(async ({ page }) => {    // remove signature first
-    if (await page.locator('#remove-signature').isVisible()) {
-      await page.locator('#remove-signature').click();
-    }
+    await page.locator('#remove-signature').focus();
+    await page.locator('#remove-signature').click();
   });
 
   test('should upload valid png signature & remove ', async ({ page, context }) => {
