@@ -348,16 +348,17 @@
 		const today = format(new Date(), 'MM/dd'); // Format today's date as 'MM/DD'
 		$assignment.due = today;
 
-		const img = new Image();
-
-		img.onload = () => {
-			// Image exists and is loaded, update signatureImage to its path
-			signatureImage.set('sig.png');
-		};
-		img.onerror = (e) => {
-			// Image doesn't exist, do nothing or log an error if needed
-		};
-		img.src = 'sig.png'; // Adjust the path as necessary
+		if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+			const img = new Image();
+			img.onload = () => {
+				// Image exists and is loaded, update signatureImage to its path
+				signatureImage.set('sig.png');
+			};
+			img.onerror = (e) => {
+				// Image doesn't exist, do nothing or log an error if needed
+			};
+			img.src = 'sig.png'; // Adjust the path as necessary
+		}
 	});
 
 	onDestroy(() => {
