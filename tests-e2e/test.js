@@ -272,7 +272,7 @@ test.describe('signature upload', () => {
     await uploadSignature(page, 'sig_big.jpg');
 
     page.once('dialog', dialog => {
-      expect(dialog.message()).toEqual('Only JPG and PNG file under 100KB is allowed.');
+      expect(dialog.message()).toEqual('Only JPG and PNG under 100KB is allowed.');
       dialog.dismiss().catch(() => {});
     });
   });
@@ -282,7 +282,7 @@ test.describe('signature upload', () => {
     await uploadSignature(page, 'sig_bmp.bmp');
 
     page.once('dialog', dialog => {
-      expect(dialog.message()).toEqual('Only JPG and PNG file under 100KB is allowed.');
+      expect(dialog.message()).toEqual('Only JPG and PNG under 100KB is allowed.');
       dialog.dismiss().catch(() => {});
     });
   });
@@ -292,7 +292,7 @@ test.describe('signature upload', () => {
     await uploadSignature(page, 'sig_short.png');
 
     page.once('dialog', dialog => {
-      expect(dialog.message()).toEqual('Image height should be greater than 165px.');
+      expect(dialog.message()).toEqual('Image height should be greater than 160px.');
       dialog.dismiss().catch(() => {});
     });
   });

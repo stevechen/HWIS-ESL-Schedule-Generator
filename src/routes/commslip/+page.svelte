@@ -3,7 +3,7 @@
 	import { writable, derived, get } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
 
-	import { format, isValid, parse } from 'date-fns';
+	import { format, parse } from 'date-fns';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 
@@ -22,7 +22,7 @@
 		{ code: EXAM, english: 'Oral Exam', chinese: '期末考口試' }
 	];
 
-	const STATUS = [
+	const STATUS_TYPES = [
 		{ code: 0, text: { english: "hasn't been submitted", chinese: '未繳交' } },
 		{ code: 1, text: { english: "wasn't completed", chinese: '完成度不佳' } }
 	];
@@ -32,6 +32,19 @@
 	let grade = 'Unknown';
 
 	let allSelected = false; // Tracks the master checkbox state
+
+	let levelType = [
+		{ id: 'ele', label: 'Ele', value: 'Elementary' },
+		{ id: 'bas', label: 'Basic', value: 'Basic' },
+		{ id: 'int', label: 'Int', value: 'Intermediate' },
+		{ id: 'adv', label: 'Adv', value: 'Advanced' }
+	];
+
+	let dateFields = [
+		{ label: 'Assigned:', key: 'assigned' },
+		{ label: 'Due:', key: 'due' },
+		{ label: 'Late:', key: 'late' }
+	];
 
 	let printInvalid = false;
 	let printCaution = false;
@@ -68,7 +81,7 @@
 						id: '',
 						name: { english: '', chinese: '' },
 						cClass: '',
-						status: STATUS[0].text,
+						status: STATUS_TYPES[0].text,
 						selected: true
 					};
 
@@ -181,7 +194,7 @@
 	function updateStudentsData(index, key, value) {
 		studentsData.update((students) => {
 			if (key === 'status.code') {
-				students[index].status = STATUS.find((status) => status.code === Number(value)).text;
+				students[index].status = STATUS_TYPES.find((status) => status.code === Number(value)).text;
 			} else if (key.includes('.')) {
 				const keys = key.split('.');
 				students[index][keys[0]][keys[1]] = value;
@@ -232,7 +245,7 @@
 			(!file.type.match('image/jpeg') && !file.type.match('image/png')) ||
 			file.size > 100 * 1024
 		) {
-			alert('Only JPG and PNG file under 100KB is allowed.');
+			alert('Only JPG and PNG under 100KB is allowed.');
 			return false;
 		}
 
@@ -240,14 +253,14 @@
 		const img = new Image();
 		img.onload = () => {
 			if (img.height <= 160) {
-				alert('Image height should be greater than 165px.');
+				alert('Image height must be greater than 160px.');
 				URL.revokeObjectURL(img.src); // Clean up the URL object
 				return;
 			}
 			signatureImage.set(fileURL);
 		};
 		img.onerror = () => {
-			alert('There was an error loading the image.');
+			alert('Unknown error at loading the image.');
 			URL.revokeObjectURL(img.src); // Clean up the URL object
 		};
 		img.src = fileURL;
@@ -262,7 +275,7 @@
 	function handleStatusChange(studentId, newStatusCode) {
 		$studentsData = $studentsData.map((student) => {
 			if (student.id === studentId) {
-				let status = STATUS.find((status) => status.code === Number(newStatusCode));
+				let status = STATUS_TYPES.find((status) => status.code === Number(newStatusCode));
 				return { ...student, status: status ? status.text : student.status };
 			}
 			return student;
@@ -372,7 +385,6 @@
 
 <TabBar />
 <main class="control">
-	<!-- <h1>Communication Slip Generator</h1> -->
 	<fieldset class="students">
 		<legend>
 			<span class="title">Students</span>
@@ -414,6 +426,7 @@
 			{/if}
 			<tbody>
 				{#each $studentsData as student, i (student.id)}
+					<!-- student row -->
 					<tr>
 						<td class="student-checkbox">
 							<input type="checkbox" bind:checked={student.selected} />
@@ -444,7 +457,7 @@
 						</td>
 						<td class="status">
 							<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
-								{#each STATUS as status}
+								{#each STATUS_TYPES as status}
 									<option value={status.code} selected={status.code === student.status.code}>
 										{status.text.english}
 									</option>
@@ -459,16 +472,14 @@
 	<fieldset class="class-info">
 		<div class="legend">Class</div>
 		<div>{grade}</div>
+		<!-- level -->
 		<div>
-			<input type="radio" id="ele" bind:group={$ESLClass.level} value="Elementary" />
-			<label for="ele">Ele</label>
-			<input type="radio" id="bas" bind:group={$ESLClass.level} value="Basic" />
-			<label for="bas">Basic</label>
-			<input type="radio" id="int" bind:group={$ESLClass.level} value="Intermediate" />
-			<label for="int">Int</label>
-			<input type="radio" id="adv" bind:group={$ESLClass.level} value="Advanced" />
-			<label for="adv">Adv</label>
+			{#each levelType as { id, label, value }}
+				<input type="radio" {id} bind:group={$ESLClass.level} {value} />
+				<label for={id}>{label}</label>
+			{/each}
 		</div>
+		<!-- class type -->
 		<div>
 			{#each CLASS_TYPE as type}
 				{#if type !== CLIL || $ESLClass.grade !== 'G9'}
@@ -477,6 +488,7 @@
 				{/if}
 			{/each}
 		</div>
+		<!-- class number -->
 		<div>
 			<input
 				type="number"
@@ -492,46 +504,28 @@
 
 	<fieldset class="assignment-type">
 		<div class="legend">Type</div>
-		{#each ASSIGNMENTS_TYPES as type}
-			{#if (($ESLClass.type === CLIL && type.code === WORKBOOK) || $ESLClass.type === COMM) && !($ESLClass.grade === 'G9' && type.code === WORKBOOK)}
-				<input type="radio" id={type.code} bind:group={$assignmentRadio.code} value={type.code} />
-				<label for={type.code}>{type.english}</label>
+		{#each ASSIGNMENTS_TYPES as { code, english, chinese }}
+			{#if (($ESLClass.type === CLIL && code === WORKBOOK) || $ESLClass.type === COMM) && !($ESLClass.grade === 'G9' && code === WORKBOOK)}
+				<input type="radio" id={code} bind:group={$assignmentRadio.code} value={code} />
+				<label for={code}>{english}</label>
 			{/if}
 		{/each}
 	</fieldset>
 
 	<fieldset class="dates">
 		<div class="legend">Dates</div>
-		<label for="assigned">Assigned: </label>
-		<input
-			type="text"
-			name=""
-			id="assigned"
-			bind:value={$assignment.assigned}
-			class={`date ${!$assignment.assigned || !isValidDate($assignment.assigned) ? 'caution' : ''}`}
-			on:input={(e) => handleDateInput(e, 'assigned')}
-			required
-		/>
-		<label for="due">Due: </label>
-		<input
-			type="text"
-			name=""
-			id="due"
-			bind:value={$assignment.due}
-			class={`date ${!$assignment.due || !isValidDate($assignment.due) ? 'caution' : ''}`}
-			on:input={(e) => handleDateInput(e, 'due')}
-			required
-		/>
-		<label for="late">Late: </label>
-		<input
-			type="text"
-			name=""
-			id="late"
-			bind:value={$assignment.late}
-			class={`date ${!$assignment.late || !isValidDate($assignment.late) ? 'caution' : ''}`}
-			on:input={(e) => handleDateInput(e, 'late')}
-			required
-		/>
+		{#each dateFields as field}
+			<label for={field.key}>{field.label}</label>
+			<input
+				type="text"
+				name=""
+				id={field.key}
+				bind:value={$assignment[field.key]}
+				class={`date ${!$assignment[field.key] || !isValidDate($assignment[field.key]) ? 'caution' : ''}`}
+				on:input={(e) => handleDateInput(e, field.key)}
+				required
+			/>
+		{/each}
 	</fieldset>
 
 	<button
