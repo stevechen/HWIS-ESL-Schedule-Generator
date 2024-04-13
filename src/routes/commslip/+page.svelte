@@ -174,10 +174,12 @@
 		!$ESLClass.num ||
 		(!$allStudentsSelected.indeterminate && !$allStudentsSelected.checked) ||
 		!$students.length;
+
 	$: printCaution =
-		!isValidDate($assignment.assigned) ||
-		!isValidDate($assignment.due) ||
-		!isValidDate($assignment.late);
+		!printInvalid &&
+		(!isValidDate($assignment.assigned) ||
+			!isValidDate($assignment.due) ||
+			!isValidDate($assignment.late));
 
 	// Derived store to manage the master checkbox state
 	const allStudentsSelected = derived(studentsData, ($studentsData) => {
@@ -355,9 +357,6 @@
 	}
 	// Lifecycle Hooks------------------------------------------------------------
 	onMount(async () => {
-		// const today = moment().format('MM/DD'); // Format today's date as needed
-		// $assignment.due = today;
-
 		const today = format(new Date(), 'MM/dd'); // Format today's date as 'MM/DD'
 		$assignment.due = today;
 
@@ -385,7 +384,7 @@
 
 <TabBar />
 <main class="control">
-	<fieldset class="students">
+	<fieldset class="students-input">
 		<legend>
 			<span class="title">Students</span>
 			<span class="hints {showHints ? '' : 'hide'}">
@@ -427,7 +426,7 @@
 			<tbody>
 				{#each $studentsData as student, i (student.id)}
 					<!-- student row -->
-					<tr>
+					<tr class="student">
 						<td class="student-checkbox">
 							<input type="checkbox" bind:checked={student.selected} />
 						</td>
@@ -458,7 +457,7 @@
 						<td class="status">
 							<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
 								{#each STATUS_TYPES as status}
-									<option value={status.code} selected={status.code === student.status.code}>
+									<option value={status.code}>
 										{status.text.english}
 									</option>
 								{/each}
@@ -528,13 +527,17 @@
 		{/each}
 	</fieldset>
 
-	<button
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
+	<div
 		id="signature-drop-zone"
 		class:has-signature={$signatureImage}
 		on:dragover={handleDragOver}
 		on:drop={handleDrop}
 		on:dragleave={handleDragLeave}
 		on:click={() => document.getElementById('signature-upload').click()}
+		aria-label="Drag & drop signature"
+		tabindex="0"
+		role="button"
 	>
 		{#if $signatureImage}
 			<img class="signature-preview" src={$signatureImage} alt="Signature Preview" />
@@ -554,7 +557,7 @@
 			<p>Drop signature image here or</p>
 			<button id="browse" class="secondary action-button">browse</button>
 		{/if}
-	</button>
+	</div>
 	<input type="file" id="signature-upload" accept="image/*" on:change={handleFileSelect} />
 	<button
 		id="print"
@@ -617,42 +620,36 @@
 			margin-bottom: 0.5em;
 		}
 
-		.student-table {
-			margin-bottom: 0.5em;
-		}
-
 		.class-info {
 			display: flex;
 			flex-direction: row;
 			justify-content: left;
+
+			.legend {
+				font-weight: 600;
+			}
+			div:not(.legend) {
+				border-right: 1px solid gray;
+				padding: 0 0.5em;
+			}
+
+			div:last-of-type {
+				border-right: none;
+			}
 		}
 
-		.class-info > div:not(.legend) {
-			border-right: 1px solid gray;
-			padding: 0 0.5em;
-		}
-
-		.class-info .legend {
-			font-weight: 600;
-		}
-
-		.class-info > div:last-of-type {
-			border-right: none;
-		}
-
-		/* remove click buttons */
-		input[type='number'] {
+		/* remove spin buttons */
+		#class-number {
 			appearance: textfield;
 			-moz-appearance: textfield;
 			height: 1.2em;
 			width: 1.5em;
-			border-radius: 3px;
 			text-align: center;
-		}
 
-		input::-webkit-outer-spin-button,
-		input::-webkit-inner-spin-button {
-			-webkit-appearance: none;
+			&::-webkit-outer-spin-button,
+			&::-webkit-inner-spin-button {
+				-webkit-appearance: none;
+			}
 		}
 
 		.assignment-type,
@@ -672,39 +669,48 @@
 			padding-right: 0.5em;
 		}
 
-		.dates > label {
-			padding-left: 1em;
-			padding-right: 0.5em;
-		}
-		.dates input {
-			margin-right: 1em;
-			width: 6em;
+		.dates {
+			label {
+				padding: 0 0.5em;
+			}
+
+			input {
+				margin-right: 1em;
+				width: 6em;
+			}
+
+			input.date {
+				text-align: center;
+			}
 		}
 
-		input.date {
-			text-align: center;
+		.students-input {
+			margin-bottom: 0;
+
+			span.title {
+				font-size: 1em;
+				font-weight: 600;
+			}
+
+			span {
+				font-size: 0.7em;
+			}
+
+			textarea {
+				min-width: 45em;
+				max-width: 90%;
+				height: 1.5em;
+			}
 		}
 
-		.students span.title {
-			font-size: 1em;
-			font-weight: 600;
-		}
-		.students span {
-			font-size: 0.7em;
-		}
-
-		.students textarea {
-			min-width: 45em;
-			max-width: 90%;
-			height: 1.5em;
-		}
-
-		input[type='text'] {
+		input {
 			border-radius: 3px;
-		}
-
-		input:valid {
 			border-width: 1px;
+
+			&.caution:invalid {
+				color: var(--caution-color-dark);
+				border-color: var(--caution-color);
+			}
 		}
 
 		textarea:invalid,
@@ -717,64 +723,56 @@
 			0 4px 10px 0 rgba(255, 0, 0, 0.19); */
 		}
 
-		input.caution:invalid {
-			color: var(--caution-color-dark);
-			border-color: var(--caution-color);
-		}
-
 		.hints.hide {
 			display: none;
 		}
 
-		fieldset.students {
-			margin-bottom: 0;
-		}
-
-		table {
+		.student-table {
 			border-collapse: collapse; /* Remove space between borders */
 			margin-left: 1.5em;
-		}
+			margin-bottom: 0.5em;
 
-		th {
-			font-size: 0.8em;
-			font-weight: 300;
-			background-color: lightgray;
-			border: 1px solid lightgray;
-		}
+			th {
+				font-size: 0.8em;
+				font-weight: 300;
+				background-color: lightgray;
+				border: 1px solid lightgray;
+			}
 
-		td {
-			border: 1px solid #ccc; /* Light grey border for a subtle grid */
-			padding: 4px; /* Padding inside cells */
-		}
+			.student td {
+				border: 1px solid #ccc; /* Light grey border for a subtle grid */
+				padding: 4px; /* Padding inside cells */
 
-		td.student-id {
-			width: 3.5em;
-		}
+				&.student-id {
+					width: 3.5em;
+				}
 
-		td.chinese-name {
-			width: 5.5em;
-		}
+				&.chinese-name {
+					width: 5.5em;
+				}
 
-		td.english-name {
-			width: 10em;
-		}
+				&.english-name {
+					width: 10em;
+				}
 
-		td.chinese-class {
-			width: 3.5em;
-		}
+				&.chinese-class {
+					width: 3.5em;
+				}
 
-		td input {
-			width: 100%; /* Make input fill the cell */
-			border: none;
-			background-color: transparent;
-			padding: 0;
-			margin: 0;
-			box-sizing: border-box; /* Include padding and border in the element's size */
-		}
+				input {
+					width: 100%; /* Make input fill the cell */
+					border: none;
+					background-color: transparent;
+					padding: 0;
+					margin: 0;
+					box-sizing: border-box; /* Include padding and border in the element's size */
 
-		td input:focus {
-			outline: none; /* Remove focus outline */
-			background-color: #eef; /* Optional: highlight on focus */
+					&:focus {
+						outline: none; /* Remove focus outline */
+						background-color: #eef; /* Optional: highlight on focus */
+					}
+				}
+			}
 		}
 
 		.action-button {
@@ -785,33 +783,30 @@
 			padding: 0.5em 1em;
 			margin-left: 1em;
 			font-weight: 600;
+
+			&:hover {
+				background-color: var(--main-color-dark);
+				cursor: pointer;
+			}
+
+			&.caution {
+				background-color: var(--caution-color);
+
+				&:hover {
+					background-color: var(--caution-color-dark);
+				}
+			}
+
+			&.invalid {
+				color: white;
+				background-color: red;
+				cursor: default;
+			}
 		}
 
-		.action-button:hover {
-			background-color: var(--main-color-dark);
-			cursor: pointer;
-		}
-
-		.action-button.caution {
-			background-color: var(--caution-color);
-			/* color: black; */
-		}
-
-		.action-button.caution:hover {
-			background-color: var(--caution-color-dark);
-			/* color: black; */
-		}
-
-		.action-button.invalid,
-		.action-button.caution.invalid,
-		.action-button.invalid:hover,
-		.action-button.caution.invalid:hover {
-			color: white;
-			background-color: red;
-			cursor: default;
-		}
 		#signature-drop-zone {
-			display: inline-block;
+			display: inline;
+			text-decoration: none;
 			background: #fbfbfb;
 			border: 2px dashed #ccc;
 			border-radius: 10px;
@@ -819,14 +814,25 @@
 			margin-left: 10px;
 			text-align: center;
 			cursor: pointer;
-			width: 540px;
-		}
+			width: 500px;
 
-		#signature-drop-zone p {
-			color: darkgray;
+			p {
+				color: darkgray;
+			}
+
+			&.has-signature {
+				display: grid;
+				grid-template-columns: auto 2.75em;
+			}
+
+			&.drag-over {
+				border-color: steelblue; /* Change border color when dragging over */
+				background: #f0ffff;
+			}
 		}
 
 		#signature-upload {
+			/* intentionally hidden */
 			position: absolute;
 			width: 1px;
 			height: 1px;
@@ -837,15 +843,6 @@
 			border: 0;
 		}
 
-		#signature-drop-zone.has-signature {
-			display: grid;
-			grid-template-columns: auto 2.75em;
-		}
-
-		.drag-over {
-			border-color: #000; /* Change border color when dragging over */
-		}
-
 		.signature-preview {
 			align-self: center;
 			justify-self: center;
@@ -854,20 +851,26 @@
 
 		#remove-signature {
 			align-self: center;
-			padding: 0.2em;
+			justify-self: center;
+			padding: 0.4em;
 			background: #fafafa;
+
+			&:hover {
+				background: #fafafa; /*override .secondary.action-button:hover*/
+			}
 		}
 
 		.secondary.action-button {
 			color: var(--main-color);
 			background: transparent;
 			border: 1px solid var(--main-color);
-		}
-		.secondary.action-button:hover {
-			color: var(--main-color-dark);
-			background: white;
-			border: 1px solid var(--main-color-dark);
-			cursor: pointer;
+
+			&:hover {
+				color: var(--main-color-dark);
+				background: white;
+				border: 1px solid var(--main-color-dark);
+				cursor: pointer;
+			}
 		}
 
 		#print {

@@ -38,13 +38,6 @@
 		padding-bottom: 1em;
 	}
 
-	@media (max-width: 58em) {
-		main {
-			flex-direction: column;
-			justify-content: flex-start;
-		}
-	}
-
 	h3 {
 		font-size: 0.9em;
 		margin-bottom: 0.3em;
@@ -55,6 +48,7 @@
 		display: flex;
 		flex-direction: column;
 	}
+
 	textarea {
 		min-width: 58em;
 		flex: 1;

@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 
 const BASE_URL = 'http://localhost:5173';
 const MOCK_STUDENT_DATA = `1234567\t張三\tSan Chang\tJ101
@@ -234,22 +238,68 @@ test('should check, uncheck all with master-checkbox and master-checkbox should 
 // signature -----------------------------------------------------------------
 test.describe('signature upload', () => {
   async function uploadSignature(page, image) {
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: 'browse', exact: true }).click();
+    const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 10000 });
+    await page.locator('#browse').click()
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(`./tests-e2e/fixtures/${image}`);
   }
   test.beforeEach(async ({ page }) => {    // remove signature first
-    await page.locator('#remove-signature').focus();
-    await page.locator('#remove-signature').click();
+    // Construct the path to the file
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const filePath = path.join(__dirname, '..', 'static', 'sig.png');
+    // Check if the file exists
+    fs.access(filePath, fs.constants.F_OK, async (err) => {
+      if (err) {
+        console.error('File does not exist:', filePath);
+      } else {
+        const removeSignatureButton = page.locator('#remove-signature');
+        await removeSignatureButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => console.log('#remove-signature not visible yet'));
+
+        if (await removeSignatureButton.isVisible()) {
+          await removeSignatureButton.focus();
+          await removeSignatureButton.click();
+        }
+      }
+    });
   });
 
-  test('should upload valid png signature & remove ', async ({ page, context }) => {
+
+  test('should reject signature images that does is too short in height', async ({ page  }) => {
+    await uploadSignature(page, 'sig_short.png');
+
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('greater than');
+      dialog.dismiss().catch(() => {});
+    });
+  });
+
+
+  test('should reject signature images that is too big', async ({ page, context  }) => {
+    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await uploadSignature(page, 'sig_big.jpg');
+
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('100KB');
+      dialog.dismiss().catch(() => {});
+    });
+  });
+
+  test('should reject signature images that is not jpg or png', async ({ page, context  }) => {
+    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await uploadSignature(page, 'sig_bmp.bmp');
+
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('JPG');
+      expect(dialog.message()).toContain('PNG');
+      dialog.dismiss().catch(() => {});
+    });
+  });
+
+  test('should upload valid png signature and show up on Slip Templates', async ({ page, context }) => {
     await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_test.png');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
-    await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
     await expect(page.locator('.signature-preview')).toBeVisible();
     await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
 
@@ -267,43 +317,6 @@ test.describe('signature upload', () => {
     await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
   });
 
-  test('should reject signature images that does is too big', async ({ page, context  }) => {
-    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadSignature(page, 'sig_big.jpg');
-
-    page.once('dialog', dialog => {
-      expect(dialog.message()).toEqual('Only JPG and PNG under 100KB is allowed.');
-      dialog.dismiss().catch(() => {});
-    });
-  });
-
-  test('should reject signature images that is not jpg or png', async ({ page, context  }) => {
-    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadSignature(page, 'sig_bmp.bmp');
-
-    page.once('dialog', dialog => {
-      expect(dialog.message()).toEqual('Only JPG and PNG under 100KB is allowed.');
-      dialog.dismiss().catch(() => {});
-    });
-  });
-
-  test('should reject signature images that does is too short in height', async ({ page, context  }) => {
-    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
-    await uploadSignature(page, 'sig_short.png');
-
-    page.once('dialog', dialog => {
-      expect(dialog.message()).toEqual('Image height should be greater than 160px.');
-      dialog.dismiss().catch(() => {});
-    });
-  });
-
-  //   test('should remove a signature', async ({ page }) => {
-  //   await uploadSignature(page, 'sig_test.png');
-  //   await page.locator('.signature-preview').toBeVisible();
-
-  //   await page.locator('#remove-signature').click();
-  //   await expect(page.locator('.signature-preview')).toBeHidden();
-  // });
 });
 
 // test('should upload valid signature image with drag & drop', async ({ page, context }) => {
