@@ -1,12 +1,26 @@
-<script>
+<script lang="ts">
 	import { assignment, isValidDate } from '$lib/stores/commslip';
 	import { writable, derived, get } from 'svelte/store';
+	import type { Writable } from 'svelte/store';
 	import { onMount, onDestroy } from 'svelte';
-
 	import { format, parse } from 'date-fns';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import SlipTemplate from '$lib/components/SlipTemplate.svelte';
 
+	// typescript defs
+	interface Student {
+		id: string;
+		name: {
+			english: string;
+			chinese: string;
+		};
+		cClass: string;
+		status: {
+			english: string;
+			chinese: string;
+		};
+		selected: boolean;
+	}
 	// Constants and Enums------------------------------------------------------------
 	const CLIL = 'CLIL';
 	const COMM = 'Comm';
@@ -31,7 +45,7 @@
 
 	let grade = 'Unknown';
 
-	let allSelected = false; // Tracks the master checkbox state
+	let allSelected: boolean | string = false; // Tracks the master checkbox state
 
 	let levelType = [
 		{ id: 'ele', label: 'Ele', value: 'Elementary' },
@@ -50,7 +64,7 @@
 	let printCaution = false;
 
 	// Reactive Statements and Stores------------------------------------------------------------
-	let studentsData = writable([]);
+	export let studentsData: Writable<Student[]> = writable([]);
 
 	let studentsInput = writable('');
 
@@ -119,12 +133,12 @@
 
 	$: {
 		const className = `${$ESLClass.grade} ${$ESLClass.level} ${$ESLClass.num ? $ESLClass.num : '?'} ${$ESLClass.type}`;
-		const assignedDateFormatted = processDate($assignment.assigned);
-		const dueDateFormatted = processDate($assignment.due);
-		const lateDateFormatted = processDate($assignment.late);
+		const assignedDateFormatted = $assignment.assigned ? processDate($assignment.assigned) : '';
+		const dueDateFormatted = $assignment.due ? processDate($assignment.due) : '';
+		const lateDateFormatted = $assignment.late ? processDate($assignment.late) : '';
 		const selectedTypeDetails = ASSIGNMENTS_TYPES.find(
 			(type) => type.code === $assignmentRadio.code
-		);
+		) || { code: '', english: '', chinese: '' };
 
 		assignment.set({
 			...$assignment,
@@ -158,7 +172,7 @@
 	$: allSelected = $allStudentsSelected.checked
 		? true
 		: $allStudentsSelected.indeterminate
-			? 'indeterminate'
+			? 'indeterminate' // or false, depending on the desired behavior
 			: false;
 
 	// indeterminate state relies on allStudentsSelected
@@ -166,7 +180,7 @@
 		//only attempts to manipulate the DOM when it is available
 		const checkbox = document.querySelector('thead input[type="checkbox"]');
 		if (checkbox) {
-			checkbox.indeterminate = allSelected === 'indeterminate';
+			(checkbox as HTMLInputElement).indeterminate = allSelected === 'indeterminate';
 		}
 	}
 
@@ -182,7 +196,7 @@
 			!isValidDate($assignment.late));
 
 	// Derived store to manage the master checkbox state
-	const allStudentsSelected = derived(studentsData, ($studentsData) => {
+	const allStudentsSelected = derived(studentsData, ($studentsData: Student[]) => {
 		const allChecked = $studentsData.every((student) => student.selected);
 		const anyChecked = $studentsData.some((student) => student.selected);
 		// Return an object with both states
@@ -193,11 +207,11 @@
 	});
 
 	// Component Logic------------------------------------------------------------
-	function updateStudentsData(index, key, value) {
+	function updateStudentsData(index: number, key: string, value: string) {
 		studentsData.update((students) => {
 			if (key === 'status.code') {
-				students[index].status = STATUS_TYPES.find((status) => status.code === Number(value)).text;
-			} else if (key.includes('.')) {
+				const foundStatus = STATUS_TYPES.find((status) => status.code === Number(value));
+				students[index].status = foundStatus?.text;
 				const keys = key.split('.');
 				students[index][keys[0]][keys[1]] = value;
 			} else {
@@ -219,19 +233,18 @@
 
 	// Utility Functions------------------------------------------------------------
 	/** @param {string} input */
-	function processDate(input) {
+	function processDate(input: string) {
 		// Assuming the input format is 'MM/DD'
 		const currentYear = new Date().getFullYear();
 		const date = parse(`${currentYear}/${input}`, 'yyyy/MM/dd', new Date());
 
 		// Check if the date is valid, if not return null
-		if (isNaN(date)) return input;
+		if (isNaN(date.valueOf())) return input;
 
 		return format(date, 'M/d');
 	}
 
-	/** @param {string} pastedText*/
-	function determineGradeFromText(pastedText) {
+	function determineGradeFromText(pastedText: string) {
 		const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
 		if (gradeMatch) {
 			const matchCode = Number(gradeMatch[0].charAt(1));
@@ -241,8 +254,8 @@
 		}
 		return 'Unknown Grade'; // Return a default value or handle the case differently
 	}
-	/** @param {File} file*/
-	function validateAndSetImage(file) {
+
+	function validateAndSetImage(file: File) {
 		if (
 			(!file.type.match('image/jpeg') && !file.type.match('image/png')) ||
 			file.size > 100 * 1024
@@ -274,7 +287,7 @@
 	 * @param {string} studentId
 	 * @param {string} newStatusCode
 	 */
-	function handleStatusChange(studentId, newStatusCode) {
+	function handleStatusChange(studentId: string, newStatusCode: string) {
 		$studentsData = $studentsData.map((student) => {
 			if (student.id === studentId) {
 				let status = STATUS_TYPES.find((status) => status.code === Number(newStatusCode));
@@ -284,23 +297,19 @@
 		});
 	}
 
-	/** @param {ClipboardEvent} e - The paste event object. */
-	function handlePaste(e) {
+	function handlePaste(e: ClipboardEvent) {
 		e.preventDefault(); // Prevent the default paste action
 
 		// Ensure e.target is an HTMLElement using type assertion with JSDoc
 		if (!(e.target instanceof HTMLElement)) return; // Exit the function if e.target is not an HTMLElement
 
 		// Get the pasted text from the clipboard
-		const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+		const pastedText = ((e.clipboardData || navigator.clipboard) as DataTransfer).getData('text');
 
 		// Strip blank lines from the pasted text
 		const modifiedText = pastedText
 			.split('\n')
-			.filter(
-				/** @param {string} line */
-				(line) => line.trim() !== ''
-			) // Filter out empty lines
+			.filter((line) => line.trim() !== '') // Filter out empty lines
 			.join('\n'); // Join the lines back together without appending default status code
 
 		// Update the studentsInput store with the modified text
@@ -314,8 +323,13 @@
 		ESLClass.update((current) => ({ ...current, grade }));
 	}
 
-	function handleDateInput(event, assignmentKey) {
-		const inputField = event.target;
+	function handleDateInput(
+		event: Event & { currentTarget: EventTarget & HTMLInputElement },
+		assignmentKey: string
+	) {
+		const inputField = event.target as HTMLInputElement | null; // Add null type
+		if (!inputField) return; // Null check
+
 		const isValid = isValidDate(inputField.value);
 
 		if (!isValid) {
@@ -328,30 +342,34 @@
 		assignment.update((n) => ({ ...n, [assignmentKey]: inputField.value }));
 	}
 
-	function handleFileSelect(event) {
-		const file = event.target.files[0];
-		validateAndSetImage(file);
+	function handleFileSelect(event: Event) {
+		const inputField = event.target as HTMLInputElement | null;
+		if (!inputField) return; // Null check
+
+		const file = inputField.files?.[0];
+		if (file) {
+			validateAndSetImage(file);
+		}
 	}
 
-	function handleDragOver(event) {
-		event.preventDefault(); // Prevent default behavior (Prevent file from being opened)
-		event.target.classList.add('drag-over'); // Optional: Add a class for styling
-	}
-
-	function handleDragLeave(event) {
-		event.target.classList.remove('drag-over'); // Optional: Remove the class when dragging leaves
-	}
-
-	function handleDrop(event) {
+	function handleDragOver(event: DragEvent) {
 		event.preventDefault();
-		event.target.classList.remove('drag-over'); // Remove styling class
-
-		const file = event.dataTransfer.files[0]; // Get the dropped file
-		if (file) validateAndSetImage(file);
-		if (!file) return;
+		(event.target as HTMLElement).classList.add('drag-over'); // Add the 'drag-over' class to show drag over effect
 	}
 
-	function removeSignature(event) {
+	function handleDragLeave(event: DragEvent) {
+		event.preventDefault();
+		(event.target as HTMLElement).classList.remove('drag-over'); // Remove the 'drag-over' class when drag leaves
+	}
+
+	function handleDrop(event: DragEvent) {
+		event.preventDefault();
+		(event.target as HTMLElement).classList.remove('drag-over'); // Remove the 'drag-over' class
+		const file = event.dataTransfer.files[0]; // Get the dropped file
+		validateAndSetImage(file); // Call the function to validate and set the image
+	}
+
+	function removeSignature(event: MouseEvent) {
 		event.stopPropagation(); // This stops the click event from bubbling up to parent elements
 		signatureImage.set(''); // Clear the signature image
 	}
@@ -396,7 +414,7 @@
 			cols="30"
 			rows="10"
 			bind:value={$studentsInput}
-			on:paste={(e) => handlePaste(e)}
+			onpaste={(e) => handlePaste(e)}
 			class={`${$studentsData.length === 0 || allSelected === false ? 'warning' : ''}`}
 			required
 		></textarea>
@@ -412,7 +430,7 @@
 								id="master-checkbox"
 								type="checkbox"
 								bind:checked={allSelected}
-								on:change={toggleAllStudents}
+								onchange={toggleAllStudents}
 							/>
 						</th>
 						<th>ID</th>
@@ -433,29 +451,31 @@
 						<td class="student-id">
 							<input
 								bind:value={student.id}
-								on:input={(e) => updateStudentsData(i, 'id', e.target.value)}
+								oninput={(e) => updateStudentsData(i, 'id', (e.target as HTMLInputElement).value)}
 							/>
 						</td>
 						<td class="chinese-name">
 							<input
 								bind:value={student.name.chinese}
-								on:input={(e) => updateStudentsData(i, 'name.chinese', e.target.value)}
+								oninput={(e) => updateStudentsData(i, 'name.chinese', (e.target as HTMLInputElement).value)}
 							/>
 						</td>
 						<td class="english-name">
 							<input
 								bind:value={student.name.english}
-								on:input={(e) => updateStudentsData(i, 'name.english', e.target.value)}
+								oninput={(e) => updateStudentsData(i, 'name.english', (e.target as HTMLInputElement).value)}
 							/>
 						</td>
 						<td class="chinese-class">
 							<input
 								bind:value={student.cClass}
-								on:input={(e) => updateStudentsData(i, 'cClass', e.target.value)}
+								oninput={(e) => updateStudentsData(i, 'cClass', (e.target as HTMLInputElement).value)}
 							/>
 						</td>
 						<td class="status">
-							<select on:change={(e) => handleStatusChange(student.id, e.target.value)}>
+							<select
+								onchange={(e) => handleStatusChange(student.id, (e.target as HTMLInputElement).value)}
+							>
 								{#each STATUS_TYPES as status}
 									<option value={status.code}>
 										{status.text.english}
@@ -519,9 +539,9 @@
 				type="text"
 				name=""
 				id={field.key}
-				bind:value={$assignment[field.key]}
-				class={`date ${!$assignment[field.key] || !isValidDate($assignment[field.key]) ? 'caution' : ''}`}
-				on:input={(e) => handleDateInput(e, field.key)}
+				bind:value={$assignment[field.key as keyof typeof $assignment]}
+				class={`date ${!$assignment[field.key as keyof typeof $assignment] || !isValidDate($assignment[field.key]) ? 'caution' : ''}`}
+				oninput={(e) => handleDateInput(e, field.key)}
 				required
 			/>
 		{/each}
@@ -531,10 +551,15 @@
 	<div
 		id="signature-drop-zone"
 		class:has-signature={$signatureImage}
-		on:dragover={handleDragOver}
-		on:drop={handleDrop}
-		on:dragleave={handleDragLeave}
-		on:click={() => document.getElementById('signature-upload').click()}
+		ondragover={handleDragOver}
+		ondrop={handleDrop}
+		ondragleave={handleDragLeave}
+		onclick={() => {
+			const element = document.getElementById('signature-upload');
+			if (element) {
+				element.click();
+			}
+		}}
 		aria-label="Drag & drop signature"
 		tabindex="0"
 		role="button"
@@ -543,7 +568,7 @@
 			<img class="signature-preview" src={$signatureImage} alt="Signature Preview" />
 			<button
 				id="remove-signature"
-				on:click={(event) => removeSignature(event)}
+				onclick={(event) => removeSignature(event)}
 				class="trash secondary action-button"
 			>
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
@@ -558,10 +583,10 @@
 			<button id="browse" class="secondary action-button">browse</button>
 		{/if}
 	</div>
-	<input type="file" id="signature-upload" accept="image/*" on:change={handleFileSelect} />
+	<input type="file" id="signature-upload" accept="image/*" onchange={handleFileSelect} />
 	<button
 		id="print"
-		on:click={() => window.print()}
+		onclick={() => window.print()}
 		class="action-button"
 		class:invalid={printInvalid}
 		class:caution={printCaution}

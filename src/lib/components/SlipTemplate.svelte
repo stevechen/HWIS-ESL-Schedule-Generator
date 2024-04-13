@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { assignment, isValidDate } from '$lib/stores/commslip';
 	export let student = {
 		id: '',
