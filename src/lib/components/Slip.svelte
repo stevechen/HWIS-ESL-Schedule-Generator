@@ -1,18 +1,7 @@
 <script lang="ts">
-	import { STATUS_TYPE } from '$lib/stores/communication.svelte';
-	import { isValidDate } from '$lib/stores/communication.svelte';
-	import type { Assignment } from '$lib/stores/communication.svelte';
+	import { STATUS_TYPE, isValidDate } from '$lib/stores/communication.svelte';
+	import type { Assignment, Student } from '$lib/stores/communication.svelte';
 
-	interface Student {
-		id: string;
-		name: {
-			english: string;
-			chinese: string;
-		};
-		cClass: string;
-		status: string;
-		selected: boolean;
-	}
 	// Define default objects
 	const defaultStudent: Student = {
 		id: '',
@@ -33,6 +22,7 @@
 	let { student = defaultStudent, assignment = defaultAssignment, signatureSrc = '' } = $props();
 </script>
 
+<!-- MARK: HTML -->
 <div class="slip">
 	<div class="title row">
 		<h2 class="form-title">ESL Communication Slip / ESL 課程溝通事項</h2>
@@ -67,8 +57,8 @@
 	</div>
 	<div class="status row">
 		<div class="info">
-			<p class="stress zero">若未於補繳日前繳交，此功課成績為零。</p>
-			<p class="note">*功課內容請查 Google Classroom.</p>
+			<p class="stress">若未於補繳日前繳交，此功課成績為零。</p>
+			<p class="footnote">*功課內容請查 Google Classroom.</p>
 		</div>
 		<div class="date assigned">
 			<p>
@@ -101,6 +91,7 @@
 	</div>
 </div>
 
+<!-- MARK: STYLE -->
 <style>
 	* {
 		font-family: Helvetica, Verdana, Geneva, Tahoma, sans-serif;
@@ -114,11 +105,7 @@
 	.slip {
 		width: 90%;
 		max-height: 125mm;
-		margin-top: 0;
-		margin-bottom: 1em;
-		/* margin: 3.5mm 0; */
-		margin-left: 5%;
-		margin-right: 5%;
+		margin: 0 5% 1em 5%;
 		padding: 0;
 		display: table;
 		flex-flow: column;
@@ -127,27 +114,13 @@
 		border-top: 1px solid gray;
 	}
 
-	@media print {
-		@page {
-			margin: 0;
-			padding: 0;
-		}
-
-		.slip {
-			display: block;
-			margin-bottom: 12.844mm;
-			page-break-inside: avoid;
-		}
-
-		/* no margin-top for the first card, because it's auto added for unknown reason*/
-		.slip:nth-of-type(3n + 4) {
-			break-before: page;
-			margin-top: 6.422mm;
-		}
-
-		.slip:nth-of-type(3n) {
-			margin-bottom: 0;
-		}
+	.form-title {
+		display: table-cell;
+		border-right: 1px solid gray;
+		border-bottom: 1px solid gray;
+		text-align: center;
+		font-weight: 900;
+		padding: 0.5em;
 	}
 
 	.row {
@@ -155,20 +128,13 @@
 		border-collapse: collapse;
 		display: table;
 		width: 100%;
-	}
 
-	.row div,
-	.form-title {
-		display: table-cell;
-		border-right: 1px solid gray;
-		border-bottom: 1px solid gray;
-		padding: 0 0.5em;
-	}
-
-	.form-title {
-		text-align: center;
-		font-weight: 900;
-		padding: 0.5em;
+		& > div {
+			display: table-cell;
+			border-right: 1px solid gray;
+			border-bottom: 1px solid gray;
+			padding: 0 0.5em;
+		}
 	}
 
 	.stress {
@@ -176,11 +142,7 @@
 		margin: 0.5em 0;
 	}
 
-	.stress.zero {
-		margin-top: 0;
-	}
-
-	.note {
+	.footnote {
 		font-size: 0.9em;
 		font-style: italic;
 		margin: 0;
@@ -190,23 +152,45 @@
 		width: 7em;
 	}
 
-	.teacher,
-	.parent {
+	.signature.row > div {
 		width: 50%;
 	}
 
 	.teacher {
 		position: relative;
-	}
-
-	.teacher.signature img {
-		position: absolute;
-		top: 2mm;
-		left: 34mm;
-		height: 14mm;
+		&.signature img {
+			position: absolute;
+			top: 2mm;
+			left: 34mm;
+			height: 14mm;
+		}
 	}
 
 	.pen {
 		font-family: Arial, Helvetica, sans-serif;
+	}
+
+	/* #region @media print */
+	@media print {
+		@page {
+			margin: 0;
+			padding: 0;
+		}
+
+		.slip {
+			display: block;
+			margin-bottom: 12.844mm;
+			margin-left: 3%;
+			page-break-inside: avoid;
+		}
+
+		.slip:nth-of-type(3n + 4) {
+			break-before: page;
+			margin-top: 6.422mm;
+		}
+
+		.slip:nth-of-type(3n) {
+			margin-bottom: 0;
+		}
 	}
 </style>
