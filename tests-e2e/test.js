@@ -91,7 +91,7 @@ test.beforeEach(async ({ page }) => {
 
 test('should hide assignment type for different classes', async({ page, context }) => {
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9);
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9);
 
   await expect(locatorRadioPassport).toBeVisible();
   await expect(locatorRadioRecording).toBeVisible();
@@ -100,7 +100,7 @@ test('should hide assignment type for different classes', async({ page, context 
 });
 
 test('should process pasted student data correctly', async ({ page, context }) => {
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
    // Get today's date in MM/DD format
   const today = new Date();
@@ -127,7 +127,7 @@ test('should process pasted student data correctly', async ({ page, context }) =
 test('should update communication slips according to manual assignment type changes', async ({ page, context }) => {
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
 
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
   await page.click('input[type="radio"][value="CLIL"]');
   await expect(locatorRadioWorkbook).toBeVisible();
@@ -148,17 +148,17 @@ test('should update communication slips according to manual assignment type chan
   await expect(page.locator('span:text("Recording"), span:text("錄影(錄音)")')).toHaveCount(4);
 
   await page.click('input[type="radio"][value="exam"]');
-  await expect(page.locator('span:text("Oral Exam"), span:text("期末考口試")')).toHaveCount(4);
+  await expect(page.locator('span:text("Oral Exam"), span:text("期中/末考口試")')).toHaveCount(4);
 });
 
 test('should update assigned date and late date on slips', async ({ page, context }) => {
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
   // Type in the Assign date and Late Date
   const assignDate = '1/1';
   const lateDate = '12/31';
   await page.fill('input#assigned', assignDate);
   await page.fill('input#late', lateDate);  
-  // Assert that the dates are correctly displayed on the SlipTemplate cards
+  // Assert that the dates are correctly displayed on the Slip cards
   const assignDateOnSlip = await page.textContent('.slip .date.assigned > p');
   expect(assignDateOnSlip).toContain(assignDate);
   const lateDateOnSlip = await page.textContent('.slip .date.late > p');
@@ -168,7 +168,7 @@ test('should update assigned date and late date on slips', async ({ page, contex
 test('should update slip fields with manual data change', async ({ page, context }) => {
   // Navigate to your page
   await page.goto(`${BASE_URL}/communication`);
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9_FULL);
 
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
   const count = await checkboxes.count();
@@ -193,9 +193,9 @@ test('should update slip fields with manual data change', async ({ page, context
   await expect(page.locator(`.slip:nth-child(${randomIndex}) .assignment.name:nth-child(1) span`)).toContainText("wasn't completed");
 });
 
-test('should correctly remove and add back SlipTemplate on checkbox operation', async ({ page, context }) => {
+test('should correctly remove and add back Slip on checkbox operation', async ({ page, context }) => {
   await page.goto(`${BASE_URL}/communication`);
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9_FULL);
   // Assuming checkboxes have a class '.student-checkbox' within a <td>
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
   const count = await checkboxes.count();
@@ -204,17 +204,17 @@ test('should correctly remove and add back SlipTemplate on checkbox operation', 
   await checkboxes.nth(randomIndex).uncheck();
   // Navigate to the parent <td>, then to the parent <tr>, and finally to the next <td> to find the .student-id
   let studentIdValue = await checkboxes.nth(randomIndex).locator('xpath=ancestor::tr').locator('td.student-id > input').inputValue();
-  // Verify the SlipTemplate is removed
+  // Verify the Slip is removed
   // await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeHidden();
   await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeHidden(); 
   // Check the checkbox
   await checkboxes.nth(randomIndex).check();
-  // Verify the SlipTemplate is added back
+  // Verify the Slip is added back
   await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeVisible(); 
 });
 
 test('should check, uncheck all with master-checkbox and master-checkbox should have a indeterminate state ', async ({ page, context }) => {
-  await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9_FULL);
 
   await page.click('#master-checkbox'); //uncheck all
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
@@ -275,7 +275,7 @@ test.describe('signature upload', () => {
 
 
   test('should reject signature images that is too big', async ({ page, context  }) => {
-    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_big.jpg');
 
     page.once('dialog', dialog => {
@@ -285,7 +285,7 @@ test.describe('signature upload', () => {
   });
 
   test('should reject signature images that is not jpg or png', async ({ page, context  }) => {
-    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_bmp.bmp');
 
     page.once('dialog', dialog => {
@@ -296,7 +296,7 @@ test.describe('signature upload', () => {
   });
 
   test('should upload valid png signature and show up on Slip Templates', async ({ page, context }) => {
-    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_test.png');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
@@ -308,7 +308,7 @@ test.describe('signature upload', () => {
   });
 
     test('should upload valid jpg signature image', async ({ page, context }) => {
-    await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_test.jpeg');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
@@ -323,7 +323,7 @@ test.describe('signature upload', () => {
 //   // Navigate to your Svelte application page
 //   await page.goto(`${BASE_URL}/commslip`);
 
-//   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA);
+//   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
 // // Read your file into a buffer.
 //   const buffer = readFileSync('./tests-e2e/fixtures/sig_test.png');

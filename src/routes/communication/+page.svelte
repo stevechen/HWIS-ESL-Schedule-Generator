@@ -8,16 +8,14 @@
 	//#region textarea ---------------------------------------------------------------
 	let studentsText: string = $state('');
 	let students: Student[] = $state([]);
-	let hideTextarea: boolean = $state(false);
+	let shouldHideTextarea: boolean = $state(false);
 
 	$effect(() => {
-		students;
-		hideTextarea = students.length > 0;
+		shouldHideTextarea = students.length > 0;
 	});
 
 	//#region student table ---------------------------------------------------------------
 	$effect(() => {
-		studentsText;
 		students = generateStudents(studentsText);
 	});
 
@@ -63,12 +61,6 @@
 		};
 	});
 
-	$effect(() => {
-		students;
-		const checkbox: HTMLInputElement | null = document.querySelector('thead #master-checkbox');
-		if (checkbox) checkbox.indeterminate = isAllChecked.indeterminate;
-	});
-
 	function handleToggleAll() {
 		const allChecked = students.every((student) => student.selected);
 		const newCheckedState = !allChecked;
@@ -78,6 +70,31 @@
 			selected: newCheckedState
 		}));
 	}
+
+	// #region Assignment ----------------------------------------------------------------
+	const WORKBOOK = 'workbook';
+	const PASSPORT = 'passport';
+	const RECORDING = 'recording';
+	const EXAM = 'exam';
+	const ASSIGNMENT_TYPE = [
+		{ code: PASSPORT, english: 'Passport', chinese: '英文護照' },
+		{ code: RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
+		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
+		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' }
+	];
+
+	let assignmentChoice = $state('passport');
+	let assignment: Assignment = $state(createAssignment());
+
+	$effect(() => {
+		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === assignmentChoice);
+		if (foundType) {
+			assignment.type = foundType;
+		} else {
+			assignment.type = { code: 'error', english: 'Error', chinese: '錯誤' };
+		}
+	});
+
 	//#region ESL class ---------------------------------------------------------------
 	const GRADE = $derived.by(() => determineGradeFromText(studentsText));
 	const LEVEL_TYPE = [
@@ -99,10 +116,10 @@
 	});
 
 	$effect(() => {
-		studentsText;
 		ESLClass.grade = GRADE;
 		if (GRADE === 'G9') ESLClass.type = COMM; //default to Comm if it's G9
-		assignment.esl = `${ESLClass.grade} ${ESLClass.level} ${ESLClass.type} ${ESLClass.num}`; //derive class name
+		if (ESLClass.type === CLIL) assignmentChoice = WORKBOOK; //default to Workbook if it's CLIL
+		assignment.esl = Object.values(ESLClass).join(' '); //compose ESL class name
 	});
 
 	function determineGradeFromText(pastedText: string) {
@@ -115,36 +132,6 @@
 		}
 		return 'Unknown';
 	}
-
-	// #region Class type ---------------------------------------------------------------
-	$effect(() => {
-		ESLClass;
-		if (ESLClass.type === CLIL) assignmentChoice = WORKBOOK; //default to Workbook if it's CLIL
-	});
-	// #region Assignment ----------------------------------------------------------------
-	const WORKBOOK = 'workbook';
-	const PASSPORT = 'passport';
-	const RECORDING = 'recording';
-	const EXAM = 'exam';
-	const ASSIGNMENT_TYPE = [
-		{ code: PASSPORT, english: 'Passport', chinese: '英文護照' },
-		{ code: RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
-		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
-		{ code: EXAM, english: 'Oral Exam', chinese: '期末考口試' }
-	];
-
-	let assignmentChoice = $state('passport');
-	let assignment: Assignment = $state(createAssignment());
-
-	$effect(() => {
-		assignmentChoice;
-		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === assignmentChoice);
-		if (foundType) {
-			assignment.type = foundType;
-		} else {
-			assignment.type = { code: 'Error', english: 'Error', chinese: '錯誤' };
-		}
-	});
 
 	// #region Date Fields -------------------------------------------
 	const DATE_FIELDS = [
@@ -160,7 +147,6 @@
 	});
 
 	$effect(() => {
-		dates;
 		assignment.assigned = dates.assigned;
 		assignment.due = dates.due;
 		assignment.late = dates.late;
@@ -238,9 +224,27 @@
 		signatureImage = ''; // Clear the signature image
 	}
 
+	// A11y functions
+	function handleClick() {
+		const element = document.getElementById('signature-upload');
+		if (element) {
+			element.click();
+		}
+	}
+
+	function handleKeyUp(event: KeyboardEvent) {
+		// Trigger click on 'Enter' or 'Space' keyup
+		if (event.key === 'Enter' || event.key === ' ') {
+			handleClick();
+		}
+	}
+
 	//#region print button -------------------------------------------
 	let printInvalid = $derived(
-		!ESLClass.num || (!isAllChecked.indeterminate && !isAllChecked.checked) || !students.length
+		!ESLClass.num ||
+			(!isAllChecked.indeterminate && !isAllChecked.checked) ||
+			!students.length ||
+			GRADE === 'Unknown'
 	);
 
 	let printCaution = $derived(
@@ -283,16 +287,18 @@
 <main class="control">
 	<fieldset class="students-input">
 		<legend>
-			<span class="title">Students</span>
-			<span class="hints {hideTextarea ? 'hide' : ''}">
-				{`Paste Excel student rows with fields: [ID, Chinese Name, English Name, Chinese Class]`}
-			</span>
+			<h2 class="legend">
+				<span class="title">Students</span>
+				<span class="hints {shouldHideTextarea ? 'hide' : ''}">
+					{`Paste Excel student rows with fields: [ID, Chinese Name, English Name, Chinese Class]`}
+				</span>
+			</h2>
 		</legend>
 		<textarea
 			name=""
-			id="sList"
+			id="student-list-input"
 			bind:value={studentsText}
-			class={hideTextarea ? 'hide' : ''}
+			class={shouldHideTextarea ? 'hide' : ''}
 			required
 		></textarea>
 	</fieldset>
@@ -341,8 +347,10 @@
 
 	<!-- MARK: #class-info -->
 	<fieldset class="class-info">
-		<div class="legend">Class</div>
-		<div>{GRADE}</div>
+		<h2 class="legend">Class</h2>
+		<div>
+			<p class="grade {GRADE === 'Unknown' ? 'warning' : ''}">{GRADE}</p>
+		</div>
 		<div>
 			{#each LEVEL_TYPE as { id, label, value }}
 				<input type="radio" {id} bind:group={ESLClass.level} {value} />
@@ -371,7 +379,7 @@
 	</fieldset>
 	<!-- MARK: #assignment-type -->
 	<fieldset class="assignment-type">
-		<div class="legend">Type</div>
+		<h2 class="legend">Type</h2>
 		{#each ASSIGNMENT_TYPE as { code, english }}
 			{#if ((ESLClass.type === CLIL && code === WORKBOOK) || ESLClass.type === COMM) && !(ESLClass.grade === 'G9' && code === WORKBOOK)}
 				<input type="radio" id={code} bind:group={assignmentChoice} value={code} />
@@ -381,7 +389,7 @@
 	</fieldset>
 	<!-- MARK: #dates -->
 	<fieldset class="dates">
-		<div class="legend">Dates</div>
+		<h2 class="legend">Dates</h2>
 		{#each DATE_FIELDS as field}
 			<label for={field.key}>{field.label}</label>
 			<input
@@ -389,25 +397,22 @@
 				name=""
 				id={field.key}
 				bind:value={dates[field.key as keyof typeof dates]}
-				class={`date ${!dates[field.key as keyof typeof dates] || !isValidDate(dates[field.key]) ? 'caution' : ''}`}
+				class={`date ${!dates[field.key as keyof typeof dates] || !isValidDate(dates[field.key]) ? 'warning' : ''}`}
+				maxlength="5"
 				required
 			/>
 		{/each}
 	</fieldset>
-	<!-- MARK: #signature-drop-zone -->
 
+	<!-- MARK: #signature-drop-zone -->
 	<div
 		id="signature-drop-zone"
 		class:has-signature={signatureImage}
 		ondragover={handleDragOver}
 		ondrop={handleDrop}
 		ondragleave={handleDragLeave}
-		onclick={() => {
-			const element = document.getElementById('signature-upload');
-			if (element) {
-				element.click();
-			}
-		}}
+		onclick={handleClick}
+		onkeyup={handleKeyUp}
 		aria-label="Drag & drop signature"
 		tabindex="0"
 		role="button"
@@ -474,6 +479,7 @@
 			--main-color-dark: #0369ae;
 			--caution-color: orange;
 			--caution-color-dark: #ff8500;
+			--legend-font-weight: var(--legend-font-weight);
 		}
 
 		main.control {
@@ -484,17 +490,30 @@
 			font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
 				Geneva, Verdana, sans-serif;
 			/* width: 182mm; */
-			width: 172mm;
+			width: 157mm;
 			margin: 0 auto;
 			margin-bottom: 1em;
 			padding: 0.5em;
 			border: 1px dotted gray;
 			border-radius: 1em;
+
+			.legend {
+				font-size: 1em;
+				font-weight: var(--legend-font-weight);
+				margin: 0;
+			}
 		}
 
 		fieldset {
 			border: none;
 			margin-bottom: 0.5em;
+			padding-right: 0.6em;
+			width: 100%;
+		}
+
+		h2.legend {
+			font-weight: var(--legend-font-weight);
+			min-width: 3em;
 		}
 
 		.class-info {
@@ -502,16 +521,18 @@
 			flex-direction: row;
 			justify-content: left;
 
-			.legend {
-				font-weight: 600;
-			}
-			div:not(.legend) {
-				border-right: 1px solid gray;
-				padding: 0 0.5em;
-			}
+			div {
+				&:not(.legend) {
+					border-right: 1px solid gray;
+					padding: 0 0.5em;
+				}
 
-			div:last-of-type {
-				border-right: none;
+				&:last-of-type {
+					border-right: none;
+				}
+			}
+			p {
+				margin: 0 0.1em;
 			}
 		}
 
@@ -537,11 +558,6 @@
 			align-items: left;
 		}
 
-		.assignment-type .legend,
-		.dates .legend {
-			font-weight: 600;
-		}
-
 		.assignment-type > label {
 			padding-right: 0.5em;
 		}
@@ -551,12 +567,9 @@
 				padding: 0 0.5em;
 			}
 
-			input {
+			input.date {
 				margin-right: 1em;
 				width: 6em;
-			}
-
-			input.date {
 				text-align: center;
 			}
 		}
@@ -564,18 +577,17 @@
 		.students-input {
 			margin-bottom: 0;
 
-			span.title {
+			.title {
 				font-size: 1em;
-				font-weight: 600;
+				font-weight: var(--legend-font-weight);
 			}
 
-			span {
+			.hints {
 				font-size: 0.7em;
 			}
 
-			textarea {
-				min-width: 45em;
-				max-width: 90%;
+			#student-list-input {
+				min-width: 100%;
 				height: 1.5em;
 			}
 		}
@@ -592,12 +604,16 @@
 
 		textarea:invalid,
 		input:invalid,
-		.warning {
+		input.warning {
 			color: red;
 			border: 1px solid red;
 			/* box-shadow:
 			0 2px 4px 0 rgba(255, 0, 0, 0.2),
 			0 4px 10px 0 rgba(255, 0, 0, 0.19); */
+		}
+
+		p.warning {
+			color: red;
 		}
 
 		.hide {
@@ -622,11 +638,16 @@
 				padding: 4px; /* Padding inside cells */
 
 				&.student-id {
-					width: 3.5em;
+					width: 3.3em;
 				}
 
 				&.chinese-name {
-					width: 5.5em;
+					width: 3.5em;
+					text-align: center;
+
+					input {
+						text-align: center;
+					}
 				}
 
 				&.english-name {
@@ -635,6 +656,10 @@
 
 				&.chinese-class {
 					width: 3.5em;
+
+					input {
+						text-align: center;
+					}
 				}
 
 				input {
@@ -660,7 +685,7 @@
 			border-radius: 4px;
 			padding: 0.5em 1em;
 			margin-left: 1em;
-			font-weight: 600;
+			font-weight: var(--legend-font-weight);
 
 			&:hover {
 				background-color: var(--main-color-dark);
@@ -692,7 +717,7 @@
 			margin-left: 10px;
 			text-align: center;
 			cursor: pointer;
-			width: 500px;
+			width: 455px;
 
 			p {
 				color: darkgray;
@@ -738,7 +763,7 @@
 			background: #fafafa;
 
 			&:hover {
-				background: #fafafa; /*override .secondary.action-button:hover*/
+				background-color: #fafafa; /*override .secondary.action-button:hover*/
 			}
 		}
 
@@ -750,7 +775,7 @@
 			&:hover {
 				color: var(--main-color-dark);
 				background: white;
-				border: 1px solid var(--main-color-dark);
+				border-color: var(--main-color-dark);
 				cursor: pointer;
 			}
 		}
@@ -761,6 +786,8 @@
 	}
 
 	.b5-size {
+		display: flex;
+		flex-flow: column;
 		/* JIS B5 */
 		width: 182mm;
 		/* height: 257mm; */
@@ -771,12 +798,8 @@
 	*/
 	@media print {
 		.b5-size {
-			/* JIS B5 */
-			width: 182mm;
 			/* height: 257mm; */
 			margin: 4.23mm;
-			display: flex;
-			flex-flow: column;
 		}
 		main.control {
 			display: none;
