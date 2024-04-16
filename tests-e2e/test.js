@@ -86,7 +86,7 @@ const isMac = async () => {
 let modifier = isMac ? 'Meta' : 'Control';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`${BASE_URL}/commslip`);
+  await page.goto(`${BASE_URL}/communication`);
 });
 
 test('should hide assignment type for different classes', async({ page, context }) => {
@@ -136,12 +136,12 @@ test('should update communication slips according to manual assignment type chan
   await expect(page.locator('span:text("Workbook"), span:text("作業本")')).toHaveCount(4);
 
   await page.click('input[type="radio"][value="Comm"]');
+  await page.click('input[type="radio"][value="passport"]');
   await expect(locatorRadioPassport).toBeVisible();
   await expect(locatorRadioPassport).toBeChecked();
   await expect(locatorRadioRecording).toBeVisible();
   await expect(locatorRadioWorkbook).toBeVisible();
   await expect(locatorRadioExam).toBeVisible();
-
   await expect(page.locator('span:text("Passport"), span:text("英文護照")')).toHaveCount(4);
 
   await page.click('input[type="radio"][value="recording"]');
@@ -167,7 +167,7 @@ test('should update assigned date and late date on slips', async ({ page, contex
 
 test('should update slip fields with manual data change', async ({ page, context }) => {
   // Navigate to your page
-  await page.goto(`${BASE_URL}/commslip`);
+  await page.goto(`${BASE_URL}/communication`);
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
 
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
@@ -194,7 +194,7 @@ test('should update slip fields with manual data change', async ({ page, context
 });
 
 test('should correctly remove and add back SlipTemplate on checkbox operation', async ({ page, context }) => {
-  await page.goto(`${BASE_URL}/commslip`);
+  await page.goto(`${BASE_URL}/communication`);
   await pasteDataIntoInput(page, context, '#sList', MOCK_STUDENT_DATA_G9_FULL);
   // Assuming checkboxes have a class '.student-checkbox' within a <td>
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');

@@ -5,11 +5,17 @@
 
 	// Determine the current page to apply active styling
 	$: currentPage = get(page).url.pathname;
+
+	const NAV_ITEM = [
+		{ path: '/', name: 'Schedule' },
+		{ path: '/communication', name: 'Communication Slip' }
+	];
 </script>
 
 <nav class="tab-bar no-print">
-	<a href="/" class:active={currentPage === '/'}>Schedule</a>
-	<a href="/commslip" class:active={currentPage === '/commslip'}>Communication Slip</a>
+	{#each NAV_ITEM as nav}
+		<a href={nav.path} class:active={currentPage === nav.path}>{nav.name}</a>
+	{/each}
 </nav>
 
 <style>

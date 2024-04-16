@@ -1,12 +1,36 @@
 <script lang="ts">
-	import { assignment, isValidDate } from '$lib/stores/commslip';
-	export let student = {
+	import { STATUS_TYPE } from '$lib/stores/communication.svelte';
+	import { isValidDate } from '$lib/stores/communication.svelte';
+	import type { Assignment } from '$lib/stores/communication.svelte';
+
+	interface Student {
+		id: string;
+		name: {
+			english: string;
+			chinese: string;
+		};
+		cClass: string;
+		status: string;
+		selected: boolean;
+	}
+	// Define default objects
+	const defaultStudent: Student = {
 		id: '',
 		name: { english: '', chinese: '' },
 		cClass: '',
-		status: { english: "hasn't been submitted", chinese: '未繳交' }
+		status: '0',
+		selected: true
 	};
-	export let signatureSrc = '';
+
+	const defaultAssignment: Assignment = {
+		esl: '',
+		type: { code: '', english: '', chinese: '' },
+		assigned: '',
+		due: '',
+		late: ''
+	};
+
+	let { student = defaultStudent, assignment = defaultAssignment, signatureSrc = '' } = $props();
 </script>
 
 <div class="slip">
@@ -23,7 +47,7 @@
 				Chinese / English Name 姓名: <span class="chinese-name">{student.name.chinese}</span> /
 				<span class="english-name">{student.name.english}</span>
 			</p>
-			<p class="esl-class">ESL Class ESL 組別: {$assignment.esl}</p>
+			<p class="esl-class">ESL Class ESL 組別: {assignment.esl}</p>
 		</div>
 	</div>
 	<div class="assignment row">
@@ -31,12 +55,12 @@
 			<p class="assignment name">
 				The following assignment
 				<span class="stress">
-					[{$assignment.type.english}] {student.status.english}
+					[{assignment.type.english}] {STATUS_TYPE[Number(student.status)].text.english}
 				</span> and will affect the ESL scores.
 			</p>
 			<p class="assignment name chinese">
 				貴子弟ESL課程的功課 <span class="stress"
-					>{$assignment.type.chinese} {student.status.chinese}</span
+					>{assignment.type.chinese} {STATUS_TYPE[Number(student.status)].text.chinese}</span
 				>， 將影響ESL平時成績，請家長知悉。
 			</p>
 		</div>
@@ -48,18 +72,18 @@
 		</div>
 		<div class="date assigned">
 			<p>
-				Assigned date<br />指派日：<br />{isValidDate($assignment.assigned)
-					? $assignment.assigned
+				Assigned date<br />指派日：<br />{isValidDate(assignment.assigned)
+					? assignment.assigned
 					: ''}
 			</p>
 		</div>
 		<div class="date due">
-			<p>Due date<br />繳交日：<br />{isValidDate($assignment.due) ? $assignment.due : ''}</p>
+			<p>Due date<br />繳交日：<br />{isValidDate(assignment.due) ? assignment.due : ''}</p>
 		</div>
 		<div class="date late stress">
 			<p>
 				Make up date<br />
-				<span>補繳日：<br /> {isValidDate($assignment.late) ? $assignment.late : ''}</span>
+				<span>補繳日：<br /> {isValidDate(assignment.late) ? assignment.late : ''}</span>
 			</p>
 		</div>
 	</div>
