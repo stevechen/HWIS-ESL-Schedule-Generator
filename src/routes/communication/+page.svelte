@@ -5,7 +5,7 @@
 	import TabBar from '$lib/components/TabBar.svelte';
 	import { onMount, onDestroy } from 'svelte';
 
-	//#region textarea ---------------------------------------------------------------
+	//#region Textarea ---------------------------------------------------------------
 	let studentsText: string = $state('');
 	let students: Student[] = $state([]);
 	let shouldHideTextarea: boolean = $state(false);
@@ -14,7 +14,7 @@
 		shouldHideTextarea = students.length > 0;
 	});
 
-	//#region student table ---------------------------------------------------------------
+	//#region Student table ---------------------------------------------------------------
 	$effect(() => {
 		students = generateStudents(studentsText);
 	});
@@ -83,11 +83,11 @@
 		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' }
 	];
 
-	let assignmentChoice = $state('passport');
+	let stateAssignment = $state('passport');
 	let assignment: Assignment = $state(createAssignment());
 
 	$effect(() => {
-		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === assignmentChoice);
+		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === stateAssignment);
 		if (foundType) {
 			assignment.type = foundType;
 		} else {
@@ -115,11 +115,18 @@
 		num: ''
 	});
 
+	let stateESLGrade = $state('');
+	let stateESLLevel = $state(LEVEL_TYPE[0].value);
+	let stateESLType = $state(COMM);
+	let stateESLNumber = $state('');
+	let className = $derived([stateESLGrade, stateESLLevel, stateESLType, stateESLNumber].join(' '));
+
 	$effect(() => {
-		ESLClass.grade = GRADE;
-		if (GRADE === 'G9') ESLClass.type = COMM; //default to Comm if it's G9
-		if (ESLClass.type === CLIL) assignmentChoice = WORKBOOK; //default to Workbook if it's CLIL
-		assignment.esl = Object.values(ESLClass).join(' '); //compose ESL class name
+		stateESLGrade = GRADE;
+		if (GRADE === 'G9') stateESLType = COMM; //default to Comm if it's G9
+		if (stateESLType === CLIL) stateAssignment = WORKBOOK; //default to Workbook if it's CLIL
+
+		assignment.esl = className;
 	});
 
 	function determineGradeFromText(pastedText: string) {
@@ -133,7 +140,7 @@
 		return 'Unknown';
 	}
 
-	// #region Date Fields -------------------------------------------
+	// #region Date fields -------------------------------------------
 	const DATE_FIELDS = [
 		{ label: 'Assigned:', key: 'assigned' },
 		{ label: 'Due:', key: 'due' },
@@ -152,7 +159,7 @@
 		assignment.late = dates.late;
 	});
 
-	// #region signature -------------------------------------------
+	// #region Signature -------------------------------------------
 	let signatureImage: string = $state('');
 
 	function validateAndSetImage(file: File): boolean {
@@ -239,9 +246,9 @@
 		}
 	}
 
-	//#region print button -------------------------------------------
+	//#region Print button -------------------------------------------
 	let printInvalid = $derived(
-		!ESLClass.num ||
+		!stateESLNumber ||
 			(!isAllChecked.indeterminate && !isAllChecked.checked) ||
 			!students.length ||
 			GRADE === 'Unknown'
@@ -254,7 +261,7 @@
 				!isValidDate(assignment.late))
 	);
 
-	// #region life cycles -------------------------------------------
+	// #region Life cycles -------------------------------------------
 	onMount(async () => {
 		const today = new Date();
 		const formattedDate = `${today.getMonth() + 1}/${today.getDate()}`; // JavaScript months are 0-indexed
@@ -353,14 +360,14 @@
 		</div>
 		<div>
 			{#each LEVEL_TYPE as { id, label, value }}
-				<input type="radio" {id} bind:group={ESLClass.level} {value} />
+				<input type="radio" {id} bind:group={stateESLLevel} {value} />
 				<label for={id}>{label}</label>
 			{/each}
 		</div>
 		<div>
 			{#each CLASS_TYPE as type}
-				{#if type !== CLIL || ESLClass.grade !== 'G9'}
-					<input type="radio" id={type} bind:group={ESLClass.type} value={type} />
+				{#if type !== CLIL || stateESLGrade !== 'G9'}
+					<input type="radio" id={type} bind:group={stateESLType} value={type} />
 					<label for={type}>{type}</label>
 				{/if}
 			{/each}
@@ -369,24 +376,26 @@
 			<input
 				type="number"
 				id="class-number"
-				bind:value={ESLClass.num}
-				class={`${!ESLClass.num ? 'warning' : ''}`}
+				bind:value={stateESLNumber}
+				class={`${!stateESLNumber ? 'warning' : ''}`}
 				max="9"
 				min="1"
 				required
 			/>
 		</div>
 	</fieldset>
+
 	<!-- MARK: #assignment-type -->
 	<fieldset class="assignment-type">
 		<h2 class="legend">Type</h2>
 		{#each ASSIGNMENT_TYPE as { code, english }}
-			{#if ((ESLClass.type === CLIL && code === WORKBOOK) || ESLClass.type === COMM) && !(ESLClass.grade === 'G9' && code === WORKBOOK)}
-				<input type="radio" id={code} bind:group={assignmentChoice} value={code} />
+			{#if ((stateESLType === CLIL && code === WORKBOOK) || stateESLType === COMM) && !(stateESLGrade === 'G9' && code === WORKBOOK)}
+				<input type="radio" id={code} bind:group={stateAssignment} value={code} />
 				<label for={code}>{english}</label>
 			{/if}
 		{/each}
 	</fieldset>
+
 	<!-- MARK: #dates -->
 	<fieldset class="dates">
 		<h2 class="legend">Dates</h2>
@@ -449,7 +458,6 @@
 </main>
 <!-- <pre>isAllChecked: {JSON.stringify(isAllChecked, null, 2)}</pre> --->
 <!-- <pre>{JSON.stringify(students, null, 2)}</pre> -->
-<!-- <pre>{JSON.stringify(ESLClass, null, 2)}</pre> -->
 <!-- <pre>{JSON.stringify(assignment, null, 2)}</pre> -->
 <!-- <pre>{JSON.stringify(dates, null, 2)}</pre> -->
 <!-- <pre>Invalid: {printInvalid}, caution: {printCaution}</pre> -->
@@ -461,8 +469,8 @@
 	{/each}
 </div>
 
-<!-- MARK: css -->
 <style>
+	/* #region CSS  */
 	/* prevents x axis shifting when the scrollbar appears */
 	@media screen {
 		:global(html),
@@ -482,6 +490,7 @@
 			--legend-font-weight: var(--legend-font-weight);
 		}
 
+		/* #region Main control */
 		main.control {
 			display: flex;
 			justify-content: flex-start;
@@ -516,6 +525,7 @@
 			min-width: 3em;
 		}
 
+		/* #region .class-info */
 		.class-info {
 			display: flex;
 			flex-direction: row;
@@ -550,6 +560,7 @@
 			}
 		}
 
+		/* #region assignment */
 		.assignment-type,
 		.dates {
 			display: flex;
@@ -678,6 +689,7 @@
 			}
 		}
 
+		/* #region .action-button */
 		.action-button {
 			background-color: var(--main-color);
 			color: white;
@@ -767,6 +779,7 @@
 			}
 		}
 
+		/* #region .secondary.action-button */
 		.secondary.action-button {
 			color: var(--main-color);
 			background: transparent;

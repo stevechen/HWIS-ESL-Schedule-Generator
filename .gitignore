@@ -4,7 +4,6 @@ node_modules
 /build
 /.svelte-kit
 /package
-/static/sig.png
 .env
 .env.*
 !.env.example
@@ -14,3 +13,5 @@ vite.config.ts.timestamp-*
 test-results/*
 .history/*
 .vercel
+/static/sig.png
+bun.lockb
