@@ -1,25 +1,39 @@
 <script lang="ts">
-	import Slip from '$lib/components/Slip.svelte';
-	import { STATUS_TYPE, createAssignment, isValidDate } from '$lib/stores/communication.svelte';
-	import type { Student, Assignment } from '$lib/stores/communication.svelte';
-	import TabBar from '$lib/components/TabBar.svelte';
 	import { onMount, onDestroy } from 'svelte';
+	import { isValidMonthAndDay } from '$lib/utils.svelte';
+	import TabBar from '$lib/components/TabBar.svelte';
+	import Slip from '$lib/components/Slip.svelte';
 
-	//#region Textarea ---------------------------------------------------------------
+	//#region Student ---------------------------------------------------------------
+	interface Student {
+		id: string;
+		name: {
+			english: string;
+			chinese: string;
+		};
+		cClass: string;
+		status: string;
+		selected: boolean;
+	}
+
 	let studentsText: string = $state('');
-	let students: Student[] = $state([]);
+	let studentsRaw: Student[] = $state([]);
 	let shouldHideTextarea: boolean = $state(false);
 
 	$effect(() => {
-		shouldHideTextarea = students.length > 0;
+		shouldHideTextarea = studentsRaw.length > 0;
 	});
 
 	//#region Student table ---------------------------------------------------------------
 	$effect(() => {
-		students = generateStudents(studentsText);
+		studentsRaw = generateStudents(studentsText);
 	});
 
 	function generateStudents(data: string) {
+		const ID_REGEX = /^\d{7}$/;
+		const CLASS_REGEX = /^[JH]\d{3}$/;
+		const CHINESE_REGEX = /[\u4e00-\u9fa5]/;
+		const ENGLISH_REGEX = /^[a-zA-Z]+(\s[a-zA-Z]+){1,2}$/;
 		let lines = data.split('\n').filter((line) => line.trim() !== '');
 		if (lines.length === 0) return [];
 
@@ -36,13 +50,13 @@
 				const fields = row.split('\t');
 
 				for (const field of fields) {
-					if (/^\d{7}$/.test(field)) {
+					if (ID_REGEX.test(field)) {
 						STUDENT.id = field;
-					} else if (/^[JH]\d{3}$/.test(field)) {
+					} else if (CLASS_REGEX.test(field)) {
 						STUDENT.cClass = field;
-					} else if (/[\u4e00-\u9fa5]/.test(field)) {
+					} else if (CHINESE_REGEX.test(field)) {
 						STUDENT.name.chinese = field;
-					} else if (/^[a-zA-Z]+(\s[a-zA-Z]+){1,2}$/.test(field)) {
+					} else if (ENGLISH_REGEX.test(field)) {
 						STUDENT.name.english = field;
 					}
 				}
@@ -51,10 +65,26 @@
 			.sort((a, b) => a.name.english.localeCompare(b.name.english));
 	}
 
+	let students = $derived.by(() => {
+		let studentsSelected = studentsRaw
+			.filter((student) => student.selected) // filter out unselected
+			.map(({ selected, status, ...rest }) => {
+				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object
+				const statusType = STATUS_TYPE.find((type) => type.code === Number(status));
+				return {
+					...rest,
+					status: statusType
+						? { english: statusType.text.english, chinese: statusType.text.chinese }
+						: { english: 'Unknown', chinese: '未知' }
+				};
+			});
+		return studentsSelected;
+	});
+
 	//#region Master checkbox -----------------------------------------------------------
 	let isAllChecked = $derived.by(() => {
-		let allChecked = students.every((student) => student.selected);
-		let anyChecked = students.some((student) => student.selected);
+		let allChecked = studentsRaw.every((student) => student.selected);
+		let anyChecked = studentsRaw.some((student) => student.selected);
 		return {
 			checked: allChecked,
 			indeterminate: !allChecked && anyChecked
@@ -62,10 +92,10 @@
 	});
 
 	function handleToggleAll() {
-		const allChecked = students.every((student) => student.selected);
+		const allChecked = studentsRaw.every((student) => student.selected);
 		const newCheckedState = !allChecked;
 
-		students = students.map((student) => ({
+		studentsRaw = studentsRaw.map((student) => ({
 			...student,
 			selected: newCheckedState
 		}));
@@ -83,16 +113,30 @@
 		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' }
 	];
 
-	let stateAssignment = $state('passport');
-	let assignment: Assignment = $state(createAssignment());
+	const STATUS_TYPE = [
+		{ code: 0, text: { english: "hasn't been submitted", chinese: '未繳交' } },
+		{ code: 1, text: { english: "wasn't completed", chinese: '完成度不佳' } }
+	];
 
-	$effect(() => {
+	let assignmentRaw = $state({
+		esl: '',
+		type: '',
+		assigned: '',
+		due: '',
+		late: ''
+	});
+
+	let stateAssignment = $state(PASSPORT);
+
+	let assignment = $derived.by(() => {
 		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === stateAssignment);
-		if (foundType) {
-			assignment.type = foundType;
-		} else {
-			assignment.type = { code: 'error', english: 'Error', chinese: '錯誤' };
-		}
+		return {
+			...assignmentRaw,
+			type: {
+				english: foundType ? foundType.english : 'Unknown',
+				chinese: foundType ? foundType.chinese : '未知'
+			}
+		};
 	});
 
 	//#region ESL class ---------------------------------------------------------------
@@ -103,17 +147,10 @@
 		{ id: 'int', label: 'Int', value: 'Intermediate' },
 		{ id: 'adv', label: 'Adv', value: 'Advanced' }
 	];
+
 	const CLIL = 'CLIL';
 	const COMM = 'Comm';
 	const CLASS_TYPE = [COMM, CLIL];
-
-	let ESLClass = $state({
-		//with defaults
-		grade: 'Unknown',
-		level: 'Elementary',
-		type: COMM,
-		num: ''
-	});
 
 	let stateESLGrade = $state('');
 	let stateESLLevel = $state(LEVEL_TYPE[0].value);
@@ -126,7 +163,7 @@
 		if (GRADE === 'G9') stateESLType = COMM; //default to Comm if it's G9
 		if (stateESLType === CLIL) stateAssignment = WORKBOOK; //default to Workbook if it's CLIL
 
-		assignment.esl = className;
+		assignmentRaw.esl = className;
 	});
 
 	function determineGradeFromText(pastedText: string) {
@@ -154,9 +191,9 @@
 	});
 
 	$effect(() => {
-		assignment.assigned = dates.assigned;
-		assignment.due = dates.due;
-		assignment.late = dates.late;
+		assignmentRaw.assigned = dates.assigned;
+		assignmentRaw.due = dates.due;
+		assignmentRaw.late = dates.late;
 	});
 
 	// #region Signature -------------------------------------------
@@ -250,15 +287,15 @@
 	let printInvalid = $derived(
 		!stateESLNumber ||
 			(!isAllChecked.indeterminate && !isAllChecked.checked) ||
-			!students.length ||
+			!studentsRaw.length ||
 			GRADE === 'Unknown'
 	);
 
 	let printCaution = $derived(
 		!printInvalid &&
-			(!isValidDate(assignment.assigned) ||
-				!isValidDate(assignment.due) ||
-				!isValidDate(assignment.late))
+			(!isValidMonthAndDay(assignment.assigned) ||
+				!isValidMonthAndDay(assignment.due) ||
+				!isValidMonthAndDay(assignment.late))
 	);
 
 	// #region Life cycles -------------------------------------------
@@ -292,6 +329,13 @@
 <!-- MARK: HTML -->
 <TabBar />
 <main class="control">
+	<!-- <pre>isAllChecked: {JSON.stringify(isAllChecked, null, 2)}</pre> --->
+	<!-- <pre>{JSON.stringify(students, null, 2)}</pre> -->
+	<!-- <pre>{JSON.stringify(studentsForSlip, null, 2)}</pre> -->
+	<!-- <pre>{JSON.stringify(assignmentRaw, null, 2)}</pre> -->
+	<!-- <pre>{JSON.stringify(assignment, null, 2)}</pre> -->
+	<!-- <pre>{JSON.stringify(dates, null, 2)}</pre> -->
+	<!-- <pre>Invalid: {printInvalid}, caution: {printCaution}</pre> -->
 	<fieldset class="students-input">
 		<legend>
 			<h2 class="legend">
@@ -310,7 +354,7 @@
 		></textarea>
 	</fieldset>
 	<!-- MARK: #student-table -->
-	{#if students.length > 0}
+	{#if studentsRaw.length > 0}
 		<table class="student-table">
 			<thead>
 				<tr>
@@ -331,7 +375,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each students as student}
+				{#each studentsRaw as student}
 					<tr class="student">
 						<td class="student-checkbox">
 							<input type="checkbox" bind:checked={student.selected} />
@@ -399,14 +443,14 @@
 	<!-- MARK: #dates -->
 	<fieldset class="dates">
 		<h2 class="legend">Dates</h2>
-		{#each DATE_FIELDS as field}
-			<label for={field.key}>{field.label}</label>
+		{#each DATE_FIELDS as { key, label }}
+			<label for={key}>{label}</label>
 			<input
 				type="text"
 				name=""
-				id={field.key}
-				bind:value={dates[field.key as keyof typeof dates]}
-				class={`date ${!dates[field.key as keyof typeof dates] || !isValidDate(dates[field.key]) ? 'warning' : ''}`}
+				id={key}
+				bind:value={dates[key as keyof typeof dates]}
+				class={`date ${!dates[key as keyof typeof dates] || !isValidMonthAndDay(dates[key]) ? 'warning' : ''}`}
 				maxlength="5"
 				required
 			/>
@@ -433,12 +477,12 @@
 				onclick={(event) => removeSignature(event)}
 				class="trash secondary action-button"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
-					<path
+				<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"
+					><path
 						fill="currentColor"
-						d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3zM7 6h10v13H7zm2 2v9h2V8zm4 0v9h2V8z"
-					/>
-				</svg>
+						d="M15 4c-.522 0-1.06.185-1.438.563C13.185 4.94 13 5.478 13 6v1H7v2h1v16c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V9h1V7h-6V6c0-.522-.185-1.06-.563-1.438C20.06 4.186 19.523 4 19 4zm0 2h4v1h-4zm-5 3h14v16c0 .555-.445 1-1 1H11c-.555 0-1-.445-1-1zm2 3v11h2V12zm4 0v11h2V12zm4 0v11h2V12z"
+					/></svg
+				>
 			</button>
 		{:else}
 			<p>Drop signature image here or</p>
@@ -456,15 +500,10 @@
 		Print
 	</button>
 </main>
-<!-- <pre>isAllChecked: {JSON.stringify(isAllChecked, null, 2)}</pre> --->
-<!-- <pre>{JSON.stringify(students, null, 2)}</pre> -->
-<!-- <pre>{JSON.stringify(assignment, null, 2)}</pre> -->
-<!-- <pre>{JSON.stringify(dates, null, 2)}</pre> -->
-<!-- <pre>Invalid: {printInvalid}, caution: {printCaution}</pre> -->
 
 <!-- MARK: Slip -->
 <div id="b5-print" class="b5-size">
-	{#each students.filter((student) => student.selected) as student, i}
+	{#each students as student}
 		<Slip {student} signatureSrc={signatureImage} {assignment} />
 	{/each}
 </div>
@@ -807,8 +846,7 @@
 		margin: 0 auto;
 	}
 
-	/* #region @media print 
-	*/
+	/* #region @media print */
 	@media print {
 		.b5-size {
 			/* height: 257mm; */

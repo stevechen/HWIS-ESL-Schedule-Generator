@@ -1,19 +1,42 @@
 <script lang="ts">
-	import { STATUS_TYPE, isValidDate } from '$lib/stores/communication.svelte';
-	import type { Assignment, Student } from '$lib/stores/communication.svelte';
+	import { isValidMonthAndDay } from '$lib/utils.svelte';
 
-	// Define default objects
+	//#region Interfaces
+	interface Student {
+		id: string;
+		name: {
+			english: string;
+			chinese: string;
+		};
+		cClass: string;
+		status: {
+			english: string;
+			chinese: string;
+		};
+	}
+
+	interface Assignment {
+		esl: string;
+		type: {
+			english: string;
+			chinese: string;
+		};
+		assigned: string | null;
+		due: string | null;
+		late: string | null;
+	}
+
+	//#region  Default objects
 	const defaultStudent: Student = {
 		id: '',
 		name: { english: '', chinese: '' },
 		cClass: '',
-		status: '0',
-		selected: true
+		status: { english: '', chinese: '' }
 	};
 
 	const defaultAssignment: Assignment = {
 		esl: '',
-		type: { code: '', english: '', chinese: '' },
+		type: { english: '', chinese: '' },
 		assigned: '',
 		due: '',
 		late: ''
@@ -45,12 +68,12 @@
 			<p class="assignment name">
 				The following assignment
 				<span class="stress">
-					[{assignment.type.english}] {STATUS_TYPE[Number(student.status)].text.english}
+					[{assignment.type.english}] {student.status.english}
 				</span> and will affect the ESL scores.
 			</p>
 			<p class="assignment name chinese">
 				貴子弟ESL課程的功課 <span class="stress"
-					>{assignment.type.chinese} {STATUS_TYPE[Number(student.status)].text.chinese}</span
+					>{assignment.type.chinese} {student.status.chinese}</span
 				>， 將影響ESL平時成績，請家長知悉。
 			</p>
 		</div>
@@ -62,18 +85,18 @@
 		</div>
 		<div class="date assigned">
 			<p>
-				Assigned date<br />指派日：<br />{isValidDate(assignment.assigned)
+				Assigned date<br />指派日：<br />{isValidMonthAndDay(assignment.assigned)
 					? assignment.assigned
 					: ''}
 			</p>
 		</div>
 		<div class="date due">
-			<p>Due date<br />繳交日：<br />{isValidDate(assignment.due) ? assignment.due : ''}</p>
+			<p>Due date<br />繳交日：<br />{isValidMonthAndDay(assignment.due) ? assignment.due : ''}</p>
 		</div>
 		<div class="date late stress">
 			<p>
 				Make up date<br />
-				<span>補繳日：<br /> {isValidDate(assignment.late) ? assignment.late : ''}</span>
+				<span>補繳日：<br /> {isValidMonthAndDay(assignment.late) ? assignment.late : ''}</span>
 			</p>
 		</div>
 	</div>
@@ -178,10 +201,28 @@
 		}
 
 		.slip {
+			position: relative;
 			display: block;
 			margin-bottom: 12.844mm;
 			margin-left: 3%;
 			page-break-inside: avoid;
+		}
+
+		.slip:nth-of-type(3n + 2)::before,
+		.slip:nth-of-type(3n + 2)::after {
+			content: '';
+			position: absolute;
+			left: 0;
+			right: 0;
+			border-top: 1px dotted dimgray; /* divider line color */
+		}
+
+		.slip:nth-of-type(3n + 2)::before {
+			top: -6.422mm; /* line position */
+		}
+
+		.slip:nth-of-type(3n + 2)::after {
+			bottom: -6.422mm; /* line position */
 		}
 
 		.slip:nth-of-type(3n + 4) {
