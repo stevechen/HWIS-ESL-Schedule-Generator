@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isValidMonthAndDay } from '$lib/utils.svelte';
+	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 
 	//#region Interfaces
 	interface Student {

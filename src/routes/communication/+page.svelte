@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { isValidMonthAndDay } from '$lib/utils.svelte';
+	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import Slip from '$lib/components/Slip.svelte';
 
