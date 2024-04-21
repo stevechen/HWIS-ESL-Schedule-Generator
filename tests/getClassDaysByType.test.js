@@ -1,7 +1,7 @@
 import { expect, it, beforeEach } from "vitest";
 import { schoolEvents, schoolEvents2 } from "./schoolEvents";
-import { getDates } from "$lib/getAllClassDays";
-import { getClassDaysByType } from "$lib/getClassDaysByType";
+import { getDates } from "$lib/getAllClassDays.ts.svelte";
+import { getClassDaysByType } from "$lib/getClassDaysByType.ts.svelte";
 
 /** @type {Array <{ countdown: Number | null, date: String, weekday: Number, description: String, note: String, type: String }>} */
 let allClassDays;
@@ -27,11 +27,11 @@ it('gets the right weekday classes', () => {
     clilClassDays[index] = getClassDaysByType(allClassDays, [weekday],'CLIL')
 
     let returnedCommDays = commClassDays[index].length;
-    let filteredCommDays = commClassDays[index].filter(day => day.weekday === weekday).length;
+    let filteredCommDays = commClassDays[index].filter((/** @type {{ weekday: number; }} */ day) => day.weekday === weekday).length;
     expect(returnedCommDays).equals(filteredCommDays)
 
     let returnedClilDays = clilClassDays[index].length;
-    let filteredClilDays = clilClassDays[index].filter(day => day.weekday === weekday).length;
+    let filteredClilDays = clilClassDays[index].filter((/** @type {{ weekday: number; }} */ day) => day.weekday === weekday).length;
     expect(returnedClilDays).equals(filteredClilDays)
 
   });

@@ -1,8 +1,11 @@
 import { expect, it, beforeEach } from "vitest";
-import { getDates } from "../src/lib/getAllClassDays";
+import { getDates } from "../src/lib/getAllClassDays.ts.svelte";
 import { schoolEvents } from './schoolEvents';
 import { parseISO, eachDayOfInterval, getDay } from 'date-fns';
 
+/**
+ * @param {string} schoolEvents
+ */
 function countDaysExcludingSundays(schoolEvents) {
   let dates = schoolEvents.split('\n').map((line) => line.split('\t')[0]);
   let start = parseISO(dates.reduce((a, b) => (a < b ? a : b)));

@@ -6,7 +6,7 @@ export const schoolEvents =
 2023-11-29	Exam		
 2023-11-28	Exam		
 2023-11-17	Sport’s day		
-2023-11-15	Sport’s day rehersal		
+2023-11-15	Sport’s day rehearsal		
 2023-10-13	Exam		
 2023-10-12	Exam		
 2023-10-10	Off	Double Ten	

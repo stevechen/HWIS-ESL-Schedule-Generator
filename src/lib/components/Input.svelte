@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getDates } from '$lib/getAllClassDays.js';
-	import { getClassDaysByType } from '$lib/getClassDaysByType';
+	import { getDates } from '$lib/getAllClassDays.ts.svelte';
+	import { getClassDaysByType } from '$lib/getClassDaysByType.ts.svelte';
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { writable } from 'svelte/store';
 
