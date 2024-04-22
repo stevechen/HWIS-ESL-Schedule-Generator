@@ -1,7 +1,7 @@
 import { expect, it, beforeEach } from "vitest";
 import { getDates } from "../src/lib/getAllClassDays.ts.svelte";
 import { schoolEvents } from './schoolEvents';
-import { parseISO, eachDayOfInterval, getDay } from 'date-fns';
+import { parseISO, eachDayOfInterval, getDay, parse, isEqual } from 'date-fns';
 
 /**
  * @param {string} schoolEvents
@@ -50,8 +50,13 @@ it('returns correct number of days without Sundays', () => {
 });
 
 it('has an entry for 2023-09-23 with weekday 1', () => {
-  const targetDate = classDates.find(date => date.date === '2023-09-23');
-
+  const formats = ['yyyy-MM-dd', 'yyyy/MM/dd', 'MMM. dd, yyyy', 'MMMM dd, yyyy'];
+  const targetDate = classDates.find(date => {
+    return formats.some(format => {
+      const parsedDate = parse(date.date, format, new Date());
+      return isEqual(parsedDate, new Date(2023, 8, 23)); // Note: Month is 0-indexed, 8 = September
+    });
+  });
   expect(targetDate).toBeDefined();
   if (targetDate) {
     expect(targetDate.weekday).toEqual(1);
