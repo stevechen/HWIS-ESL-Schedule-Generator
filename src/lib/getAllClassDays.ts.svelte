@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import moment from 'moment';
+	import { parseISO, format, getDay, add } from 'date-fns';
 
 	interface SchoolEvents {
 		countdown: number | null;
@@ -18,10 +18,10 @@
 
 		let dates = schoolEvents.split('\n').map((line) => line.split('\t')[0]);
 		let startDate = dates.reduce((a, b) => (a < b ? a : b));
-		let endDate = dates.reduce((a, b) => (a > b ? a : b));
+		let endDate = parseISO(dates.reduce((a, b) => (a > b ? a : b)));
 
 		let dateArray = [];
-		let processDate = moment(startDate);
+		let processDate = parseISO(startDate);
 		let eventMap = new Map(
 			schoolEvents.split('\n').map((item) => {
 				let fields = item.split('\t');
@@ -29,11 +29,11 @@
 			})
 		);
 
-		while (processDate <= moment(endDate)) {
-			let weekday = processDate.day();
+		while (processDate <= endDate) {
+			let weekday = getDay(processDate);
 			if (weekday !== 0) {
 				// if not Sunday
-				let dateStr = processDate.format('YYYY-MM-DD');
+				let dateStr = format(processDate, 'yyyy-MM-dd');
 				let eventData = eventMap.get(dateStr) || ['', '', ''];
 				// If the weekday is Saturday, try to find a make up date in specialDays
 				// Make update is marked by having 'Make up' in the description field and a date at the beginning of note field
@@ -42,16 +42,16 @@
 					// If there's a date in the note field
 					if (noteDate && noteDate[0]) {
 						// Change the weekday to the weekday of the date in the note field
-						weekday = moment(noteDate[0], 'YYYY-MM-DD').day();
+						weekday = getDay(noteDate[0]);
+
 						// Format the date with the day of the week
-						let formattedDate = moment(noteDate[0], 'YYYY-MM-DD')
-							.format('YYYY/MM/DD(ddd)')
-							.toUpperCase();
+						let formattedDate = format(noteDate[0], 'yyyy-MM-dd(EEE)');
+
 						// Replace the date in the note with the formatted date
 						eventData[1] = eventData[1].replace(noteDate[0], formattedDate);
 					} else {
 						// Skip this iteration if there's no matching Saturday in specialDays
-						processDate.add(1, 'days');
+						processDate = add(processDate, { days: 1 });
 						continue;
 					}
 				}
@@ -65,11 +65,9 @@
 					type: eventData[2]
 				});
 			}
-
-			processDate.add(1, 'days');
+			processDate = add(processDate, { days: 1 });
 		}
 
-		// console.log(dateArray);
 		return dateArray;
 	};
 </script>
