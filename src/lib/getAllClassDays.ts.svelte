@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import { parseISO, format, getDay, add } from 'date-fns';
+	import { parseISO, format, getDay, add, isSunday, isSaturday } from 'date-fns';
 
 	interface SchoolEvents {
 		countdown: number | null;
@@ -31,13 +31,12 @@
 
 		while (processDate <= endDate) {
 			let weekday = getDay(processDate);
-			if (weekday !== 0) {
-				// if not Sunday
+			if (!isSunday(processDate)) {
 				let dateStr = format(processDate, 'yyyy-MM-dd');
 				let eventData = eventMap.get(dateStr) || ['', '', ''];
-				// If the weekday is Saturday, try to find a make up date in specialDays
+				// Try to find a Saturday make up date in specialDays
 				// Make update is marked by having 'Make up' in the description field and a date at the beginning of note field
-				if (weekday === 6) {
+				if (isSaturday(processDate)) {
 					let noteDate = eventData[1].match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
 					// If there's a date in the note field
 					if (noteDate && noteDate[0]) {

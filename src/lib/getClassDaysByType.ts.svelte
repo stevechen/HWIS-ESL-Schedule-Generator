@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import moment from 'moment';
+	import { parseISO, compareDesc } from 'date-fns';
 	/**
 	 * Retrieves all class days for a class type. Need input from getAllClassDays() that contains class days mixed with event days.
 	 * - filters out event descriptions and notes if type is mismatched
@@ -38,12 +38,13 @@
 		const GENERIC_CLASS_DAYS = allClassDays.filter((day) => weekdays.includes(day.weekday));
 
 		/** @type {Object | null} */
-		let grad_day: object | null = null;
+		// let graduationDay: object | null = null;
+		let graduationDay: object | null = null;
 
-		// setup gard_day for G9
+		// setup graduationDay for G9
 		if (selectedClassType === 'G9') {
 			const GRAD_DAYS_ARRAY = allClassDays.filter((day) => day.description.includes('Graduation'));
-			grad_day = GRAD_DAYS_ARRAY.length > 0 ? moment(GRAD_DAYS_ARRAY[0].date) : null;
+			graduationDay = GRAD_DAYS_ARRAY.length > 0 ? parseISO(GRAD_DAYS_ARRAY[0].date) : null;
 		}
 
 		// compose classes according to selected class type
@@ -65,7 +66,11 @@
 			// Exclude null days
 			if (classDay === null) return false;
 			// Exclude days after graduationDay when 'G9' is selected
-			if (selectedClassType === 'G9' && grad_day && moment(classDay.date).isAfter(grad_day))
+			if (
+				selectedClassType === 'G9' &&
+				graduationDay !== null &&
+				parseISO(classDay.date) > graduationDay
+			)
 				return false;
 			return true;
 		});
@@ -79,27 +84,29 @@
 			const firstExamDays =
 				selectedClassType === 'H'
 					? [examDays[4]]
-					: grad_day
+					: graduationDay
 						? [examDays[0], examDays[2]]
 						: [examDays[0], examDays[2], examDays[4]];
 
 			//sort in descending order so it would find the nearest none-off days prior to the exam date
-			typedClassDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
+			typedClassDays.sort((a, b) => compareDesc(parseISO(a.date), parseISO(b.date)));
 			if (selectedClassType !== 'H')
-				firstExamDays.sort((a, b) => moment(b.date).diff(moment(a.date)));
+				//high school classes don't need to sort exam days
+				firstExamDays.sort((a, b) => compareDesc(parseISO(a.date), parseISO(b.date)));
 
 			//Search for the two class days before the next exam by allowing the loop to start from where it left off in the previous iteration
 			let startIndex = 0;
 			//loop through the first exam dates array
 			firstExamDays.forEach((theDay) => {
-				let examDate = moment(theDay.date);
+				let examDate = parseISO(theDay.date);
 				let daysMatched = 0;
 				//compare first exam date with all sorted Comm class days
 				for (let index = startIndex; index < typedClassDays.length; index++) {
 					let commClassDay = typedClassDays[index];
-					let allClassDay = moment(commClassDay.date);
+					let allClassDay = parseISO(commClassDay.date);
 					// collect the date if it's earlier than the exam day and it's not an off day
-					if (allClassDay.isBefore(examDate) && commClassDay.description !== 'Off') {
+					// if (allClassDay.isBefore(examDate) && commClassDay.description !== 'Off') {
+					if (allClassDay < examDate && commClassDay.description !== 'Off') {
 						// mark matching day as 'Oral Exam'
 						typedClassDays[index].description = 'Oral Exam';
 						daysMatched++;
@@ -125,14 +132,16 @@
 		];
 
 		typedClassDays.forEach((day) => {
-			let thisDay = moment(day.date);
-			let termIndex = thisDay.isBefore(moment(examDays[0].date))
-				? 0 //term 1
-				: thisDay.isBetween(moment(examDays[1].date), moment(examDays[2].date))
-					? 1 //term 2
-					: thisDay.isBetween(moment(examDays[3].date), moment(examDays[4].date))
-						? 2
-						: undefined; //term 3
+			let thisDay = parseISO(day.date);
+
+			let termIndex =
+				thisDay < parseISO(examDays[0].date)
+					? 0 //term 1
+					: thisDay > parseISO(examDays[1].date) && thisDay < parseISO(examDays[2].date)
+						? 1 //term 2
+						: thisDay > parseISO(examDays[3].date) && thisDay < parseISO(examDays[4].date)
+							? 2
+							: undefined; //term 3
 
 			if (termIndex !== undefined) {
 				day.description !== 'Off'
@@ -142,10 +151,11 @@
 		});
 
 		//Adding countdown
-		typedClassDays.sort((a, b) => moment(a.date).diff(moment(b.date)));
+		// typedClassDays.sort((a, b) => compareDesc(parseISO(a.date), parseISO(b.date)));
 		// Find the index of the closest non-off class day before the first exam day
 		let zeroIndex = typedClassDays.findIndex(
-			(day) => moment(day.date).isBefore(moment(examDays[0].date)) && day.description !== 'Off'
+			// (day) => moment(day.date).isBefore(moment(examDays[0].date)) && day.description !== 'Off'
+			(day) => parseISO(day.date) < parseISO(examDays[0].date) && day.description !== 'Off'
 		);
 
 		// Add class count
