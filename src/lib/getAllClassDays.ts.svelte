@@ -16,14 +16,15 @@
 			.filter((line) => line.trim() !== '') // filter out empty lines
 			.join('\n'); // join the lines back together
 
-		let dates = schoolEvents.split('\n').map((line) => line.split('\t')[0]);
+		let lines = schoolEvents.split('\n');
+		let dates = lines.map((line) => line.split('\t')[0]);
 		let startDate = dates.reduce((a, b) => (a < b ? a : b));
 		let endDate = parseISO(dates.reduce((a, b) => (a > b ? a : b)));
 
 		let dateArray = [];
 		let processDate = parseISO(startDate);
 		let eventMap = new Map(
-			schoolEvents.split('\n').map((item) => {
+			lines.map((item) => {
 				let fields = item.split('\t');
 				return [fields[0], fields.slice(1)];
 			})
