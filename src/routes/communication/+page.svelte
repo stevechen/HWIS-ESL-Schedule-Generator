@@ -34,51 +34,49 @@
 		const CLASS_REGEX = /^[JH]\d{3}$/;
 		const CHINESE_REGEX = /[\u4e00-\u9fa5]/;
 		const ENGLISH_REGEX = /^[a-zA-Z]+(\s[a-zA-Z]+){1,2}$/;
-		let lines = data.split('\n').filter((line) => line.trim() !== '');
-		if (lines.length === 0) return [];
+		const LINES = data.split('\n').filter((line) => line.trim() !== '');
+		if (LINES.length === 0) return [];
 
-		return lines
-			.map((row) => {
-				const STUDENT = {
-					id: '',
-					name: { english: '', chinese: '' },
-					cClass: '',
-					status: '0',
-					selected: true
-				};
+		return LINES.map((row) => {
+			const STUDENT = {
+				id: '',
+				name: { english: '', chinese: '' },
+				cClass: '',
+				status: '0',
+				selected: true
+			};
 
-				const fields = row.split('\t');
+			const FIELDS = row.split('\t');
 
-				for (const field of fields) {
-					if (ID_REGEX.test(field)) {
-						STUDENT.id = field;
-					} else if (CLASS_REGEX.test(field)) {
-						STUDENT.cClass = field;
-					} else if (CHINESE_REGEX.test(field)) {
-						STUDENT.name.chinese = field;
-					} else if (ENGLISH_REGEX.test(field)) {
-						STUDENT.name.english = field;
-					}
+			for (const FIELD of FIELDS) {
+				if (ID_REGEX.test(FIELD)) {
+					STUDENT.id = FIELD;
+				} else if (CLASS_REGEX.test(FIELD)) {
+					STUDENT.cClass = FIELD;
+				} else if (CHINESE_REGEX.test(FIELD)) {
+					STUDENT.name.chinese = FIELD;
+				} else if (ENGLISH_REGEX.test(FIELD)) {
+					STUDENT.name.english = FIELD;
 				}
-				return STUDENT;
-			})
-			.sort((a, b) => a.name.english.localeCompare(b.name.english));
+			}
+			return STUDENT;
+		}).sort((a, b) => a.name.english.localeCompare(b.name.english));
 	}
 
-	let students = $derived.by(() => {
-		let studentsSelected = studentsRaw
+	const STUDENTS = $derived.by(() => {
+		const STUDENTS_SELECTED = studentsRaw
 			.filter((student) => student.selected) // filter out unselected
 			.map(({ selected, status, ...rest }) => {
 				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object
-				const statusType = STATUS_TYPE.find((type) => type.code === Number(status));
+				const STUDENT_STATUS = STATUS_TYPE.find((type) => type.code === Number(status));
 				return {
 					...rest,
-					status: statusType
-						? { english: statusType.text.english, chinese: statusType.text.chinese }
+					status: STUDENT_STATUS
+						? { english: STUDENT_STATUS.text.english, chinese: STUDENT_STATUS.text.chinese }
 						: { english: 'Unknown', chinese: '未知' }
 				};
 			});
-		return studentsSelected;
+		return STUDENTS_SELECTED;
 	});
 
 	//#region Master checkbox -----------------------------------------------------------
@@ -92,12 +90,12 @@
 	});
 
 	function handleToggleAll() {
-		const allChecked = studentsRaw.every((student) => student.selected);
-		const newCheckedState = !allChecked;
+		const IS_ALL_CHECKED = studentsRaw.every((student) => student.selected);
+		const NEW_CHECKED_STATE = !IS_ALL_CHECKED;
 
 		studentsRaw = studentsRaw.map((student) => ({
 			...student,
-			selected: newCheckedState
+			selected: NEW_CHECKED_STATE
 		}));
 	}
 
@@ -106,11 +104,13 @@
 	const PASSPORT = 'passport';
 	const RECORDING = 'recording';
 	const EXAM = 'exam';
+	const SPEECH = 'speech';
 	const ASSIGNMENT_TYPE = [
 		{ code: PASSPORT, english: 'Passport', chinese: '英文護照' },
 		{ code: RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
 		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
-		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' }
+		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' },
+		{ code: SPEECH, english: 'Speech Practice', chinese: '演講練習' }
 	];
 
 	const STATUS_TYPE = [
@@ -503,7 +503,7 @@
 
 <!-- MARK: Slip -->
 <div id="b5-print" class="b5-size">
-	{#each students as student}
+	{#each STUDENTS as student}
 		<Slip {student} signatureSrc={signatureImage} {assignment} />
 	{/each}
 </div>
@@ -538,7 +538,7 @@
 			font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
 				Geneva, Verdana, sans-serif;
 			/* width: 182mm; */
-			width: 157mm;
+			width: 40.5em;
 			margin: 0 auto;
 			margin-bottom: 1em;
 			padding: 0.5em;
