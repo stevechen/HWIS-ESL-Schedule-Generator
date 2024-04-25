@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-
 const BASE_URL = 'http://localhost:5173';
 const MOCK_STUDENT_DATA = `1234567\t張三\tSan Chang\tJ101
 7654321\t李四\tSi Li\tJ102`;
@@ -38,6 +37,7 @@ function initializeLocators(page) {
   };
 }
 
+//#region paste function
 async function pasteDataIntoInput(page, context, selector, mockData) {
   // focus on the input
   await page.locator(selector).focus();
@@ -54,25 +54,11 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
   // simulate paste event
   await page.keyboard.press(`${modifier}+V`);
 
-  // await page.locator(selector).dispatchEvent('paste');
-
-  // await page.locator(selector).evaluate((formEl) => {
-  //   const data = mockData;
-  //   const clipboardData = new DataTransfer();
-  //   const dataType = 'text/plain';
-  //   clipboardData.setData(dataType, data);
-  //   const clipboardEvent = new ClipboardEvent('paste', {
-  //     clipboardData,
-  //     dataType,
-  //     data
-  //   });
-  //   formEl.dispatchEvent(clipboardEvent);
-  // });
-
   // Wait for the #master-checkbox to appear
   await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout: 60000 });
 }
 
+//#region platform detection
 const isMac = async () => {
   if ('userAgentData' in navigator) {
     const { platform } = await navigator.userAgentData.getHighEntropyValues(["platform"]);
@@ -85,10 +71,12 @@ const isMac = async () => {
 
 let modifier = isMac ? 'Meta' : 'Control';
 
+//#region before test
 test.beforeEach(async ({ page }) => {
   await page.goto(`${BASE_URL}/communication`);
 });
 
+// #region auto assignment display
 test('should hide assignment type for different classes', async({ page, context }) => {
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9);
@@ -99,7 +87,8 @@ test('should hide assignment type for different classes', async({ page, context 
   await expect(locatorRadioWorkbook).toBeHidden();
 });
 
-test('should process pasted student data correctly', async ({ page, context }) => {
+// #region paste student
+test('should auto insert today as the due date and have matching students in the table', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
    // Get today's date in MM/DD format
@@ -124,7 +113,8 @@ test('should process pasted student data correctly', async ({ page, context }) =
   await expect(page.locator('select >> nth=0')).toHaveValue('0');
 });
 
-test('should update communication slips according to manual assignment type changes', async ({ page, context }) => {
+//#region assignment change
+test('should match slips with assignment type changes', async ({ page, context }) => {
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
 
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
@@ -151,6 +141,7 @@ test('should update communication slips according to manual assignment type chan
   await expect(page.locator('span:text("Oral Exam"), span:text("期中/末考口試")')).toHaveCount(4);
 });
 
+//#region dates
 test('should update assigned date and late date on slips', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
   // Type in the Assign date and Late Date
@@ -165,9 +156,8 @@ test('should update assigned date and late date on slips', async ({ page, contex
   expect(lateDateOnSlip).toContain(lateDate);
 });
 
-test('should update slip fields with manual data change', async ({ page, context }) => {
-  // Navigate to your page
-  await page.goto(`${BASE_URL}/communication`);
+//#region student info change
+test('should update slip fields with data change', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9_FULL);
 
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
@@ -193,8 +183,8 @@ test('should update slip fields with manual data change', async ({ page, context
   await expect(page.locator(`.slip:nth-child(${randomIndex}) .assignment.name:nth-child(1) span`)).toContainText("wasn't completed");
 });
 
-test('should correctly remove and add back Slip on checkbox operation', async ({ page, context }) => {
-  await page.goto(`${BASE_URL}/communication`);
+//#region include/exclude students
+test('should remove and add back a slip with checkbox operation', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9_FULL);
   // Assuming checkboxes have a class '.student-checkbox' within a <td>
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
@@ -213,6 +203,7 @@ test('should correctly remove and add back Slip on checkbox operation', async ({
   await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeVisible(); 
 });
 
+//#region master-checkbox
 test('should check, uncheck all with master-checkbox and master-checkbox should have a indeterminate state ', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9_FULL);
 
@@ -235,7 +226,7 @@ test('should check, uncheck all with master-checkbox and master-checkbox should 
     await expect(checkbox).toBeChecked();
   }
 });
-// signature -----------------------------------------------------------------
+//#region signature upload-----------------------------------------------------------------
 test.describe('signature upload', () => {
   async function uploadSignature(page, image) {
     const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 10000 });
@@ -264,6 +255,7 @@ test.describe('signature upload', () => {
   });
 
 
+  //#region image too short
   test('should reject signature images that does is too short in height', async ({ page  }) => {
     await uploadSignature(page, 'sig_short.png');
 
@@ -274,6 +266,7 @@ test.describe('signature upload', () => {
   });
 
 
+  //#region image too big
   test('should reject signature images that is too big', async ({ page, context  }) => {
     await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_big.jpg');
@@ -284,6 +277,7 @@ test.describe('signature upload', () => {
     });
   });
 
+  //#region image wrong format
   test('should reject signature images that is not jpg or png', async ({ page, context  }) => {
     await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_bmp.bmp');
@@ -295,6 +289,7 @@ test.describe('signature upload', () => {
     });
   });
 
+  //#region png upload
   test('should upload valid png signature and show up on Slip Templates', async ({ page, context }) => {
     await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_test.png');
@@ -307,7 +302,8 @@ test.describe('signature upload', () => {
     await expect(page.locator('.signature-preview')).toBeHidden();
   });
 
-    test('should upload valid jpg signature image', async ({ page, context }) => {
+  //#region jpg upload
+  test('should upload valid jpg signature image', async ({ page, context }) => {
     await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
     await uploadSignature(page, 'sig_test.jpeg');
 
