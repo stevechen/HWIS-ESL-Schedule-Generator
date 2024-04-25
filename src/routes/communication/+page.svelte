@@ -99,46 +99,6 @@
 		}));
 	}
 
-	// #region Assignment ----------------------------------------------------------------
-	const WORKBOOK = 'workbook';
-	const PASSPORT = 'passport';
-	const RECORDING = 'recording';
-	const EXAM = 'exam';
-	const SPEECH = 'speech';
-	const ASSIGNMENT_TYPE = [
-		{ code: PASSPORT, english: 'Passport', chinese: '英文護照' },
-		{ code: RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
-		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
-		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' },
-		{ code: SPEECH, english: 'Speech Practice', chinese: '演講練習' }
-	];
-
-	const STATUS_TYPE = [
-		{ code: 0, text: { english: "hasn't been submitted", chinese: '未繳交' } },
-		{ code: 1, text: { english: "wasn't completed", chinese: '完成度不佳' } }
-	];
-
-	let assignmentRaw = $state({
-		esl: '',
-		type: '',
-		assigned: '',
-		due: '',
-		late: ''
-	});
-
-	let stateAssignment = $state(PASSPORT);
-
-	let assignment = $derived.by(() => {
-		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === stateAssignment);
-		return {
-			...assignmentRaw,
-			type: {
-				english: foundType ? foundType.english : 'Unknown',
-				chinese: foundType ? foundType.chinese : '未知'
-			}
-		};
-	});
-
 	//#region ESL class ---------------------------------------------------------------
 	const GRADE = $derived.by(() => determineGradeFromText(studentsText));
 	const LEVEL_TYPE = [
@@ -176,6 +136,61 @@
 		}
 		return 'Unknown';
 	}
+
+	// #region Assignment ----------------------------------------------------------------
+	const WORKBOOK = 'workbook';
+	const PASSPORT = 'passport';
+	const RECORDING = 'recording';
+	const EXAM = 'exam';
+	const SPEECH = 'speech';
+
+	const COMM_ASSIGNMENT_TYPE = [
+		{ code: PASSPORT, english: 'Passport', chinese: '英文護照' },
+		{ code: RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
+		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
+		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' },
+		{ code: SPEECH, english: 'Speech Practice', chinese: '演講練習' }
+	];
+
+	const CLIL_ASSIGNMENT_TYPE = [
+		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
+		{ code: SPEECH, english: 'Speech Practice', chinese: '演講練習' }
+	];
+
+	const ASSIGNMENT_TYPE = $derived.by(() => {
+		if (stateESLType === CLIL) return CLIL_ASSIGNMENT_TYPE;
+		if (stateESLType === COMM) return COMM_ASSIGNMENT_TYPE;
+	});
+
+	// if (stateESLType === CLIL) {
+
+	// }; //default to Workbook if it's CLIL
+
+	const STATUS_TYPE = [
+		{ code: 0, text: { english: "hasn't been submitted", chinese: '未繳交' } },
+		{ code: 1, text: { english: "wasn't completed", chinese: '完成度不佳' } }
+	];
+
+	let assignmentRaw = $state({
+		esl: '',
+		type: '',
+		assigned: '',
+		due: '',
+		late: ''
+	});
+
+	let stateAssignment = $state(PASSPORT);
+
+	let assignment = $derived.by(() => {
+		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === stateAssignment);
+		return {
+			...assignmentRaw,
+			type: {
+				english: foundType ? foundType.english : 'Unknown',
+				chinese: foundType ? foundType.chinese : '未知'
+			}
+		};
+	});
 
 	// #region Date fields -------------------------------------------
 	const DATE_FIELDS = [
