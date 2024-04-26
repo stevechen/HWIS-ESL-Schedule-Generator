@@ -4,7 +4,7 @@
 	import { get } from 'svelte/store';
 
 	// Determine the current page to apply active styling
-	$: currentPage = get(page).url.pathname;
+	let currentPage = $state(get(page).url.pathname);
 
 	const NAV_ITEM = [
 		{ path: '/', name: 'Schedule' },
