@@ -33,7 +33,7 @@
 		const ID_REGEX = /^\d{7}$/;
 		const CLASS_REGEX = /^[JH]\d{3}$/;
 		const CHINESE_REGEX = /[\u4e00-\u9fa5]/;
-		const ENGLISH_REGEX = /^[a-zA-Z]+(\s[a-zA-Z]+){1,2}$/;
+		const ENGLISH_REGEX = /^[a-zA-Z]{2,}(\s[a-zA-Z]+){1,5}$/; //allow 5 groups of two or more alphabetical characters
 		const LINES = data.split('\n').filter((line) => line.trim() !== '');
 		if (LINES.length === 0) return [];
 
@@ -42,13 +42,14 @@
 				id: '',
 				name: { english: '', chinese: '' },
 				cClass: '',
-				status: '0',
+				status: StatusTypeCode.NOT_SUBMITTED,
 				selected: true
 			};
 
 			const FIELDS = row.split('\t');
 
-			for (const FIELD of FIELDS) {
+			for (const FIELD_RAW of FIELDS) {
+				const FIELD = FIELD_RAW.trim();
 				if (ID_REGEX.test(FIELD)) {
 					STUDENT.id = FIELD;
 				} else if (CLASS_REGEX.test(FIELD)) {
@@ -67,8 +68,8 @@
 		const STUDENTS_SELECTED = studentsRaw
 			.filter((student) => student.selected) // filter out unselected
 			.map(({ selected, status, ...rest }) => {
-				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object
-				const STUDENT_STATUS = STATUS_TYPE.find((type) => type.code === Number(status));
+				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
+				const STUDENT_STATUS = STATUS_TYPE.find((type) => type.code === status);
 				return {
 					...rest,
 					status: STUDENT_STATUS
@@ -101,74 +102,90 @@
 
 	//#region ESL class ---------------------------------------------------------------
 	const GRADE = $derived.by(() => determineGradeFromText(studentsText));
+	enum Level {
+		Elementary = 'Elementary',
+		Basic = 'Basic',
+		Intermediate = 'Intermediate',
+		Advanced = 'Advanced'
+	}
+
 	const LEVEL_TYPE = [
-		{ id: 'ele', label: 'Ele', value: 'Elementary' },
-		{ id: 'bas', label: 'Basic', value: 'Basic' },
-		{ id: 'int', label: 'Int', value: 'Intermediate' },
-		{ id: 'adv', label: 'Adv', value: 'Advanced' }
+		{ id: 'ele', label: 'Ele', value: Level.Elementary },
+		{ id: 'bas', label: 'Basic', value: Level.Basic },
+		{ id: 'int', label: 'Int', value: Level.Intermediate },
+		{ id: 'adv', label: 'Adv', value: Level.Advanced }
 	];
 
-	const CLIL = 'CLIL';
-	const COMM = 'Comm';
-	const CLASS_TYPE = [COMM, CLIL];
+	enum classType {
+		COMM = 'Comm',
+		CLIL = 'CLIL'
+	}
 
 	let stateESLGrade = $state('');
 	let stateESLLevel = $state(LEVEL_TYPE[0].value);
-	let stateESLType = $state(COMM);
+	let stateESLType = $state(classType.COMM); //default to Comm if it's G9
 	let stateESLNumber = $state('');
 	let className = $derived([stateESLGrade, stateESLLevel, stateESLType, stateESLNumber].join(' '));
 
 	$effect(() => {
 		stateESLGrade = GRADE;
-		if (GRADE === 'G9') stateESLType = COMM; //default to Comm if it's G9
-		if (stateESLType === CLIL) stateAssignment = WORKBOOK; //default to Workbook if it's CLIL
-
+		if (stateESLType === classType.CLIL) stateAssignment = AssignmentCode.WORKBOOK; //change default to Workbook if it's CLIL
 		assignmentRaw.esl = className;
 	});
 
 	function determineGradeFromText(pastedText: string) {
 		const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
 		if (gradeMatch) {
+			//only matches the first record since the reset should be in the same grade
 			const matchCode = Number(gradeMatch[0].charAt(1));
+			//should be J1xx to J3xx
 			if (matchCode >= 1 && matchCode <= 3) {
 				return `G${matchCode + 6}`;
 			}
 		}
-		return 'Unknown';
+		return 'Unknown'; //out or range
 	}
 
 	// #region Assignment ----------------------------------------------------------------
-	const WORKBOOK = 'workbook';
-	const PASSPORT = 'passport';
-	const RECORDING = 'recording';
-	const EXAM = 'exam';
-	const SPEECH = 'speech';
+	enum AssignmentCode {
+		WORKBOOK = 'workbook',
+		PASSPORT = 'passport',
+		RECORDING = 'recording',
+		EXAM = 'exam',
+		SPEECH = 'speech'
+	}
 
 	const COMM_ASSIGNMENT_TYPE = [
-		{ code: PASSPORT, english: 'Passport', chinese: '英文護照' },
-		{ code: RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
-		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
-		{ code: EXAM, english: 'Oral Exam', chinese: '期中/末考口試' },
-		{ code: SPEECH, english: 'Speech Practice', chinese: '演講練習' }
+		{ code: AssignmentCode.PASSPORT, english: 'Passport', chinese: '英文護照' },
+		{ code: AssignmentCode.RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
+		{ code: AssignmentCode.WORKBOOK, english: 'Workbook', chinese: '作業本' },
+		{ code: AssignmentCode.EXAM, english: 'Oral Exam', chinese: '期中/末考口試' },
+		{ code: AssignmentCode.SPEECH, english: 'Speech Practice', chinese: '演講練習' }
 	];
 
 	const CLIL_ASSIGNMENT_TYPE = [
-		{ code: WORKBOOK, english: 'Workbook', chinese: '作業本' },
-		{ code: SPEECH, english: 'Speech Practice', chinese: '演講練習' }
+		{ code: AssignmentCode.WORKBOOK, english: 'Workbook', chinese: '作業本' },
+		{ code: AssignmentCode.SPEECH, english: 'Speech Practice', chinese: '演講練習' }
 	];
 
 	const ASSIGNMENT_TYPE = $derived.by(() => {
-		if (stateESLType === CLIL) return CLIL_ASSIGNMENT_TYPE;
-		if (stateESLType === COMM) return COMM_ASSIGNMENT_TYPE;
+		return stateESLType === classType.COMM ? COMM_ASSIGNMENT_TYPE : CLIL_ASSIGNMENT_TYPE;
 	});
 
-	// if (stateESLType === CLIL) {
-
-	// }; //default to Workbook if it's CLIL
+	enum StatusTypeCode {
+		NOT_SUBMITTED = '0', //use string instead of number for html input
+		NOT_COMPLETED = '1'
+	}
 
 	const STATUS_TYPE = [
-		{ code: 0, text: { english: "hasn't been submitted", chinese: '未繳交' } },
-		{ code: 1, text: { english: "wasn't completed", chinese: '完成度不佳' } }
+		{
+			code: StatusTypeCode.NOT_SUBMITTED,
+			text: { english: "hasn't been submitted", chinese: '未繳交' }
+		},
+		{
+			code: StatusTypeCode.NOT_COMPLETED,
+			text: { english: "wasn't completed", chinese: '完成度不佳' }
+		}
 	];
 
 	let assignmentRaw = $state({
@@ -179,15 +196,15 @@
 		late: ''
 	});
 
-	let stateAssignment = $state(PASSPORT);
+	let stateAssignment = $state(AssignmentCode.PASSPORT); //default to passport
 
 	let assignment = $derived.by(() => {
-		const foundType = ASSIGNMENT_TYPE.find((type) => type.code === stateAssignment);
+		const FOUND_TYPE = ASSIGNMENT_TYPE.find((type) => type.code === stateAssignment);
 		return {
 			...assignmentRaw,
 			type: {
-				english: foundType ? foundType.english : 'Unknown',
-				chinese: foundType ? foundType.chinese : '未知'
+				english: FOUND_TYPE ? FOUND_TYPE.english : 'Unknown',
+				chinese: FOUND_TYPE ? FOUND_TYPE.chinese : '未知'
 			}
 		};
 	});
@@ -199,16 +216,16 @@
 		{ label: 'Late:', key: 'late' }
 	];
 
-	let dates: { [key: string]: string } = $state({
+	let stateDates: { [key: string]: string } = $state({
 		assigned: '',
 		due: '',
 		late: ''
 	});
 
 	$effect(() => {
-		assignmentRaw.assigned = dates.assigned;
-		assignmentRaw.due = dates.due;
-		assignmentRaw.late = dates.late;
+		assignmentRaw.assigned = stateDates.assigned;
+		assignmentRaw.due = stateDates.due;
+		assignmentRaw.late = stateDates.late;
 	});
 
 	// #region Signature -------------------------------------------
@@ -317,7 +334,7 @@
 	onMount(async () => {
 		const today = new Date();
 		const formattedDate = `${today.getMonth() + 1}/${today.getDate()}`; // JavaScript months are 0-indexed
-		dates.due = formattedDate; // Directly updating assignment.due
+		stateDates.due = formattedDate; // Directly updating assignment.due
 
 		if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
 			const img = new Image();
@@ -344,13 +361,6 @@
 <!-- MARK: HTML -->
 <TabBar />
 <main class="control">
-	<!-- <pre>isAllChecked: {JSON.stringify(isAllChecked, null, 2)}</pre> --->
-	<!-- <pre>{JSON.stringify(students, null, 2)}</pre> -->
-	<!-- <pre>{JSON.stringify(studentsForSlip, null, 2)}</pre> -->
-	<!-- <pre>{JSON.stringify(assignmentRaw, null, 2)}</pre> -->
-	<!-- <pre>{JSON.stringify(assignment, null, 2)}</pre> -->
-	<!-- <pre>{JSON.stringify(dates, null, 2)}</pre> -->
-	<!-- <pre>Invalid: {printInvalid}, caution: {printCaution}</pre> -->
 	<fieldset class="students-input">
 		<legend>
 			<h2 class="legend">
@@ -401,8 +411,12 @@
 						<td class="chinese-class"><input type="text" bind:value={student.cClass} /></td>
 						<td class="status">
 							<select bind:value={student.status}>
-								<option value="0">{STATUS_TYPE[0].text.english}</option>
-								<option value="1">{STATUS_TYPE[1].text.english}</option>
+								<option value={StatusTypeCode.NOT_SUBMITTED}>
+									{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
+								</option>
+								<option value={StatusTypeCode.NOT_COMPLETED}>
+									{STATUS_TYPE[StatusTypeCode.NOT_COMPLETED].text.english}
+								</option>
 							</select>
 						</td>
 					</tr>
@@ -424,12 +438,15 @@
 			{/each}
 		</div>
 		<div>
-			{#each CLASS_TYPE as type}
-				{#if type !== CLIL || stateESLGrade !== 'G9'}
-					<input type="radio" id={type} bind:group={stateESLType} value={type} />
-					<label for={type}>{type}</label>
-				{/if}
-			{/each}
+			<div>
+				{#each Object.entries(classType) as [type, value]}
+					<!-- only render CLIL if class is not G9 -->
+					{#if value !== classType.CLIL || stateESLGrade !== 'G9'}
+						<input type="radio" id={type} bind:group={stateESLType} {value} />
+						<label for={type}>{value}</label>
+					{/if}
+				{/each}
+			</div>
 		</div>
 		<div>
 			<input
@@ -448,10 +465,8 @@
 	<fieldset class="assignment-type">
 		<h2 class="legend">Type</h2>
 		{#each ASSIGNMENT_TYPE as { code, english }}
-			{#if ((stateESLType === CLIL && code === WORKBOOK) || stateESLType === COMM) && !(stateESLGrade === 'G9' && code === WORKBOOK)}
-				<input type="radio" id={code} bind:group={stateAssignment} value={code} />
-				<label for={code}>{english}</label>
-			{/if}
+			<input type="radio" id={code} bind:group={stateAssignment} value={code} />
+			<label for={code}>{english}</label>
 		{/each}
 	</fieldset>
 
@@ -464,8 +479,8 @@
 				type="text"
 				name=""
 				id={key}
-				bind:value={dates[key as keyof typeof dates]}
-				class={`date ${!dates[key as keyof typeof dates] || !isValidMonthAndDay(dates[key]) ? 'warning' : ''}`}
+				bind:value={stateDates[key as keyof typeof stateDates]}
+				class={`date ${!stateDates[key as keyof typeof stateDates] || !isValidMonthAndDay(stateDates[key]) ? 'warning' : ''}`}
 				maxlength="5"
 				required
 			/>
@@ -492,12 +507,12 @@
 				onclick={(event) => removeSignature(event)}
 				class="trash secondary action-button"
 			>
-				<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"
-					><path
+				<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+					<path
 						fill="currentColor"
 						d="M15 4c-.522 0-1.06.185-1.438.563C13.185 4.94 13 5.478 13 6v1H7v2h1v16c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V9h1V7h-6V6c0-.522-.185-1.06-.563-1.438C20.06 4.186 19.523 4 19 4zm0 2h4v1h-4zm-5 3h14v16c0 .555-.445 1-1 1H11c-.555 0-1-.445-1-1zm2 3v11h2V12zm4 0v11h2V12zm4 0v11h2V12z"
-					/></svg
-				>
+					/>
+				</svg>
 			</button>
 		{:else}
 			<p>Drop signature image here or</p>
@@ -799,7 +814,7 @@
 				background: #f0ffff;
 			}
 
-			svg {
+			.trash svg {
 				display: block;
 			}
 		}
