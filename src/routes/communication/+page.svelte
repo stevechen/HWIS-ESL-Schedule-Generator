@@ -121,15 +121,17 @@
 		CLIL = 'CLIL'
 	}
 
-	let stateESLGrade = $state('');
-	let stateESLLevel = $state(LEVEL_TYPE[0].value);
-	let stateESLType = $state(classType.COMM); //default to Comm if it's G9
-	let stateESLNumber = $state('');
-	let className = $derived([stateESLGrade, stateESLLevel, stateESLType, stateESLNumber].join(' '));
+	let UIStateESLGrade = $state('');
+	let UIStateESLLevel = $state(LEVEL_TYPE[0].value);
+	let UIStateESLType = $state(classType.COMM); //default to Comm if it's G9
+	let UIStateESLNumber = $state('');
+	let className = $derived(
+		[UIStateESLGrade, UIStateESLLevel, UIStateESLType, UIStateESLNumber].join(' ')
+	);
 
 	$effect(() => {
-		stateESLGrade = GRADE;
-		if (stateESLType === classType.CLIL) stateAssignment = AssignmentCode.WORKBOOK; //change default to Workbook if it's CLIL
+		UIStateESLGrade = GRADE;
+		if (UIStateESLType === classType.CLIL) UIStateAssignment = AssignmentCode.WORKBOOK; //change default to Workbook if it's CLIL
 		assignmentRaw.esl = className;
 	});
 
@@ -163,13 +165,20 @@
 		{ code: AssignmentCode.SPEECH, english: 'Speech Practice', chinese: '演講練習' }
 	];
 
-	const CLIL_ASSIGNMENT_TYPE = [
-		{ code: AssignmentCode.WORKBOOK, english: 'Workbook', chinese: '作業本' },
-		{ code: AssignmentCode.SPEECH, english: 'Speech Practice', chinese: '演講練習' }
-	];
+	const COMM_G9_ASSIGNMENT_TYPE = COMM_ASSIGNMENT_TYPE.filter(
+		(type) => type.code !== AssignmentCode.WORKBOOK
+	);
+
+	const CLIL_ASSIGNMENT_TYPE = COMM_ASSIGNMENT_TYPE.filter(
+		(type) => type.code === AssignmentCode.WORKBOOK || type.code === AssignmentCode.SPEECH
+	);
 
 	const ASSIGNMENT_TYPE = $derived.by(() => {
-		return stateESLType === classType.COMM ? COMM_ASSIGNMENT_TYPE : CLIL_ASSIGNMENT_TYPE;
+		return UIStateESLGrade === 'G9'
+			? COMM_G9_ASSIGNMENT_TYPE
+			: UIStateESLType === classType.COMM
+				? COMM_ASSIGNMENT_TYPE
+				: CLIL_ASSIGNMENT_TYPE;
 	});
 
 	enum StatusTypeCode {
@@ -196,10 +205,10 @@
 		late: ''
 	});
 
-	let stateAssignment = $state(AssignmentCode.PASSPORT); //default to passport
+	let UIStateAssignment = $state(AssignmentCode.PASSPORT); //default to passport
 
 	let assignment = $derived.by(() => {
-		const FOUND_TYPE = ASSIGNMENT_TYPE.find((type) => type.code === stateAssignment);
+		const FOUND_TYPE = ASSIGNMENT_TYPE.find((type) => type.code === UIStateAssignment);
 		return {
 			...assignmentRaw,
 			type: {
@@ -216,16 +225,16 @@
 		{ label: 'Late:', key: 'late' }
 	];
 
-	let stateDates: { [key: string]: string } = $state({
+	let UIStateDates: { [key: string]: string } = $state({
 		assigned: '',
 		due: '',
 		late: ''
 	});
 
 	$effect(() => {
-		assignmentRaw.assigned = stateDates.assigned;
-		assignmentRaw.due = stateDates.due;
-		assignmentRaw.late = stateDates.late;
+		assignmentRaw.assigned = UIStateDates.assigned;
+		assignmentRaw.due = UIStateDates.due;
+		assignmentRaw.late = UIStateDates.late;
 	});
 
 	// #region Signature -------------------------------------------
@@ -317,7 +326,7 @@
 
 	//#region Print button -------------------------------------------
 	let printInvalid = $derived(
-		!stateESLNumber ||
+		!UIStateESLNumber ||
 			(!isAllChecked.indeterminate && !isAllChecked.checked) ||
 			!studentsRaw.length ||
 			GRADE === 'Unknown'
@@ -334,7 +343,7 @@
 	onMount(async () => {
 		const today = new Date();
 		const formattedDate = `${today.getMonth() + 1}/${today.getDate()}`; // JavaScript months are 0-indexed
-		stateDates.due = formattedDate; // Directly updating assignment.due
+		UIStateDates.due = formattedDate; // Directly updating assignment.due
 
 		if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
 			const img = new Image();
@@ -433,7 +442,7 @@
 		</div>
 		<div>
 			{#each LEVEL_TYPE as { id, label, value }}
-				<input type="radio" {id} bind:group={stateESLLevel} {value} />
+				<input type="radio" {id} bind:group={UIStateESLLevel} {value} />
 				<label for={id}>{label}</label>
 			{/each}
 		</div>
@@ -441,8 +450,8 @@
 			<div>
 				{#each Object.entries(classType) as [type, value]}
 					<!-- only render CLIL if class is not G9 -->
-					{#if value !== classType.CLIL || stateESLGrade !== 'G9'}
-						<input type="radio" id={type} bind:group={stateESLType} {value} />
+					{#if value !== classType.CLIL || UIStateESLGrade !== 'G9'}
+						<input type="radio" id={type} bind:group={UIStateESLType} {value} />
 						<label for={type}>{value}</label>
 					{/if}
 				{/each}
@@ -452,8 +461,8 @@
 			<input
 				type="number"
 				id="class-number"
-				bind:value={stateESLNumber}
-				class={`${!stateESLNumber ? 'warning' : ''}`}
+				bind:value={UIStateESLNumber}
+				class={`${!UIStateESLNumber ? 'warning' : ''}`}
 				max="9"
 				min="1"
 				required
@@ -465,7 +474,7 @@
 	<fieldset class="assignment-type">
 		<h2 class="legend">Type</h2>
 		{#each ASSIGNMENT_TYPE as { code, english }}
-			<input type="radio" id={code} bind:group={stateAssignment} value={code} />
+			<input type="radio" id={code} bind:group={UIStateAssignment} value={code} />
 			<label for={code}>{english}</label>
 		{/each}
 	</fieldset>
@@ -479,8 +488,8 @@
 				type="text"
 				name=""
 				id={key}
-				bind:value={stateDates[key as keyof typeof stateDates]}
-				class={`date ${!stateDates[key as keyof typeof stateDates] || !isValidMonthAndDay(stateDates[key]) ? 'warning' : ''}`}
+				bind:value={UIStateDates[key as keyof typeof UIStateDates]}
+				class={`date ${!UIStateDates[key as keyof typeof UIStateDates] || !isValidMonthAndDay(UIStateDates[key]) ? 'warning' : ''}`}
 				maxlength="5"
 				required
 			/>

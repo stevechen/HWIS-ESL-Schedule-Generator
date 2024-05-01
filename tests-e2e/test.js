@@ -77,7 +77,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 // #region auto assignment display
-test('should hide assignment type for different classes', async({ page, context }) => {
+test('should hide workbook assignment type for G9', async({ page, context }) => {
   const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9);
 
