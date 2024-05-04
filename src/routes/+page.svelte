@@ -21,7 +21,7 @@
 
 	<section id="output">
 		<h3>Generated Dates (Copy to Excel)</h3>
-		<textarea rows="30" bind:value={generatedDatesOutput} readonly />
+		<textarea rows="30" bind:value={generatedDatesOutput} readonly></textarea>
 	</section>
 </main>
 

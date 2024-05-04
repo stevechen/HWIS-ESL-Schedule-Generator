@@ -110,7 +110,7 @@
 			</span>
 		</button>
 	</h3>
-	<textarea id="events" rows="15" bind:value={schoolEvents} onblur={generateDates} />
+	<textarea id="events" rows="15" bind:value={schoolEvents} onblur={generateDates}></textarea>
 </div>
 
 <style>
