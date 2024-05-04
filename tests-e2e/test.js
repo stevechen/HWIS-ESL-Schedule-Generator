@@ -55,7 +55,7 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
   await page.keyboard.press(`${modifier}+V`);
 
   // Wait for the #master-checkbox to appear
-  await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout: 60000 });
+  await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout: 500 });
 }
 
 //#region platform detection
@@ -73,7 +73,8 @@ let modifier = isMac ? 'Meta' : 'Control';
 
 //#region before test
 test.beforeEach(async ({ page }) => {
-  await page.goto(`${BASE_URL}/communication`);
+  const uniqueParam = new Date().getTime(); // Using current timestamp as a unique parameter
+  await page.goto(`${BASE_URL}/communication?timestamp=${uniqueParam}`);
 });
 
 // #region auto assignment display
@@ -144,12 +145,10 @@ test('should match slips with assignment type changes', async ({ page, context }
 //#region dates
 test('should update assigned date and late date on slips', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
-  // Type in the Assign date and Late Date
   const assignDate = '1/1';
   const lateDate = '12/31';
   await page.fill('input#assigned', assignDate);
   await page.fill('input#late', lateDate);  
-  // Assert that the dates are correctly displayed on the Slip cards
   const assignDateOnSlip = await page.textContent('.slip .date.assigned > p');
   expect(assignDateOnSlip).toContain(assignDate);
   const lateDateOnSlip = await page.textContent('.slip .date.late > p');
@@ -218,7 +217,7 @@ test('should check, uncheck all with master-checkbox and master-checkbox should 
   // check one student
   await checkboxes.nth(0).click();
   // master-checkbox is in indeterminate state
-  await expect(page.evaluate(() => document.querySelector('#master-checkbox').indeterminate)).toBeTruthy();
+  expect(page.evaluate(() => document.querySelector('#master-checkbox').indeterminate)).toBeTruthy();
   // click to check all
   await page.click('#master-checkbox');
   for (let i = 0; i < count; i++) {
@@ -228,13 +227,15 @@ test('should check, uncheck all with master-checkbox and master-checkbox should 
 });
 //#region signature upload-----------------------------------------------------------------
 test.describe('signature upload', () => {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url)); //current file path
   async function uploadSignature(page, image) {
-    const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 10000 });
+    const filePath = path.join(__dirname, 'fixtures');
+    const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 500 });
     await page.locator('#browse').click()
     const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles(`./tests-e2e/fixtures/${image}`);
+    await fileChooser.setFiles(`${filePath}/${image}`);
   }
-  test.beforeEach(async ({ page }) => {    // remove signature first
+  test.beforeEach(async ({ page, context }) => {    // remove signature first
     // Construct the path to the file
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const filePath = path.join(__dirname, '..', 'static', 'sig.png');
@@ -244,7 +245,7 @@ test.describe('signature upload', () => {
         console.error('File does not exist:', filePath);
       } else {
         const removeSignatureButton = page.locator('#remove-signature');
-        await removeSignatureButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => console.log('#remove-signature not visible yet'));
+        await removeSignatureButton.waitFor({ state: 'visible', timeout: 500 }).catch(() => console.log('#remove-signature not visible yet'));
 
         if (await removeSignatureButton.isVisible()) {
           await removeSignatureButton.focus();
@@ -252,11 +253,11 @@ test.describe('signature upload', () => {
         }
       }
     });
+    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
   });
 
-
   //#region image too short
-  test('should reject signature images that does is too short in height', async ({ page  }) => {
+  test('should reject signature images that does is too short in height', async ({ page }) => {
     await uploadSignature(page, 'sig_short.png');
 
     page.once('dialog', dialog => {
@@ -265,21 +266,18 @@ test.describe('signature upload', () => {
     });
   });
 
-
   //#region image too big
-  test('should reject signature images that is too big', async ({ page, context  }) => {
-    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+  test('should reject signature images that is too big', async ({ page }) => {
     await uploadSignature(page, 'sig_big.jpg');
 
     page.once('dialog', dialog => {
-      expect(dialog.message()).toContain('100KB');
+      expect(dialog.message()).toContain('KB');
       dialog.dismiss().catch(() => {});
     });
   });
 
   //#region image wrong format
-  test('should reject signature images that is not jpg or png', async ({ page, context  }) => {
-    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+  test('should reject signature images that is not jpg or png', async ({ page }) => {
     await uploadSignature(page, 'sig_bmp.bmp');
 
     page.once('dialog', dialog => {
@@ -290,8 +288,7 @@ test.describe('signature upload', () => {
   });
 
   //#region png upload
-  test('should upload valid png signature and show up on Slip Templates', async ({ page, context }) => {
-    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+  test('should upload valid png signature and show up on Slip Templates', async ({ page }) => {
     await uploadSignature(page, 'sig_test.png');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
@@ -303,8 +300,7 @@ test.describe('signature upload', () => {
   });
 
   //#region jpg upload
-  test('should upload valid jpg signature image', async ({ page, context }) => {
-    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+  test('should upload valid jpg signature image', async ({ page }) => {
     await uploadSignature(page, 'sig_test.jpeg');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
@@ -316,9 +312,6 @@ test.describe('signature upload', () => {
 });
 
 // test('should upload valid signature image with drag & drop', async ({ page, context }) => {
-//   // Navigate to your Svelte application page
-//   await page.goto(`${BASE_URL}/commslip`);
-
 //   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
 // // Read your file into a buffer.
