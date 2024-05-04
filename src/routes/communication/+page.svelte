@@ -38,7 +38,7 @@
 		if (LINES.length === 0) return [];
 
 		return LINES.map((row) => {
-			const STUDENT = {
+			const student = {
 				id: '',
 				name: { english: '', chinese: '' },
 				cClass: '',
@@ -51,33 +51,33 @@
 			for (const FIELD_RAW of FIELDS) {
 				const FIELD = FIELD_RAW.trim();
 				if (ID_REGEX.test(FIELD)) {
-					STUDENT.id = FIELD;
+					student.id = FIELD;
 				} else if (CLASS_REGEX.test(FIELD)) {
-					STUDENT.cClass = FIELD;
+					student.cClass = FIELD;
 				} else if (CHINESE_REGEX.test(FIELD)) {
-					STUDENT.name.chinese = FIELD;
+					student.name.chinese = FIELD;
 				} else if (ENGLISH_REGEX.test(FIELD)) {
-					STUDENT.name.english = FIELD;
+					student.name.english = FIELD;
 				}
 			}
-			return STUDENT;
+			return student;
 		}).sort((a, b) => a.name.english.localeCompare(b.name.english));
 	}
 
-	const STUDENTS = $derived.by(() => {
-		const STUDENTS_SELECTED = studentsRaw
+	const students = $derived.by(() => {
+		const studentsSelected = studentsRaw
 			.filter((student) => student.selected) // filter out unselected
 			.map(({ selected, status, ...rest }) => {
 				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
-				const STUDENT_STATUS = STATUS_TYPE.find((type) => type.code === status);
+				const studentStatus = STATUS_TYPE.find((type) => type.code === status);
 				return {
 					...rest,
-					status: STUDENT_STATUS
-						? { english: STUDENT_STATUS.text.english, chinese: STUDENT_STATUS.text.chinese }
+					status: studentStatus
+						? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
 						: { english: 'Unknown', chinese: '未知' }
 				};
 			});
-		return STUDENTS_SELECTED;
+		return studentsSelected;
 	});
 
 	//#region Master checkbox -----------------------------------------------------------
@@ -91,17 +91,17 @@
 	});
 
 	function handleToggleAll() {
-		const IS_ALL_CHECKED = studentsRaw.every((student) => student.selected);
-		const NEW_CHECKED_STATE = !IS_ALL_CHECKED;
+		const isAllChecked = studentsRaw.every((student) => student.selected);
+		const newCheckedState = !isAllChecked;
 
 		studentsRaw = studentsRaw.map((student) => ({
 			...student,
-			selected: NEW_CHECKED_STATE
+			selected: newCheckedState
 		}));
 	}
 
 	//#region ESL class ---------------------------------------------------------------
-	const GRADE = $derived.by(() => determineGradeFromText(studentsText));
+	const grade = $derived.by(() => determineGradeFromText(studentsText));
 	enum Level {
 		Elementary = 'Elementary',
 		Basic = 'Basic',
@@ -130,7 +130,7 @@
 	);
 
 	$effect(() => {
-		UIStateESLGrade = GRADE;
+		UIStateESLGrade = grade;
 		if (UIStateESLType === classType.CLIL) UIStateAssignment = AssignmentCode.WORKBOOK; //change default to Workbook if it's CLIL
 		assignmentRaw.esl = className;
 	});
@@ -173,7 +173,7 @@
 		(type) => type.code === AssignmentCode.WORKBOOK || type.code === AssignmentCode.SPEECH
 	);
 
-	const ASSIGNMENT_TYPE = $derived.by(() => {
+	const assignmentType = $derived.by(() => {
 		return UIStateESLGrade === 'G9'
 			? COMM_G9_ASSIGNMENT_TYPE
 			: UIStateESLType === classType.COMM
@@ -208,12 +208,12 @@
 	let UIStateAssignment = $state(AssignmentCode.PASSPORT); //default to passport
 
 	let assignment = $derived.by(() => {
-		const FOUND_TYPE = ASSIGNMENT_TYPE.find((type) => type.code === UIStateAssignment);
+		const foundType = assignmentType.find((type) => type.code === UIStateAssignment);
 		return {
 			...assignmentRaw,
 			type: {
-				english: FOUND_TYPE ? FOUND_TYPE.english : 'Unknown',
-				chinese: FOUND_TYPE ? FOUND_TYPE.chinese : '未知'
+				english: foundType ? foundType.english : 'Unknown',
+				chinese: foundType ? foundType.chinese : '未知'
 			}
 		};
 	});
@@ -329,7 +329,7 @@
 		!UIStateESLNumber ||
 			(!isAllChecked.indeterminate && !isAllChecked.checked) ||
 			!studentsRaw.length ||
-			GRADE === 'Unknown'
+			grade === 'Unknown'
 	);
 
 	let printCaution = $derived(
@@ -438,7 +438,7 @@
 	<fieldset class="class-info">
 		<h2 class="legend">Class</h2>
 		<div>
-			<p class="grade {GRADE === 'Unknown' ? 'warning' : ''}">{GRADE}</p>
+			<p class="grade {grade === 'Unknown' ? 'warning' : ''}">{grade}</p>
 		</div>
 		<div>
 			{#each LEVEL_TYPE as { id, label, value }}
@@ -473,7 +473,7 @@
 	<!-- MARK: #assignment-type -->
 	<fieldset class="assignment-type">
 		<h2 class="legend">Type</h2>
-		{#each ASSIGNMENT_TYPE as { code, english }}
+		{#each assignmentType as { code, english }}
 			<input type="radio" id={code} bind:group={UIStateAssignment} value={code} />
 			<label for={code}>{english}</label>
 		{/each}
@@ -542,7 +542,7 @@
 
 <!-- MARK: Slip -->
 <div id="b5-print" class="b5-size">
-	{#each STUDENTS as student}
+	{#each students as student}
 		<Slip {student} signatureSrc={signatureImage} {assignment} />
 	{/each}
 </div>
