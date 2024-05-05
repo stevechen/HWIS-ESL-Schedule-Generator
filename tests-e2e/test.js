@@ -34,6 +34,7 @@ function initializeLocators(page) {
     locatorRadioRecording: page.locator('input[type="radio"][value="recording"]'),
     locatorRadioWorkbook: page.locator('input[type="radio"][value="workbook"]'),
     locatorRadioExam: page.locator('input[type="radio"][value="exam"]'),
+    locatorRadioSpeech: page.locator('input[type="radio"][value="speech"]')
   };
 }
 
@@ -78,14 +79,28 @@ test.beforeEach(async ({ page }) => {
 });
 
 // #region auto assignment display
-test('should hide workbook assignment type for G9', async({ page, context }) => {
-  const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
+test('should hide workbook, speech assignment type for G9', async({ page, context }) => {
+  const ctrl = {...initializeLocators(page)};
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9);
 
-  await expect(locatorRadioPassport).toBeVisible();
-  await expect(locatorRadioRecording).toBeVisible();
-  await expect(locatorRadioExam).toBeVisible();
-  await expect(locatorRadioWorkbook).toBeHidden();
+  await expect(ctrl.locatorRadioPassport).toBeVisible();
+  await expect(ctrl.locatorRadioRecording).toBeVisible();
+  await expect(ctrl.locatorRadioExam).toBeVisible();
+  await expect(ctrl.locatorRadioWorkbook).toBeHidden();
+  await expect(ctrl.locatorRadioSpeech).toBeHidden();
+});
+
+test('should show only workbook and speech assignment type for CLIL', async({ page, context }) => {
+  const ctrl = {...initializeLocators(page)};
+  await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+
+  await page.click('input[type="radio"][value="CLIL"]');
+
+  await expect(ctrl.locatorRadioPassport).toBeHidden();
+  await expect(ctrl.locatorRadioRecording).toBeHidden();
+  await expect(ctrl.locatorRadioExam).toBeHidden();
+  await expect(ctrl.locatorRadioWorkbook).toBeVisible();
+  await expect(ctrl.locatorRadioSpeech).toBeVisible();
 });
 
 // #region paste student
