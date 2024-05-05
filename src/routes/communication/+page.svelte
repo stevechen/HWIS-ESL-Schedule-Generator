@@ -116,14 +116,14 @@
 		{ id: 'adv', label: 'Adv', value: Level.Advanced }
 	];
 
-	enum classType {
+	enum ClassType {
 		COMM = 'Comm',
 		CLIL = 'CLIL'
 	}
 
 	let UIStateESLGrade = $state('');
 	let UIStateESLLevel = $state(LEVEL_TYPE[0].value);
-	let UIStateESLType = $state(classType.COMM); //default to Comm if it's G9
+	let UIStateESLType = $state(ClassType.COMM); //default to Comm if it's G9
 	let UIStateESLNumber = $state('');
 	let className = $derived(
 		[UIStateESLGrade, UIStateESLLevel, UIStateESLType, UIStateESLNumber].join(' ')
@@ -131,7 +131,7 @@
 
 	$effect(() => {
 		UIStateESLGrade = grade;
-		if (UIStateESLType === classType.CLIL) UIStateAssignment = AssignmentCode.WORKBOOK; //change default to Workbook if it's CLIL
+		if (UIStateESLType === ClassType.CLIL) UIStateAssignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
 		assignmentRaw.esl = className;
 	});
 
@@ -150,35 +150,31 @@
 
 	// #region Assignment ----------------------------------------------------------------
 	enum AssignmentCode {
-		WORKBOOK = 'workbook',
-		PASSPORT = 'passport',
-		RECORDING = 'recording',
-		EXAM = 'exam',
-		SPEECH = 'speech'
+		workbook = 'workbook',
+		passport = 'passport',
+		recording = 'recording',
+		exam = 'exam',
+		speech = 'speech'
 	}
 
-	const COMM_ASSIGNMENT_TYPE = [
-		{ code: AssignmentCode.PASSPORT, english: 'Passport', chinese: '英文護照' },
-		{ code: AssignmentCode.RECORDING, english: 'Recording', chinese: '錄影(錄音)' },
-		{ code: AssignmentCode.WORKBOOK, english: 'Workbook', chinese: '作業本' },
-		{ code: AssignmentCode.EXAM, english: 'Oral Exam', chinese: '期中/末考口試' },
-		{ code: AssignmentCode.SPEECH, english: 'Speech Practice', chinese: '演講練習' }
+	const COMM_ASSIGNMENT_TYPES = [
+		{ code: AssignmentCode.passport, english: 'Passport', chinese: '英文護照', isG9: true },
+		{ code: AssignmentCode.recording, english: 'Recording', chinese: '錄影(錄音)', isG9: true },
+		{ code: AssignmentCode.workbook, english: 'Workbook', chinese: '作業本', isCLIL: true },
+		{ code: AssignmentCode.exam, english: 'Oral Exam', chinese: '期中/末考口試', isG9: true },
+		{ code: AssignmentCode.speech, english: 'Speech Practice', chinese: '演講練習', isCLIL: true }
 	];
 
-	const COMM_G9_ASSIGNMENT_TYPE = COMM_ASSIGNMENT_TYPE.filter(
-		(type) => type.code !== AssignmentCode.WORKBOOK
-	);
+	const G9_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isG9);
 
-	const CLIL_ASSIGNMENT_TYPE = COMM_ASSIGNMENT_TYPE.filter(
-		(type) => type.code === AssignmentCode.WORKBOOK || type.code === AssignmentCode.SPEECH
-	);
+	const CLIL_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isCLIL);
 
-	const assignmentType = $derived.by(() => {
+	const assignmentTypes = $derived.by(() => {
 		return UIStateESLGrade === 'G9'
-			? COMM_G9_ASSIGNMENT_TYPE
-			: UIStateESLType === classType.COMM
-				? COMM_ASSIGNMENT_TYPE
-				: CLIL_ASSIGNMENT_TYPE;
+			? G9_ASSIGNMENT_TYPES
+			: UIStateESLType === ClassType.CLIL
+				? CLIL_ASSIGNMENT_TYPES
+				: COMM_ASSIGNMENT_TYPES;
 	});
 
 	enum StatusTypeCode {
@@ -205,15 +201,15 @@
 		late: ''
 	});
 
-	let UIStateAssignment = $state(AssignmentCode.PASSPORT); //default to passport
+	let UIStateAssignment = $state(AssignmentCode.passport); //default to passport
 
 	let assignment = $derived.by(() => {
-		const foundType = assignmentType.find((type) => type.code === UIStateAssignment);
+		const assignmentTypeText = assignmentTypes.find((type) => type.code === UIStateAssignment);
 		return {
 			...assignmentRaw,
 			type: {
-				english: foundType ? foundType.english : 'Unknown',
-				chinese: foundType ? foundType.chinese : '未知'
+				english: assignmentTypeText ? assignmentTypeText.english : 'Unknown',
+				chinese: assignmentTypeText ? assignmentTypeText.chinese : '未知'
 			}
 		};
 	});
@@ -240,6 +236,11 @@
 	// #region Signature -------------------------------------------
 	let signatureImage: string = $state('');
 
+	enum Limit {
+		size = 200,
+		height = 160
+	}
+
 	function validateAndSetImage(file: File): boolean {
 		// Check if the file type is JPEG or PNG
 		if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
@@ -248,8 +249,8 @@
 		}
 
 		// Check if the file size is less than 100KB
-		if (file.size > 100 * 1024) {
-			alert('File size must be under 100KB.');
+		if (file.size > Limit.size * 1024) {
+			alert(`File size must be under ${Limit.size}KB.`);
 			return false;
 		}
 
@@ -259,8 +260,8 @@
 
 		img.onload = () => {
 			// Check if the image height is greater than 160px
-			if (img.height <= 160) {
-				alert('Image height must be greater than 160px.');
+			if (img.height <= Limit.height) {
+				alert(`Image height must be greater than ${Limit.height}px.`);
 				URL.revokeObjectURL(img.src); // Clean up the URL object
 				return;
 			}
@@ -448,9 +449,9 @@
 		</div>
 		<div>
 			<div>
-				{#each Object.entries(classType) as [type, value]}
+				{#each Object.entries(ClassType) as [type, value]}
 					<!-- only render CLIL if class is not G9 -->
-					{#if value !== classType.CLIL || UIStateESLGrade !== 'G9'}
+					{#if value !== ClassType.CLIL || UIStateESLGrade !== 'G9'}
 						<input type="radio" id={type} bind:group={UIStateESLType} {value} />
 						<label for={type}>{value}</label>
 					{/if}
@@ -473,7 +474,7 @@
 	<!-- MARK: #assignment-type -->
 	<fieldset class="assignment-type">
 		<h2 class="legend">Type</h2>
-		{#each assignmentType as { code, english }}
+		{#each assignmentTypes as { code, english }}
 			<input type="radio" id={code} bind:group={UIStateAssignment} value={code} />
 			<label for={code}>{english}</label>
 		{/each}
@@ -486,7 +487,7 @@
 			<label for={key}>{label}</label>
 			<input
 				type="text"
-				name=""
+				name={key}
 				id={key}
 				bind:value={UIStateDates[key as keyof typeof UIStateDates]}
 				class={`date ${!UIStateDates[key as keyof typeof UIStateDates] || !isValidMonthAndDay(UIStateDates[key]) ? 'warning' : ''}`}
