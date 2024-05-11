@@ -103,6 +103,7 @@
 	//#region ESL class ---------------------------------------------------------------
 	const grade = $derived.by(() => determineGradeFromText(studentsText));
 	enum Level {
+		PreElementary = 'Pre-Elementary',
 		Elementary = 'Elementary',
 		Basic = 'Basic',
 		Intermediate = 'Intermediate',
@@ -110,6 +111,7 @@
 	}
 
 	const LEVEL_TYPE = [
+		{ id: 'pre-ele', label: 'Pre-Ele', value: Level.PreElementary },
 		{ id: 'ele', label: 'Ele', value: Level.Elementary },
 		{ id: 'bas', label: 'Basic', value: Level.Basic },
 		{ id: 'int', label: 'Int', value: Level.Intermediate },
@@ -122,7 +124,7 @@
 	}
 
 	let UIStateESLGrade = $state('');
-	let UIStateESLLevel = $state(LEVEL_TYPE[0].value);
+	let UIStateESLLevel = $state(LEVEL_TYPE[2].value);
 	let UIStateESLType = $state(ClassType.COMM); //default to Comm if it's G9
 	let UIStateESLNumber = $state('');
 	let className = $derived(
@@ -578,7 +580,7 @@
 			font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
 				Geneva, Verdana, sans-serif;
 			/* width: 182mm; */
-			width: 40.5em;
+			width: 43em;
 			margin: 0 auto;
 			margin-bottom: 1em;
 			padding: 0.5em;
@@ -808,7 +810,7 @@
 			margin-left: 10px;
 			text-align: center;
 			cursor: pointer;
-			width: 455px;
+			width: 35em;
 
 			p {
 				color: darkgray;
