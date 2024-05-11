@@ -37,8 +37,6 @@
 			alert('Error: No type and no grade are selected!');
 		const GENERIC_CLASS_DAYS = allClassDays.filter((day) => weekdays.includes(day.weekday));
 
-		/** @type {Object | null} */
-		// let graduationDay: object | null = null;
 		let graduationDay: object | null = null;
 
 		// setup graduationDay for G9
@@ -47,7 +45,7 @@
 			graduationDay = GRAD_DAYS_ARRAY.length > 0 ? parseISO(GRAD_DAYS_ARRAY[0].date) : null;
 		}
 
-		// compose classes according to selected class type
+		// compose classes with/without attributes according to selected class type
 		let typedClassDays = GENERIC_CLASS_DAYS.map((genericClassDay) => {
 			const SHOULD_INCLUDE_DAY_ATTRIBUTE =
 				genericClassDay.type === '' || //generic event
@@ -82,11 +80,9 @@
 		if (selectedClassType !== 'CLIL') {
 			//find the first exam date for each term
 			const firstExamDays =
-				selectedClassType === 'H'
-					? [examDays[4]]
-					: graduationDay
-						? [examDays[0], examDays[2]]
-						: [examDays[0], examDays[2], examDays[4]];
+				selectedClassType === 'G9' && graduationDay
+					? [examDays[0], examDays[2]]
+					: [examDays[0], examDays[2], examDays[4]];
 
 			//sort in descending order so it would find the nearest none-off days prior to the exam date
 			typedClassDays.sort((a, b) => compareDesc(parseISO(a.date), parseISO(b.date)));
@@ -121,6 +117,8 @@
 					}
 				}
 			});
+			//restore to original order
+			typedClassDays = typedClassDays.reverse();
 		}
 
 		// stores each term's class days count and off days count
@@ -150,6 +148,7 @@
 			}
 		});
 
+		let totalTerms = classCounts.length;
 		//Adding countdown
 		// typedClassDays.sort((a, b) => compareDesc(parseISO(a.date), parseISO(b.date)));
 		// Find the index of the closest non-off class day before the first exam day
@@ -160,11 +159,11 @@
 
 		// Add class count
 		let termIndex = 0;
-		let countdown = classCounts[termIndex].classes; // start at total classes
+		let countdown = classCounts[termIndex].classes; // start at total classes of the 1st semester
 
 		typedClassDays = typedClassDays.map((day, index) => {
 			// If we've reached the end of a term, move to the next term
-			if (countdown <= 0 && termIndex < classCounts.length - 1) {
+			if (countdown === 0 && termIndex < classCounts.length - 1) {
 				termIndex++;
 				countdown = classCounts[termIndex].classes; // reset to total classes for the next term
 			}
