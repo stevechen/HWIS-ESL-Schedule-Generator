@@ -42,17 +42,12 @@
 			.filter((index): index is number => index !== null) // filter out null values created by unchecked checkboxes)
 	);
 
-	let UIStateOutput = $state('');
-
-	$effect(() => {
+	let UIStateOutput = $derived.by(() => {
 		const allClassDays = getDates(UIStateEventsText);
-		const classDates = getClassDaysByType(allClassDays, checkedDays, UIStateClassType, grade);
-		const generatedDatesOutput = ['#\tDate\tDescription\tNote']
-			.concat(
-				classDates.map((row) => [row.countdown, row.date, row.description, row.note].join('\t'))
-			)
+		const classDays = getClassDaysByType(allClassDays, checkedDays, UIStateClassType, grade);
+		return ['#\tDate\tDescription\tNote']
+			.concat(classDays.map((r) => [r.countdown, r.date, r.description, r.note].join('\t')))
 			.join('\n');
-		UIStateOutput = generatedDatesOutput;
 	});
 
 	onMount(async () => {
