@@ -51,10 +51,10 @@
 	});
 
 	onMount(async () => {
-		const CUT_OFF_MONTH = 7;
+		const CUT_OFF_MONTH = 6;
 		// if we are close to semester 2, load the semester 2 events data
 		const yearAndSemester =
-			new Date().getMonth() < CUT_OFF_MONTH
+			new Date().getMonth() < CUT_OFF_MONTH-1
 				? `${new Date().getFullYear() - 1}-${new Date().getFullYear()}-2`
 				: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}-1`;
 		UIStateEventsText =
