@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	// #region Functions
 	export function isValidMonthAndDay(dateStr: string | null): boolean {
 		const REGEX =

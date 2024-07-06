@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { parseISO, compareDesc } from 'date-fns';
 	/**
 	 * Retrieves all class days for a class type. Need input from getAllClassDays() that contains class days mixed with event days.

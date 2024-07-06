@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { parseISO, format, getDay, add, isSunday, isSaturday } from 'date-fns';
 
 	interface SchoolEvents {
