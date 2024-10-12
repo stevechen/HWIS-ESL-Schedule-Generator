@@ -117,7 +117,7 @@
 <!-- MARK: STYLE -->
 <style>
 	* {
-		font-family: Helvetica, Verdana, Geneva, Tahoma, sans-serif;
+		font-family: 'Arial Unicode MS', Helvetica, Verdana, Tahoma, sans-serif;
 		font-size: 12px;
 	}
 
