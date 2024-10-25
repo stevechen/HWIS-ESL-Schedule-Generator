@@ -128,7 +128,7 @@
 	let UIStateESLType = $state(ClassType.COMM); //default to Comm if it's G9
 	let UIStateESLNumber = $state('');
 	let className = $derived(
-		[UIStateESLGrade, UIStateESLLevel, UIStateESLType, UIStateESLNumber].join(' ')
+		[UIStateESLGrade, UIStateESLLevel, UIStateESLNumber, UIStateESLType].join(' ')
 	);
 
 	$effect(() => {
