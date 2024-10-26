@@ -118,10 +118,10 @@
 		{ id: 'adv', label: 'Adv', value: Level.Advanced }
 	];
 
-	enum ClassType {
-		COMM = 'Comm',
-		CLIL = 'CLIL'
-	}
+	const ClassType = {
+		COMM: 'Comm',
+		CLIL: 'CLIL'
+	};
 
 	let UIStateESLGrade = $state('');
 	let UIStateESLLevel = $state(LEVEL_TYPE[2].value);
@@ -179,10 +179,10 @@
 				: COMM_ASSIGNMENT_TYPES;
 	});
 
-	enum StatusTypeCode {
-		NOT_SUBMITTED = '0', //use string instead of number for html input
-		NOT_COMPLETED = '1'
-	}
+	const StatusTypeCode = {
+		NOT_SUBMITTED: '0',
+		NOT_COMPLETED: '1'
+	} as const;
 
 	const STATUS_TYPE = [
 		{
@@ -454,7 +454,7 @@
 				{#each Object.entries(ClassType) as [type, value]}
 					<!-- only render CLIL if class is not G9 -->
 					{#if value !== ClassType.CLIL || UIStateESLGrade !== 'G9'}
-						<input type="radio" id={type} bind:group={UIStateESLType} {value} />
+						<input type="radio" id={type} bind:group={UIStateESLType} {value} aria-label={value} />
 						<label for={type}>{value}</label>
 					{/if}
 				{/each}
@@ -518,6 +518,7 @@
 				id="remove-signature"
 				onclick={(event) => removeSignature(event)}
 				class="trash secondary action-button"
+				aria-label={'remove-signature'}
 			>
 				<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
 					<path
@@ -613,10 +614,10 @@
 			justify-content: left;
 
 			div {
-				&:not(.legend) {
+				/* &:not(.legend) {
 					border-right: 1px solid gray;
 					padding: 0 0.5em;
-				}
+				} */
 
 				&:last-of-type {
 					border-right: none;
