@@ -16,28 +16,33 @@
     "test:e2e": "playwright test"
   },
   "devDependencies": {
-    "@sveltejs/adapter-auto": "^3.3.0",
-    "@sveltejs/adapter-vercel": "^5.4.5",
-    "@sveltejs/kit": "^2.7.2",
+    "@eslint/js": "^9.14.0",
+    "@sveltejs/adapter-auto": "^3.3.1",
+    "@sveltejs/adapter-vercel": "^5.4.7",
+    "@sveltejs/kit": "^2.8.0",
     "@sveltejs/vite-plugin-svelte": "4.0.0-next.6",
     "@types/eslint": "8.56.0",
-    "@types/node": "^20.17.0",
+    "@types/node": "^20.17.6",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-svelte": "^2.46.0",
-    "playwright": "^1.48.1",
+    "globals": "^15.12.0",
+    "playwright": "^1.48.2",
     "prettier": "^3.3.3",
     "prettier-plugin-svelte": "^3.2.7",
-    "svelte": "^5.1.2",
+    "svelte": "^5.1.12",
     "svelte-check": "^3.8.6",
     "typescript": "^5.6.3",
+    "typescript-eslint": "^8.13.0",
     "vite": "^5.4.10",
     "vitest": "^1.6.0"
   },
   "type": "module",
   "dependencies": {
-    "@playwright/test": "^1.48.1",
+    "@jitpackjoyride/lucia-adapter-edgedb": "^0.3.0",
+    "@playwright/test": "^1.48.2",
     "@vercel/analytics": "^1.3.2",
-    "date-fns": "^3.6.0"
+    "date-fns": "^3.6.0",
+    "tippy.js": "^6.3.7"
   }
 }
