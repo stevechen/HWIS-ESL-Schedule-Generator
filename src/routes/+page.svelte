@@ -54,7 +54,7 @@
 		const CUT_OFF_MONTH = 6;
 		// if we are close to semester 2, load the semester 2 events data
 		const yearAndSemester =
-			new Date().getMonth() < CUT_OFF_MONTH-1
+			new Date().getMonth() < CUT_OFF_MONTH - 1
 				? `${new Date().getFullYear() - 1}-${new Date().getFullYear()}-2`
 				: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}-1`;
 		UIStateEventsText =
@@ -114,7 +114,7 @@
 		</div>
 	</section>
 	<section id="output">
-		<h3>Generated Dates (Copy to Excel)</h3>
+		<h3>Generated Dates (Paste to Excel)</h3>
 		<!-- <textarea rows="30" bind:value={UIStateOutput} readonly></textarea> -->
 		<textarea rows="30" value={UIStateOutput} readonly></textarea>
 	</section>
@@ -143,6 +143,7 @@
 		min-width: 58em;
 		flex: 1;
 		font-size: 0.8em;
+		border: 1px dotted gray;
 	}
 
 	h3 {
@@ -153,7 +154,7 @@
 	#options {
 		display: flex;
 		flex-direction: column;
-		border: 1px solid gray;
+		border: 1px dotted gray;
 		padding: 0 0.5em 0.5em 0.5em;
 		border-radius: 10px;
 	}
