@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tooltip } from '$lib/utils.ts.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
@@ -539,6 +540,7 @@
 		class="action-button"
 		class:invalid={printInvalid}
 		class:caution={printCaution}
+		use:tooltip={() => ({ content: 'Print to JIS-B5 and single-sided' })}
 	>
 		Print
 	</button>
