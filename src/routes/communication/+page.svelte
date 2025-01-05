@@ -441,30 +441,27 @@
 	<!-- MARK: #class-info -->
 	<fieldset class="class-info">
 		<h2 class="legend">Class</h2>
-		<div>
+		<div class="class-grade">
 			<p class="grade {grade === 'Unknown' ? 'warning' : ''}">{grade}</p>
 		</div>
-		<div>
+		<div class="class-level">
 			{#each LEVEL_TYPE as { id, label, value }}
 				<input type="radio" {id} bind:group={UIStateESLLevel} {value} />
 				<label for={id}>{label}</label>
 			{/each}
 		</div>
-		<div>
-			<div>
-				{#each Object.entries(ClassType) as [type, value]}
-					<!-- only render CLIL if class is not G9 -->
-					{#if value !== ClassType.CLIL || UIStateESLGrade !== 'G9'}
-						<input type="radio" id={type} bind:group={UIStateESLType} {value} aria-label={value} />
-						<label for={type}>{value}</label>
-					{/if}
-				{/each}
-			</div>
+		<div class="class-type">
+			{#each Object.entries(ClassType) as [type, value]}
+				<!-- only render CLIL if class is not G9 -->
+				{#if value !== ClassType.CLIL || UIStateESLGrade !== 'G9'}
+					<input type="radio" id={type} bind:group={UIStateESLType} {value} aria-label={value} />
+					<label for={type}>{value}</label>
+				{/if}
+			{/each}
 		</div>
-		<div>
+		<div class="class-number">
 			<input
 				type="number"
-				id="class-number"
 				bind:value={UIStateESLNumber}
 				class={`${!UIStateESLNumber ? 'warning' : ''}`}
 				max="9"
@@ -616,10 +613,10 @@
 			justify-content: left;
 
 			div {
-				/* &:not(.legend) {
+				&:not(.legend) {
 					border-right: 1px solid gray;
 					padding: 0 0.5em;
-				} */
+				}
 
 				&:last-of-type {
 					border-right: none;
@@ -630,8 +627,12 @@
 			}
 		}
 
+		.class-type {
+			margin: 0 0.6em 0 -0.2em;
+		}
+
 		/* remove spin buttons */
-		#class-number {
+		.class-number input {
 			appearance: textfield;
 			-moz-appearance: textfield;
 			height: 1.2em;
@@ -893,6 +894,11 @@
 
 	/* #region @media print */
 	@media print {
+		@page {
+			size: JIS-B5;
+			margin: 0;
+		}
+
 		.b5-size {
 			/* height: 257mm; */
 			margin: 4.23mm;
@@ -902,6 +908,13 @@
 			visibility: hidden;
 			width: 0;
 			height: 0;
+		}
+	}
+
+	@media print and (-webkit-min-device-pixel-ratio: 0) {
+		@page {
+			width: 182mm;
+			height: 257mm;
 		}
 	}
 </style>
