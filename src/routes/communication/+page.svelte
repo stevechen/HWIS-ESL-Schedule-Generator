@@ -373,12 +373,15 @@
 
 <!-- MARK: HTML -->
 <TabBar />
-<main class="control">
-	<fieldset class="students-input">
+<main
+	class="print:hidden w-[43em] flex justify-start items-center flex-wrap m-auto mb-4 p-2 border-dotted border-2 font-sans rounded-lg"
+>
+	<!-- MARK: #students -->
+	<fieldset class="w-full mb-0 pr-2 students-input">
 		<legend>
-			<h2 class="legend">
-				<span class="title">Students</span>
-				<span class="hints {shouldHideTextarea ? 'hide' : ''}">
+			<h2 class="text-slate-500">
+				<span class="w-12 font-semibold text-base">Students</span>
+				<span class="hint text-xs {shouldHideTextarea ? 'hidden' : ''}">
 					{`Paste Excel student rows with fields: [ID, Chinese Name, English Name, Chinese Class]`}
 				</span>
 			</h2>
@@ -386,17 +389,19 @@
 		<textarea
 			name=""
 			id="student-list-input"
+			class="{shouldHideTextarea
+				? 'hidden'
+				: ''} min-w-full h-6 border invalid:border-red-400 invalid:border-2"
 			bind:value={studentsText}
-			class={shouldHideTextarea ? 'hide' : ''}
 			required
 		></textarea>
 	</fieldset>
 	<!-- MARK: #student-table -->
 	{#if studentsRaw.length > 0}
-		<table class="student-table">
-			<thead>
+		<table class="ml-6 mb-4 border-collapse student-table">
+			<thead class="text-xs font-semibold bg-slate-100">
 				<tr>
-					<th>
+					<th class="border-solid border border-slate-300">
 						<input
 							type="checkbox"
 							id="master-checkbox"
@@ -405,11 +410,9 @@
 							onchange={handleToggleAll}
 						/>
 					</th>
-					<th>ID</th>
-					<th>C. Name</th>
-					<th>English Name</th>
-					<th>C. Class</th>
-					<th>Status</th>
+					{#each ['ID', 'C. Name', 'English Name', 'C. Class', 'Status'] as header}
+						<th class="border-solid border border-slate-300">{header}</th>
+					{/each}
 				</tr>
 			</thead>
 			<tbody>
@@ -418,10 +421,18 @@
 						<td class="student-checkbox">
 							<input type="checkbox" bind:checked={student.selected} />
 						</td>
-						<td class="student-id"><input type="text" bind:value={student.id} /></td>
-						<td class="chinese-name"><input type="text" bind:value={student.name.chinese} /></td>
-						<td class="english-name"><input type="text" bind:value={student.name.english} /></td>
-						<td class="chinese-class"><input type="text" bind:value={student.cClass} /></td>
+						<td class="w-20 student-id">
+							<input class="text-center" type="text" bind:value={student.id} />
+						</td>
+						<td class="w-14 chinese-name">
+							<input class="text-center" type="text" bind:value={student.name.chinese} />
+						</td>
+						<td class="w-40 english-name">
+							<input type="text" bind:value={student.name.english} />
+						</td>
+						<td class="w-14 chinese-class">
+							<input class="text-center" type="text" bind:value={student.cClass} />
+						</td>
 						<td class="status">
 							<select bind:value={student.status}>
 								<option value={StatusTypeCode.NOT_SUBMITTED}>
@@ -439,31 +450,31 @@
 	{/if}
 
 	<!-- MARK: #class-info -->
-	<fieldset class="class-info">
-		<h2 class="legend">Class</h2>
-		<div class="class-grade">
-			<p class="grade {grade === 'Unknown' ? 'warning' : ''}">{grade}</p>
+	<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 class-info">
+		<h2 class="w-12 font-semibold text-slate-500">Class</h2>
+		<div class="px-3 class-grade">
+			<p class="grade {grade === 'Unknown' ? 'text-red-600' : ''}">{grade}</p>
 		</div>
-		<div class="class-level">
+		<div class="px-3 border-l-2 class-level">
 			{#each LEVEL_TYPE as { id, label, value }}
 				<input type="radio" {id} bind:group={UIStateESLLevel} {value} />
-				<label for={id}>{label}</label>
+				<label class="mr-2" for={id}>{label}</label>
 			{/each}
 		</div>
-		<div class="class-type">
+		<div class="px-3 border-l-2 class-type">
 			{#each Object.entries(ClassType) as [type, value]}
 				<!-- only render CLIL if class is not G9 -->
 				{#if value !== ClassType.CLIL || UIStateESLGrade !== 'G9'}
 					<input type="radio" id={type} bind:group={UIStateESLType} {value} aria-label={value} />
-					<label for={type}>{value}</label>
+					<label class="mr-2" for={type}>{value}</label>
 				{/if}
 			{/each}
 		</div>
 		<div class="class-number">
 			<input
 				type="number"
+				class={`h-5 w-6 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center rounded border invalid:border-2 invalid:border-red-400 ${!UIStateESLNumber ? 'text-red-400' : ''}`}
 				bind:value={UIStateESLNumber}
-				class={`${!UIStateESLNumber ? 'warning' : ''}`}
 				max="9"
 				min="1"
 				required
@@ -472,25 +483,25 @@
 	</fieldset>
 
 	<!-- MARK: #assignment-type -->
-	<fieldset class="assignment-type">
-		<h2 class="legend">Type</h2>
+	<fieldset class="flex flex-row justify-start items-center mb-2 pr-2">
+		<h2 class="w-12 font-semibold text-slate-500">Type</h2>
 		{#each assignmentTypes as { code, english }}
 			<input type="radio" id={code} bind:group={UIStateAssignment} value={code} />
-			<label for={code}>{english}</label>
+			<label class="ml-1 mr-4" for={code}>{english}</label>
 		{/each}
 	</fieldset>
 
 	<!-- MARK: #dates -->
-	<fieldset class="dates">
-		<h2 class="legend">Dates</h2>
+	<fieldset class="flex flex-row justify-start items-start mb-2 pr-2 dates">
+		<h2 class="w-12 font-semibold text-slate-500">Dates</h2>
 		{#each DATE_FIELDS as { key, label }}
-			<label for={key}>{label}</label>
+			<label class="px-2" for={key}>{label}</label>
 			<input
+				class={`border first-of-type:invalid:border-orange-400 invalid:border-red-400 invalid:border-2  rounded-md mr-2 w-20 text-center  ${!UIStateDates[key as keyof typeof UIStateDates] || !isValidMonthAndDay(UIStateDates[key]) ? 'text-red-400 border-red-400 border-2' : 'border-neutral-500'}`}
 				type="text"
 				name={key}
 				id={key}
 				bind:value={UIStateDates[key as keyof typeof UIStateDates]}
-				class={`date ${!UIStateDates[key as keyof typeof UIStateDates] || !isValidMonthAndDay(UIStateDates[key]) ? 'warning' : ''}`}
 				maxlength="5"
 				required
 			/>
@@ -499,7 +510,7 @@
 
 	<!-- MARK: #signature-drop-zone -->
 	<div
-		id="signature-drop-zone"
+		class={`inline w-full text-slate-400 text-center text-decoration-none bg-slate-50 rounded-lg border-dashed border-2 py-2 px-8 ml-2 cursor-pointer ${signatureImage ? 'grid grid-cols-[auto_2.75em]' : ''}`}
 		class:has-signature={signatureImage}
 		ondragover={handleDragOver}
 		ondrop={handleDrop}
@@ -511,11 +522,16 @@
 		role="button"
 	>
 		{#if signatureImage}
-			<img class="signature-preview" src={signatureImage} alt="Signature Preview" />
+			<img
+				class="h-[14mm] self-center justify-self-center signature-preview"
+				src={signatureImage}
+				alt="Signature Preview"
+			/>
+
+			<!-- remove signature button -->
 			<button
-				id="remove-signature"
+				class="self-center justify-self-center block py-2 px-2 rounded-lg border text-blue-400 hover:text-slate-50 bg-slate-50 hover:bg-blue-400 border-blue-400 hover:border-slate-50 hover:pointer"
 				onclick={(event) => removeSignature(event)}
-				class="trash secondary action-button"
 				aria-label={'remove-signature'}
 			>
 				<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -527,24 +543,40 @@
 			</button>
 		{:else}
 			<p>Drop signature image here or</p>
-			<button id="browse" class="secondary action-button">browse</button>
+			<button
+				class="self-center justify-self-center block py-1 px-4 mt-2 rounded-lg border text-blue-400 hover:text-blue-50 border-blue-400 hover:border-blue-600 bg-slate-50 hover:bg-blue-500 hover:pointer"
+				>browse…
+			</button>
 		{/if}
 	</div>
-	<input type="file" id="signature-upload" accept="image/*" onchange={handleFileSelect} />
-	<button
+	<input
+		type="file"
+		id="signature-upload"
+		class="absolue overflow-hidden w-px h-px p-0 border-0 -m-px"
+		accept="image/*"
+		onchange={handleFileSelect}
+	/>
+
+	<p class="inline-block w-full pt-2 text-center text-blue-400">
+		Print by pressing "ctrl + p" (Win) or "&#8984 + p" ( Apple)
+	</p>
+	<!-- <button
 		id="print"
+		class="inline-block action-button"
 		onclick={() => window.print()}
-		class="action-button"
 		class:invalid={printInvalid}
 		class:caution={printCaution}
 		use:tooltip={() => ({ content: 'Print to JIS-B5 and single-sided' })}
 	>
 		Print
-	</button>
+	</button> -->
 </main>
 
-<!-- MARK: Slip -->
-<div id="b5-print" class="b5-size">
+<!-- MARK: Slips -->
+<div
+	id="b5-print"
+	class="flex flex-col flex-nowrap w-[182mm] my-0 mx-auto print:m-[4.23mm] b5-size"
+>
 	{#each students as student}
 		<Slip {student} signatureSrc={signatureImage} {assignment} />
 	{/each}
@@ -571,192 +603,11 @@
 			--legend-font-weight: var(--legend-font-weight);
 		}
 
-		/* #region Main control */
-		main.control {
-			display: flex;
-			justify-content: flex-start;
-			align-items: center;
-			flex-wrap: wrap;
-			font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode',
-				Geneva, Verdana, sans-serif;
-			/* width: 182mm; */
-			width: 43em;
-			margin: 0 auto;
-			margin-bottom: 1em;
-			padding: 0.5em;
-			border: 1px dotted gray;
-			border-radius: 1em;
-
-			.legend {
-				font-size: 1em;
-				font-weight: var(--legend-font-weight);
-				margin: 0;
-			}
-		}
-
-		fieldset {
-			border: none;
-			margin-bottom: 0.5em;
-			padding-right: 0.6em;
-			width: 100%;
-		}
-
-		h2.legend {
-			font-weight: var(--legend-font-weight);
-			min-width: 3em;
-		}
-
-		/* #region .class-info */
-		.class-info {
-			display: flex;
-			flex-direction: row;
-			justify-content: left;
-
-			div {
-				&:not(.legend) {
-					border-right: 1px solid gray;
-					padding: 0 0.5em;
-				}
-
-				&:last-of-type {
-					border-right: none;
-				}
-			}
-			p {
-				margin: 0 0.1em;
-			}
-		}
-
-		.class-type {
-			margin: 0 0.6em 0 -0.2em;
-		}
-
-		/* remove spin buttons */
-		.class-number input {
-			appearance: textfield;
-			-moz-appearance: textfield;
-			height: 1.2em;
-			width: 1.5em;
-			text-align: center;
-
-			&::-webkit-outer-spin-button,
-			&::-webkit-inner-spin-button {
-				-webkit-appearance: none;
-			}
-		}
-
-		/* #region assignment */
-		.assignment-type,
-		.dates {
-			display: flex;
-			flex-direction: row;
-			justify-content: left;
-			align-items: left;
-		}
-
-		.assignment-type > label {
-			padding-right: 0.5em;
-		}
-
-		.dates {
-			label {
-				padding: 0 0.5em;
-			}
-
-			input.date {
-				margin-right: 1em;
-				width: 6em;
-				text-align: center;
-			}
-		}
-
-		.students-input {
-			margin-bottom: 0;
-
-			.title {
-				font-size: 1em;
-				font-weight: var(--legend-font-weight);
-			}
-
-			.hints {
-				font-size: 0.7em;
-			}
-
-			#student-list-input {
-				min-width: 100%;
-				height: 1.5em;
-			}
-		}
-
-		input {
-			border-radius: 3px;
-			border-width: 1px;
-
-			&.caution:invalid {
-				color: var(--caution-color-dark);
-				border-color: var(--caution-color);
-			}
-		}
-
-		textarea:invalid,
-		input:invalid,
-		input.warning {
-			color: red;
-			border: 1px solid red;
-			/* box-shadow:
-			0 2px 4px 0 rgba(255, 0, 0, 0.2),
-			0 4px 10px 0 rgba(255, 0, 0, 0.19); */
-		}
-
-		p.warning {
-			color: red;
-		}
-
-		.hide {
-			display: none;
-		}
-
 		/* #region .student-table */
 		.student-table {
-			border-collapse: collapse; /* Remove space between borders */
-			margin-left: 1.5em;
-			margin-bottom: 0.5em;
-
-			th {
-				font-size: 0.8em;
-				font-weight: 300;
-				background-color: lightgray;
-				border: 1px solid lightgray;
-			}
-
 			.student td {
 				border: 1px solid #ccc; /* Light grey border for a subtle grid */
 				padding: 4px; /* Padding inside cells */
-
-				&.student-id {
-					width: 3.3em;
-				}
-
-				&.chinese-name {
-					width: 3.5em;
-					text-align: center;
-
-					input {
-						text-align: center;
-					}
-				}
-
-				&.english-name {
-					width: 10em;
-				}
-
-				&.chinese-class {
-					width: 3.5em;
-
-					input {
-						text-align: center;
-					}
-				}
 
 				input {
 					width: 100%; /* Make input fill the cell */
@@ -774,122 +625,17 @@
 			}
 		}
 
-		/* #region .action-button */
-		.action-button {
-			background-color: var(--main-color);
-			color: white;
-			border: none;
-			border-radius: 4px;
-			padding: 0.5em 1em;
-			margin-left: 1em;
-			font-weight: var(--legend-font-weight);
-
-			&:hover {
-				background-color: var(--main-color-dark);
-				cursor: pointer;
-			}
-
-			&.caution {
-				background-color: var(--caution-color);
-
-				&:hover {
-					background-color: var(--caution-color-dark);
-				}
-			}
-
-			&.invalid {
-				color: white;
-				background-color: red;
-				cursor: default;
-			}
-		}
 		/* #region #signature-drop-zone  */
 		#signature-drop-zone {
-			display: inline;
-			text-decoration: none;
-			background: #fbfbfb;
-			border: 2px dashed #ccc;
-			border-radius: 10px;
-			padding: 5px 20px;
-			margin-left: 10px;
-			text-align: center;
-			cursor: pointer;
-			width: 35em;
-
-			p {
-				color: darkgray;
-			}
-
-			&.has-signature {
-				display: grid;
-				grid-template-columns: auto 2.75em;
-			}
-
 			&.drag-over {
 				border-color: steelblue; /* Change border color when dragging over */
 				background: #f0ffff;
 			}
-
-			.trash svg {
-				display: block;
-			}
 		}
 
 		#signature-upload {
-			/* intentionally hidden */
-			position: absolute;
-			width: 1px;
-			height: 1px;
-			padding: 0;
-			margin: -1px;
-			overflow: hidden;
 			clip: rect(0, 0, 0, 0);
-			border: 0;
 		}
-
-		.signature-preview {
-			align-self: center;
-			justify-self: center;
-			height: 14mm;
-		}
-
-		#remove-signature {
-			align-self: center;
-			justify-self: center;
-			padding: 0.4em;
-			background: #fafafa;
-
-			&:hover {
-				background-color: #fafafa; /*override .secondary.action-button:hover*/
-			}
-		}
-
-		/* #region .secondary.action-button */
-		.secondary.action-button {
-			color: var(--main-color);
-			background: transparent;
-			border: 1px solid var(--main-color);
-
-			&:hover {
-				color: var(--main-color-dark);
-				background: white;
-				border-color: var(--main-color-dark);
-				cursor: pointer;
-			}
-		}
-
-		#print {
-			display: inline-block;
-		}
-	}
-
-	.b5-size {
-		display: flex;
-		flex-flow: column;
-		/* JIS B5 */
-		width: 182mm;
-		/* height: 257mm; */
-		margin: 0 auto;
 	}
 
 	/* #region @media print */
@@ -900,14 +646,8 @@
 		}
 
 		.b5-size {
-			/* height: 257mm; */
-			margin: 4.23mm;
-		}
-		main.control {
-			display: none;
-			visibility: hidden;
-			width: 0;
-			height: 0;
+			/* height: 257mm;
+			margin: 4.23mm; */
 		}
 	}
 
