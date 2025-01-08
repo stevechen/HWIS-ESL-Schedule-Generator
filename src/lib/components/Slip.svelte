@@ -118,7 +118,7 @@
 <style>
 	* {
 		font-family: 'Arial Unicode MS', Helvetica, Verdana, Tahoma, sans-serif;
-		font-size: 12px;
+		font-size: 11.4px;
 	}
 
 	p {
@@ -172,7 +172,7 @@
 	}
 
 	.date {
-		width: 7em;
+		width: 10em;
 	}
 
 	.signature.row > div {
@@ -227,11 +227,24 @@
 
 		.slip:nth-of-type(3n + 4) {
 			break-before: page;
-			margin-top: 6.422mm;
+			margin-top: 4.422mm;
 		}
-
 		.slip:nth-of-type(3n) {
 			margin-bottom: 0;
 		}
+
+		/* Safari only */
+		/* @media print and (-webkit-min-device-pixel-ratio: 0) {
+			* {
+				font-size: 11.3px;
+			}
+
+			.slip:first-of-type {
+				margin-top: 15.422mm;
+			}
+			.slip:nth-of-type(3n + 4) {
+				margin-top: 10.422mm;
+			}
+		} */
 	}
 </style>

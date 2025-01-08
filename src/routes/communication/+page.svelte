@@ -455,26 +455,50 @@
 		<div class="px-3 class-grade">
 			<p class="grade {grade === 'Unknown' ? 'text-red-600' : ''}">{grade}</p>
 		</div>
-		<div class="px-3 border-l-2 class-level">
+
+		<!-- ESL-level -->
+		<div class="flex flex-row justify-start items-center rounded-full bg-blue-100 p-1 mx-1">
 			{#each LEVEL_TYPE as { id, label, value }}
-				<input type="radio" {id} bind:group={UIStateESLLevel} {value} />
-				<label class="mr-2" for={id}>{label}</label>
+				<label
+					class="rounded-full px-2 text-slate-500 hover:text-slate-900 has-[:checked]:bg-blue-500 has-[:checked]:text-white cursor-pointer"
+					for={id}
+				>
+					<input class="appearance-none" type="radio" {id} bind:group={UIStateESLLevel} {value} />
+					{label}
+				</label>
 			{/each}
 		</div>
-		<div class="px-3 border-l-2 class-type">
+
+		<!-- ESL-type -->
+		<div class="flex flex-row justify-start items-center rounded-full bg-blue-100 p-1 mx-1">
 			{#each Object.entries(ClassType) as [type, value]}
 				<!-- only render CLIL if class is not G9 -->
 				{#if value !== ClassType.CLIL || UIStateESLGrade !== 'G9'}
-					<input type="radio" id={type} bind:group={UIStateESLType} {value} aria-label={value} />
-					<label class="mr-2" for={type}>{value}</label>
+					<label
+						class="rounded-full px-2 text-slate-500 hover:text-slate-900 has-[:checked]:bg-blue-500 has-[:checked]:text-white cursor-pointer"
+						for={type}
+					>
+						<input
+							class="appearance-none"
+							type="radio"
+							id={type}
+							bind:group={UIStateESLType}
+							{value}
+							aria-label={value}
+						/>
+						{value}
+					</label>
 				{/if}
 			{/each}
 		</div>
+
+		<!-- ESL-class-number -->
 		<div class="class-number">
 			<input
 				type="number"
 				class={`h-5 w-6 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center rounded border invalid:border-2 invalid:border-red-400 ${!UIStateESLNumber ? 'text-red-400' : ''}`}
 				bind:value={UIStateESLNumber}
+				placeholder="#"
 				max="9"
 				min="1"
 				required
@@ -483,12 +507,25 @@
 	</fieldset>
 
 	<!-- MARK: #assignment-type -->
-	<fieldset class="flex flex-row justify-start items-center mb-2 pr-2">
+	<fieldset class="flex flex-row justify-start items-center mb-2 mr-2">
 		<h2 class="w-12 font-semibold text-slate-500">Type</h2>
-		{#each assignmentTypes as { code, english }}
-			<input type="radio" id={code} bind:group={UIStateAssignment} value={code} />
-			<label class="ml-1 mr-4" for={code}>{english}</label>
-		{/each}
+		<div class="flex flex-row justify-start items-center rounded-full bg-blue-100 p-1 mx-1">
+			{#each assignmentTypes as { code, english }}
+				<label
+					class="rounded-full px-2 text-slate-500 hover:text-slate-900 has-[:checked]:bg-blue-500 has-[:checked]:text-white cursor-pointer"
+					for={code}
+				>
+					<input
+						class="appearance-none"
+						type="radio"
+						id={code}
+						bind:group={UIStateAssignment}
+						value={code}
+					/>
+					{english}
+				</label>
+			{/each}
+		</div>
 	</fieldset>
 
 	<!-- MARK: #dates -->
@@ -510,7 +547,7 @@
 
 	<!-- MARK: #signature-drop-zone -->
 	<div
-		class={`inline w-full text-slate-400 text-center text-decoration-none bg-slate-50 rounded-lg border-dashed border-2 py-2 px-8 ml-2 cursor-pointer ${signatureImage ? 'grid grid-cols-[auto_2.75em]' : ''}`}
+		class={`inline w-5/6 text-slate-400 text-center text-decoration-none bg-slate-50 rounded-lg border-dashed border-2 py-2 px-8 ml-2 cursor-pointer ${signatureImage ? 'grid grid-cols-[auto_2.75em]' : ''}`}
 		class:has-signature={signatureImage}
 		ondragover={handleDragOver}
 		ondrop={handleDrop}
@@ -557,19 +594,23 @@
 		onchange={handleFileSelect}
 	/>
 
-	<p class="inline-block w-full pt-2 text-center text-blue-400">
+	<!-- <p class="inline-block w-full pt-2 text-center text-blue-400">
 		Print by pressing "ctrl + p" (Win) or "&#8984 + p" ( Apple)
-	</p>
-	<!-- <button
+	</p> -->
+	<button
 		id="print"
-		class="inline-block action-button"
+		class="	text-white ml-6 py-1 px-4 rounded-lg mt-2
+		bg-blue-500
+		{printInvalid ? 'bg-red-500' : ''} 
+		{printCaution ? 'bg-orange-500' : ''}
+	 hover:bg-blue-600
+	 	{printInvalid ? 'hover:bg-red-600' : ''} 
+		{printCaution ? 'hover:bg-orange-600' : ''}"
 		onclick={() => window.print()}
-		class:invalid={printInvalid}
-		class:caution={printCaution}
 		use:tooltip={() => ({ content: 'Print to JIS-B5 and single-sided' })}
 	>
 		Print
-	</button> -->
+	</button>
 </main>
 
 <!-- MARK: Slips -->
@@ -645,10 +686,10 @@
 			margin: 0;
 		}
 
-		.b5-size {
-			/* height: 257mm;
-			margin: 4.23mm; */
-		}
+		/* .b5-size {
+			height: 257mm;
+			margin: 4.23mm;
+		} */
 	}
 
 	@media print and (-webkit-min-device-pixel-ratio: 0) {
