@@ -110,13 +110,13 @@
 					</span>
 				</button>
 			</h3>
-			<textarea rows="30" bind:value={UIStateEventsText} readonly></textarea>
+			<textarea rows="30" class="font-mono" bind:value={UIStateEventsText} readonly></textarea>
 		</div>
 	</section>
 	<section id="output">
 		<h3>Generated Dates (Paste to Excel)</h3>
 		<!-- <textarea rows="30" bind:value={UIStateOutput} readonly></textarea> -->
-		<textarea rows="30" value={UIStateOutput} readonly></textarea>
+		<textarea class="font-mono" rows="30" value={UIStateOutput} readonly></textarea>
 	</section>
 </main>
 
