@@ -52,12 +52,12 @@
 	</div>
 	<div class="studentInfo row">
 		<div>
-			<p class="student-id">Student ID 學號: {student.id}</p>
+			<p class="student-id">ID 學號: {student.id}</p>
 			<p class="chinese-class">Chinese Class 班級: {student.cClass}</p>
 		</div>
 		<div>
 			<p class="name">
-				Chinese / English Name 姓名: <span class="chinese-name">{student.name.chinese}</span> /
+				Chinese / English Name 中/英姓名: <span class="chinese-name">{student.name.chinese}</span> /
 				<span class="english-name">{student.name.english}</span>
 			</p>
 			<p class="esl-class">ESL Class ESL 組別: {assignment.esl}</p>
@@ -66,14 +66,14 @@
 	<div class="assignment row">
 		<div>
 			<p class="assignment name">
-				The following assignment
+				The assignment
 				<span class="stress">
 					[{assignment.type.english}] {student.status.english}
 				</span> and will affect the ESL scores.
 			</p>
 			<p class="assignment name chinese">
-				貴子弟ESL課程的功課 <span class="stress"
-					>{assignment.type.chinese} {student.status.chinese}</span
+				貴子弟ESL課程的 <span class="stress"
+					>{assignment.type.chinese} 功課{student.status.chinese}</span
 				>， 將影響ESL平時成績，請家長知悉。
 			</p>
 		</div>
