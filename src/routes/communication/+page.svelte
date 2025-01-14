@@ -377,11 +377,7 @@
 <!-- MARK: **** HTML **** -->
 <!-- svg icons -->
 <section class="hidden">
-	<svg
-		xmlns="http://www.w3.org/2000/svg"
-		xmlns:xlink="http://www.w3.org/1999/xlink"
-		xml:space="preserve"
-	>
+	<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve">
 		<g id="icon-student">
 			<path
 				class="st0"
@@ -491,14 +487,14 @@
 	<fieldset class="w-full">
 		<!-- student icon -->
 		<svg class="inline-block w-6 h-6 ml-4 my-2 text-slate-500 fill-slate-500" viewBox="0 0 512 512">
-			<use xlink:href="#icon-student" />
+			<use href="#icon-student" />
 		</svg>
 		<h2 class="inline-block text-slate-500 mx-4 mb-1">
 			<span class="font-semibold text-base">Students</span>
 		</h2>
 		<textarea
 			name=""
-			class="h-10 p-2 rounded-md focus:border-blue-800 focus:outline-none
+			class="h-11 p-2 rounded-md focus:border-blue-800 focus:outline-none
 			{shouldHideTextarea
 				? 'hidden'
 				: ''} placeholder:text-sm min-w-full h-6 border invalid:border-red-400 invalid:border-2"
@@ -566,7 +562,7 @@
 	<fieldset class="w-full flex flex-row justify-start items-center mb-2 pr-2 class-info">
 		<!-- blackboard icon -->
 		<svg class="w-6 h-6 mx-4 my-1 fill-slate-500" viewBox="0 0 512 512">
-			<use xlink:href="#icon-blackboard" />
+			<use href="#icon-blackboard" />
 		</svg>
 		<div class="px-3">
 			<p
@@ -579,7 +575,7 @@
 				{:else}
 					<!-- spin circle -->
 					<svg class="w-6 h-6 animate-[spin_3s_linear_infinite] origin-center" viewBox="0 0 24 24">
-						<use xlink:href="#icon-spin" />
+						<use href="#icon-spin" />
 					</svg>
 				{/if}
 			</p>
@@ -647,7 +643,7 @@
 	<fieldset class="w-full flex flex-row justify-start items-center mb-2 mr-2">
 		<!-- inkwell icon -->
 		<svg class="w-6 h-6 mx-4 my-1 text-slate-500" viewBox="0 0 64 64">
-			<use xlink:href="#icon-inkWell" />
+			<use href="#icon-inkWell" />
 		</svg>
 
 		<div class="flex flex-row justify-start items-center rounded-full bg-slate-200 p-1 mx-1">
@@ -674,7 +670,7 @@
 	<!-- MARK: dates -->
 	<fieldset class="w-full flex flex-row justify-start items-start mb-2 pr-2 py-1">
 		<svg class="w-6 h-6 ml-5 mr-4 my-1 fill-slate-500" viewBox="0 0 612 612">
-			<use xlink:href="#icon-calendar" />
+			<use href="#icon-calendar" />
 		</svg>
 		{#each DATE_FIELDS as { key, label }}
 			<label class="group px-2 text-sm text-slate-600" for={key}>
@@ -725,12 +721,12 @@
 					aria-label={'remove-signature'}
 				>
 					<svg class="w-8 h-8" viewBox="0 0 32 32">
-						<use xlink:href="#icon-trash" />
+						<use href="#icon-trash" />
 					</svg>
 				</button>
 			{:else}
 				<svg class="w-24 h-24 fill-slate-300 float-left" viewBox="0 0 24 24">
-					<use xlink:href="#icon-image" />
+					<use href="#icon-image" />
 				</svg>
 
 				<p class="text-md text-orange-400">
