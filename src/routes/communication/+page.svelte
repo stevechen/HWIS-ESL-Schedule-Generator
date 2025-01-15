@@ -776,7 +776,8 @@
 	id="b5-print"
 	class="flex flex-col flex-nowrap w-[182mm] my-0 mx-auto print:m-[4.23mm] b5-size"
 >
-	{#each students as student}
+	{#each students as student, i}
+		<p class="print:hidden text-center text-slate-500">Slip #{i + 1}</p>
 		<Slip {student} signatureSrc={signatureImage} {assignment} />
 	{/each}
 </div>
