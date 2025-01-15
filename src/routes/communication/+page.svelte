@@ -494,10 +494,10 @@
 		</h2>
 		<textarea
 			name=""
-			class="h-11 p-2 rounded-md focus:border-blue-800 focus:outline-none
+			class="p-2 rounded-md focus:border-blue-800 focus:outline-none
 			{shouldHideTextarea
 				? 'hidden'
-				: ''} placeholder:text-sm min-w-full h-6 border invalid:border-red-400 invalid:border-2"
+				: ''} placeholder:text-sm min-w-full h-10 border invalid:border-red-400 invalid:border-2"
 			bind:value={studentsText}
 			placeholder="Paste Excel students with fields in any order: [ID, Chinese Name, English Name, Chinese Class]"
 			required
