@@ -584,7 +584,7 @@
 					>
 						<use href="#icon-spin" />
 					</svg>
-					0 student
+					0 students
 				{/if}
 			</p>
 		</div>
