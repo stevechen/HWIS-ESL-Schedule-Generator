@@ -319,6 +319,8 @@
 		}
 	}
 
+	let student;
+
 	function handleKeyUp(event: KeyboardEvent) {
 		// Trigger click on 'Enter' or 'Space' keyup
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -489,8 +491,9 @@
 		<svg class="inline-block w-6 h-6 ml-4 my-2 text-slate-500 fill-slate-500" viewBox="0 0 512 512">
 			<use href="#icon-student" />
 		</svg>
-		<h2 class="inline-block text-slate-500 mx-4 mb-1">
-			<span class="font-semibold text-base">Students</span>
+		<h2 class="inline-block text-base text-slate-500 mx-4 mb-1 font-semibold">
+			Students
+			{studentsRaw.length != 0 ? `(selected: ${students.length} )` : ''}
 		</h2>
 		<textarea
 			name=""
@@ -501,7 +504,8 @@
 			bind:value={studentsText}
 			placeholder="Paste Excel students with fields in any order: [ID, Chinese Name, English Name, Chinese Class]"
 			required
-		></textarea>
+		>
+		</textarea>
 	</fieldset>
 	<!-- MARK: student table -->
 	{#if studentsRaw.length > 0}
@@ -574,9 +578,13 @@
 					{grade}
 				{:else}
 					<!-- spin circle -->
-					<svg class="w-6 h-6 animate-[spin_3s_linear_infinite] origin-center" viewBox="0 0 24 24">
+					<svg
+						class=" inline-block w-6 h-6 ml-[-1rem] animate-[spin_3s_linear_infinite] origin-center"
+						viewBox="0 0 24 24"
+					>
 						<use href="#icon-spin" />
 					</svg>
+					0 student
 				{/if}
 			</p>
 		</div>
@@ -695,7 +703,7 @@
 	<section class="w-full flex">
 		<div
 			id="signature-drop-zone"
-			class={`w-4/6 py-2 px-8 ml-2  text-center text-slate-400 bg-slate-50 text-decoration-none 
+			class={`w-full py-2 px-8 ml-2  text-center text-slate-400 bg-slate-50 text-decoration-none 
 			rounded-lg border-dashed border-2 cursor-pointer ${signatureImage ? 'grid grid-cols-[auto_2.75em] border-slate-300' : 'border-orange-400'}`}
 			class:has-signature={signatureImage}
 			ondragover={handleDragOver}
@@ -751,7 +759,7 @@
 		<!-- MARK: print-comment-->
 		<div class="w-2/6 text-center h-full">
 			<p
-				class="w-full my-1 text-sm font-bold text-center
+				class="w-full my-1 text-sm font-bold
 				{printInvalid ? 'text-red-400' : printCaution ? 'text-orange-400' : 'invisible'}"
 			>
 				Missing Info!
