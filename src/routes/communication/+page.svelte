@@ -836,8 +836,8 @@
 	/* #region @media print */
 	@media print {
 		@page {
-			size: JIS-B5;
-			margin: 0;
+			/* size: JIS-B5;
+			margin: 0; */
 		}
 
 		/* .b5-size {
@@ -848,8 +848,8 @@
 
 	@media print and (-webkit-min-device-pixel-ratio: 0) {
 		@page {
-			width: 182mm;
-			height: 257mm;
+			/* width: 182mm;
+			height: 257mm; */
 		}
 	}
 </style>
