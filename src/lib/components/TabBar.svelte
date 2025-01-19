@@ -1,10 +1,9 @@
 <!-- TabBar.svelte -->
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { get } from 'svelte/store';
+	import { page } from '$app/state';
 
 	// Determine the current page to apply active styling
-	let currentPage = $state(get(page).url.pathname);
+	let currentPage = $state(page.url.pathname);
 
 	const NAV_ITEM = [
 		{ name: 'Schedule', url: '/' },
