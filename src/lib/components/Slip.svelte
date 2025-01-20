@@ -4,14 +4,14 @@
 	// Marked Interfaces
 	interface Student {
 		id: string;
-		name: { en: string; ch: string };
+		name: { english: string; chinese: string };
 		cClass: string;
-		status: { en: string; ch: string };
+		status: { english: string; chinese: string };
 	}
 
 	interface Assignment {
 		esl: string;
-		type: { en: string; ch: string };
+		type: { english: string; chinese: string };
 		assigned: string | null;
 		due: string | null;
 		late: string | null;
@@ -20,14 +20,14 @@
 	//#region  Default objects
 	const defaultStudent: Student = {
 		id: '',
-		name: { en: '', ch: '' },
+		name: { english: '', chinese: '' },
 		cClass: '',
-		status: { en: '', ch: '' }
+		status: { english: '', chinese: '' }
 	};
 
 	const defaultAssignment: Assignment = {
 		esl: '',
-		type: { en: '', ch: '' },
+		type: { english: '', chinese: '' },
 		assigned: '',
 		due: '',
 		late: ''
@@ -48,7 +48,7 @@
 	<div class="h-[22%] border flex items-center text-sm *:w-1/2 *:px-3 *:leading-6">
 		<div class="*:leading-6">
 			<h3 class="text-xs pr-1 text-gray-600">Student 學生:</h3>
-			<p>{student.name.ch} / {student.name.en} ({student.id})</p>
+			<p>{student.name.chinese} / {student.name.english} ({student.id})</p>
 		</div>
 		<div class="*:leading-6">
 			<h3 class="text-xs pr-1 text-gray-600">Class 班級:</h3>
@@ -58,10 +58,12 @@
 
 	<div class="h-[22%] border-x border-b flex items-center">
 		<p class="px-3 leading-6 whitespace-pre-line *:font-semibold">
-			The assignment <span>**{assignment.type.en}** {student.status.en}</span>
+			The assignment <span>**{assignment.type.english}** {student.status.english}</span>
 			and will affect the ESL scores.
 			{`貴子弟ESL課程的`}
-			<span>**{assignment.type.ch}** {student.status.ch} </span>，將影響ESL平時成績，請家長知悉。
+			<span
+				>**{assignment.type.chinese}** {student.status.chinese}
+			</span>，將影響ESL平時成績，請家長知悉。
 		</p>
 	</div>
 
