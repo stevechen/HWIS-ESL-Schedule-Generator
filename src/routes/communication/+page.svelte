@@ -516,7 +516,7 @@
 			{studentsRaw.length != 0 ? `(selected: ${students.length} )` : ''}
 		</h2>
 		<textarea
-			name=""
+			id="student-list-input"
 			class="p-2 rounded-md focus:border-blue-800 focus:outline-none
 			{shouldHideTextarea
 				? 'hidden'
@@ -533,8 +533,8 @@
 			<thead class="text-xs font-semibold bg-slate-100">
 				<tr>
 					<th class="border-solid border border-slate-300">
-						<!-- master checkbox for all students -->
 						<input
+							id="master-checkbox"
 							type="checkbox"
 							class="h-4 w-4 m-1"
 							bind:checked={isAllChecked.checked}
@@ -551,19 +551,19 @@
 				{#each studentsRaw as student}
 					<tr class="student *:border *: border-slate-200 *:p-[4px]">
 						<!-- student checkbox -->
-						<td>
+						<td class="student-checkbox">
 							<input type="checkbox" class="h-4 w-4 m-1" bind:checked={student.selected} />
 						</td>
-						<td class="w-16">
+						<td class="student-id w-[4.5rem]">
 							<input class="text-center" type="text" bind:value={student.id} />
 						</td>
-						<td class="w-20">
+						<td class="chinese-name w-20">
 							<input class="text-center" type="text" bind:value={student.name.chinese} />
 						</td>
-						<td class="w-auto">
+						<td class="english-name w-auto">
 							<input type="text-center" bind:value={student.name.english} />
 						</td>
-						<td class="w-14">
+						<td class="chinese-class w-14">
 							<input class="text-center" type="text" bind:value={student.cClass} />
 						</td>
 						<td class="w-auto text-center">
@@ -634,7 +634,7 @@
 							hover:text-slate-100 hover:bg-blue-400 hover:shadow-green-300 hover:animate-pulse
 							has-[:checked]:text-white has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800 has-[:checked]:animate-none has-[:checked]:cursor-default"
 						for={type}
-					>
+						>{value}
 						<input
 							id={type}
 							class="appearance-none"
@@ -643,7 +643,6 @@
 							{value}
 							aria-label={value}
 						/>
-						{value}
 					</label>
 				{/if}
 			{/each}
@@ -744,6 +743,7 @@
 
 				<!-- remove signature button -->
 				<button
+					id="remove-signature"
 					class="self-center justify-self-center block p-1.5 rounded-lg text-white bg-blue-400 hover:bg-blue-500 hover:pointer"
 					onclick={(event) => removeSignature(event)}
 					aria-label={'remove-signature'}
@@ -761,6 +761,7 @@
 					Drop signature image to upload <br /><span class="text-slate-400">or</span>
 				</p>
 				<button
+					id="browse"
 					class="self-center justify-self-center block py-1 px-4 mt-2 rounded-lg border text-white bg-blue-400 hover:bg-blue-500 hover:pointer"
 					>browse…
 				</button>

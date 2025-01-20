@@ -37,7 +37,7 @@
 </script>
 
 <div
-	class="block relative h-[calc((257mm)/3)] p-4 font-sans text-xs
+	class="slip block relative h-[calc((257mm)/3)] p-4 font-sans text-xs
     print:[&:nth-of-type(3n+2)]:border-y print:[&:nth-of-type(3n+2)]:border-dotted
     print:[&:nth-of-type(3n+4)]:break-before-page
     *:border-gray-500 *:box-border"
@@ -48,16 +48,18 @@
 	<div class="h-[22%] border flex items-center text-sm *:w-1/2 *:px-3 *:leading-6">
 		<div class="*:leading-6">
 			<h3 class="text-xs pr-1 text-gray-600">Student 學生:</h3>
-			<p>{student.name.chinese} / {student.name.english} ({student.id})</p>
+			<p class="student-info">
+				{student.name.chinese} / {student.name.english} ({student.id})
+			</p>
 		</div>
 		<div class="*:leading-6">
 			<h3 class="text-xs pr-1 text-gray-600">Class 班級:</h3>
-			<p>{assignment.esl} / {student.cClass}</p>
+			<p class="class-info">{assignment.esl} / {student.cClass}</p>
 		</div>
 	</div>
 
 	<div class="h-[22%] border-x border-b flex items-center">
-		<p class="px-3 leading-6 whitespace-pre-line *:font-semibold">
+		<p class="assignment-info px-3 leading-6 whitespace-pre-line *:font-semibold">
 			The assignment <span>**{assignment.type.english}** {student.status.english}</span>
 			and will affect the ESL scores.
 			{`貴子弟ESL課程的`}
@@ -75,21 +77,21 @@
 
 		<div class="flex w-[19%] pl-1 text-center leading-6">
 			<h3 class="text-center leading-6">Assigned 指派日</h3>
-			<p class="h-1/2 text-lg">
+			<p class="assigned h-1/2 text-lg">
 				{isValidMonthAndDay(assignment.assigned) ? assignment.assigned : ''}
 			</p>
 		</div>
 
 		<div class="flex w-[19%] pl-1 text-center leading-6 border-x border-gray-500">
 			<h3 class="text-center leading-6">Due 繳交日</h3>
-			<p class="h-1/2 text-lg">
+			<p class="due h-1/2 text-lg">
 				{isValidMonthAndDay(assignment.due) ? assignment.due : ''}
 			</p>
 		</div>
 
 		<div class="flex w-[19%] pl-1 text-center leading-6">
 			<h3 class="text-center leading-6">Make up 補繳日</h3>
-			<p class="h-1/2 text-lg font-semibold">
+			<p class="late h-1/2 text-lg font-semibold">
 				{isValidMonthAndDay(assignment.late) ? assignment.late : ''}
 			</p>
 		</div>

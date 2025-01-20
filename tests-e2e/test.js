@@ -29,12 +29,20 @@ const MOCK_STUDENT_DATA_G9_FULL =
 function initializeLocators(page) {
   return {
     locatorRadioCLIL: page.locator('input[type="radio"][value="CLIL"]'),
-    locatorRadioComm: page.locator('input[type="radio"][value="Comm"]'),
+    locatorRadioComm: page.locator('input[type="radio"][value="COMM"]'),
     locatorRadioPassport: page.locator('input[type="radio"][value="passport"]'),
     locatorRadioRecording: page.locator('input[type="radio"][value="recording"]'),
     locatorRadioWorkbook: page.locator('input[type="radio"][value="workbook"]'),
     locatorRadioExam: page.locator('input[type="radio"][value="exam"]'),
-    locatorRadioSpeech: page.locator('input[type="radio"][value="speech"]')
+    locatorRadioSpeech: page.locator('input[type="radio"][value="speech"]'),
+
+    locatorLabelCLIL: page.locator('label[for="CLIL"]'),
+    locatorLabelComm: page.locator('label[for="COMM"]'),
+    locatorLabelPassport: page.locator('label[for="passport"]'),
+    locatorLabelRecording: page.locator('label[for="recording"]'),
+    locatorLabelWorkbook: page.locator('label[for="workbook"]'),
+    locatorLabelExam: page.locator('label[for="exam"]'),
+    locatorLabelSpeech: page.locator('label[for="speech"]'),
   };
 }
 
@@ -83,9 +91,15 @@ test('should hide workbook, speech assignment type for G9', async({ page, contex
   const ctrl = {...initializeLocators(page)};
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA_G9);
 
-  await expect(ctrl.locatorRadioPassport).toBeVisible();
-  await expect(ctrl.locatorRadioRecording).toBeVisible();
-  await expect(ctrl.locatorRadioExam).toBeVisible();
+  await expect(ctrl.locatorLabelPassport).toBeVisible();
+  await expect(ctrl.locatorLabelRecording).toBeVisible();
+  await expect(ctrl.locatorLabelExam).toBeVisible();
+  await expect(ctrl.locatorLabelWorkbook).toBeHidden();
+  await expect(ctrl.locatorLabelSpeech).toBeHidden();
+
+  await expect(ctrl.locatorRadioPassport).toBeHidden();
+  await expect(ctrl.locatorRadioRecording).toBeHidden();
+  await expect(ctrl.locatorRadioExam).toBeHidden();
   await expect(ctrl.locatorRadioWorkbook).toBeHidden();
   await expect(ctrl.locatorRadioSpeech).toBeHidden();
 });
@@ -94,13 +108,13 @@ test('should show only workbook and speech assignment type for CLIL', async({ pa
   const ctrl = {...initializeLocators(page)};
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
-  await page.click('input[type="radio"][value="CLIL"]');
+  await ctrl.locatorLabelCLIL.click();
 
-  await expect(ctrl.locatorRadioPassport).toBeHidden();
-  await expect(ctrl.locatorRadioRecording).toBeHidden();
-  await expect(ctrl.locatorRadioExam).toBeHidden();
-  await expect(ctrl.locatorRadioWorkbook).toBeVisible();
-  await expect(ctrl.locatorRadioSpeech).toBeVisible();
+  await expect(ctrl.locatorLabelPassport).toBeHidden();
+  await expect(ctrl.locatorLabelRecording).toBeHidden();
+  await expect(ctrl.locatorLabelExam).toBeHidden();
+  await expect(ctrl.locatorLabelWorkbook).toBeVisible();
+  await expect(ctrl.locatorLabelSpeech).toBeVisible();
 });
 
 // #region paste student
@@ -131,30 +145,30 @@ test('should auto insert today as the due date and have matching students in the
 
 //#region assignment change
 test('should match slips with assignment type changes', async ({ page, context }) => {
-  const { locatorRadioPassport, locatorRadioRecording, locatorRadioWorkbook, locatorRadioExam } = initializeLocators(page);
+  const { locatorLabelCLIL,  locatorLabelComm, locatorLabelPassport, locatorLabelRecording, locatorLabelWorkbook, locatorLabelExam } = initializeLocators(page);
 
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
-  await page.click('input[type="radio"][value="CLIL"]');
-  await expect(locatorRadioWorkbook).toBeVisible();
-  await expect(locatorRadioWorkbook).toBeChecked();
+  await locatorLabelCLIL.click();
+  await expect(locatorLabelWorkbook).toBeVisible();
+  await expect(locatorLabelWorkbook).toBeChecked();
  // Test for two spans with the text "Workbook" and "作業本"
-  await expect(page.locator('span:text("Workbook"), span:text("作業本")')).toHaveCount(4);
+  await expect(page.locator('span:text("Workbook"), span:text("**作業本**")')).toHaveCount(4);
 
-  await page.click('input[type="radio"][value="Comm"]');
-  await page.click('input[type="radio"][value="passport"]');
-  await expect(locatorRadioPassport).toBeVisible();
-  await expect(locatorRadioPassport).toBeChecked();
-  await expect(locatorRadioRecording).toBeVisible();
-  await expect(locatorRadioWorkbook).toBeVisible();
-  await expect(locatorRadioExam).toBeVisible();
-  await expect(page.locator('span:text("Passport"), span:text("英文護照")')).toHaveCount(4);
+  await locatorLabelComm.click();
+  await locatorLabelPassport.click();
+  await expect(locatorLabelPassport).toBeVisible();
+  await expect(locatorLabelPassport).toBeChecked();
+  await expect(locatorLabelRecording).toBeVisible();
+  await expect(locatorLabelWorkbook).toBeVisible();
+  await expect(locatorLabelExam).toBeVisible();
+  await expect(page.locator('span:text("Passport"), span:text("**英文護照**")')).toHaveCount(4);
 
-  await page.click('input[type="radio"][value="recording"]');
-  await expect(page.locator('span:text("Recording"), span:text("錄影(錄音)")')).toHaveCount(4);
+  await locatorLabelRecording.click();
+  await expect(page.locator('span:text("Recording"), span:text("**錄影/錄音**")')).toHaveCount(4);
 
-  await page.click('input[type="radio"][value="exam"]');
-  await expect(page.locator('span:text("Oral Exam"), span:text("期中/末考口試")')).toHaveCount(4);
+  await locatorLabelExam.click();
+  await expect(page.locator('span:text("Oral Exam"), span:text("**期中/末考口試**")')).toHaveCount(4);
 });
 
 //#region dates
@@ -164,9 +178,9 @@ test('should update assigned date and late date on slips', async ({ page, contex
   const lateDate = '12/31';
   await page.fill('input#assigned', assignDate);
   await page.fill('input#late', lateDate);  
-  const assignDateOnSlip = await page.textContent('.slip .date.assigned > p');
+  const assignDateOnSlip = await page.textContent('p.assigned');
   expect(assignDateOnSlip).toContain(assignDate);
-  const lateDateOnSlip = await page.textContent('.slip .date.late > p');
+  const lateDateOnSlip = await page.textContent('p.late');
   expect(lateDateOnSlip).toContain(lateDate);
 });
 
@@ -179,22 +193,22 @@ test('should update slip fields with data change', async ({ page, context }) => 
   const randomIndex = Math.floor(Math.random() * count);
 
   //change the random row data
-  await page.fill(`tr:nth-child(${randomIndex}) .student-id > input`, '5555555');
-  await expect(page.locator(`.slip:nth-child(${randomIndex}) .student-id`)).toContainText("5555555");
+  await page.fill(`tr:nth-child(${randomIndex}) td.student-id > input`, '5555555');
+  await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .student-info`)).toContainText("5555555");
 
   await page.fill(`tr:nth-child(${randomIndex}) .chinese-name > input`, '王八');
-  await expect(page.locator(`.slip:nth-child(${randomIndex}) .chinese-name`)).toContainText("王八");
+  await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .student-info`)).toContainText("王八");
 
   await page.fill(`tr:nth-child(${randomIndex}) .english-name > input`, 'Mary Jane');
-  await expect(page.locator(`.slip:nth-child(${randomIndex}) .english-name`)).toContainText("Mary Jane");
+  await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .student-info`)).toContainText("Mary Jane");
 
   await page.fill(`tr:nth-child(${randomIndex}) .chinese-class > input`, 'J112');
-  await expect(page.locator(`.slip:nth-child(${randomIndex}) .chinese-class`)).toContainText("J112");
+  await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .class-info`)).toContainText("J112");
 
   await page.click(`tr:nth-child(${randomIndex}) > td > select`);
-  await page.selectOption(`tr:nth-child(${randomIndex}) > td > select`, { value: "1" });
+  await page.selectOption(`tr:nth-of-type(${randomIndex}) > td > select`, { value: "1" });
 
-  await expect(page.locator(`.slip:nth-child(${randomIndex}) .assignment.name:nth-child(1) span`)).toContainText("wasn't completed");
+  await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .assignment-info`)).toContainText("wasn't completed");
 });
 
 //#region include/exclude students
@@ -210,11 +224,11 @@ test('should remove and add back a slip with checkbox operation', async ({ page,
   let studentIdValue = await checkboxes.nth(randomIndex).locator('xpath=ancestor::tr').locator('td.student-id > input').inputValue();
   // Verify the Slip is removed
   // await expect(page.locator(`.slip .student-id input[value="${studentIdValue}"]`)).toBeHidden();
-  await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeHidden(); 
+  await expect(page.locator(`text=(${studentIdValue})`)).toBeHidden(); 
   // Check the checkbox
   await checkboxes.nth(randomIndex).check();
   // Verify the Slip is added back
-  await expect(page.locator(`text=Student ID 學號: ${studentIdValue}`)).toBeVisible(); 
+  await expect(page.locator(`text=(${studentIdValue})`)).toBeVisible(); 
 });
 
 //#region master-checkbox
@@ -272,7 +286,7 @@ test.describe('signature upload', () => {
   });
 
   //#region image too short
-  test('should reject signature images that does is too short in height', async ({ page }) => {
+  test('should reject signature images too short in height', async ({ page }) => {
     await uploadSignature(page, 'sig_short.png');
 
     page.once('dialog', dialog => {
@@ -282,7 +296,7 @@ test.describe('signature upload', () => {
   });
 
   //#region image too big
-  test('should reject signature images that is too big', async ({ page }) => {
+  test('should reject signature images over size limit', async ({ page }) => {
     await uploadSignature(page, 'sig_big.jpg');
 
     page.once('dialog', dialog => {
@@ -292,7 +306,7 @@ test.describe('signature upload', () => {
   });
 
   //#region image wrong format
-  test('should reject signature images that is not jpg or png', async ({ page }) => {
+  test('should only accept jpg or png signature images', async ({ page }) => {
     await uploadSignature(page, 'sig_bmp.bmp');
 
     page.once('dialog', dialog => {
@@ -303,7 +317,7 @@ test.describe('signature upload', () => {
   });
 
   //#region png upload
-  test('should upload valid png signature and show up on Slip Templates', async ({ page }) => {
+  test('should upload valid png signature and display on Slip Templates', async ({ page }) => {
     await uploadSignature(page, 'sig_test.png');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
@@ -315,7 +329,7 @@ test.describe('signature upload', () => {
   });
 
   //#region jpg upload
-  test('should upload valid jpg signature image', async ({ page }) => {
+  test('should upload valid jpg signature image and display on Slip Templates', async ({ page }) => {
     await uploadSignature(page, 'sig_test.jpeg');
 
     await expect(page.getByText('Drop signature image here or')).toBeHidden();
