@@ -37,29 +37,29 @@
 </script>
 
 <div
-	class="slip block relative h-[calc((257mm)/3)] p-4 font-sans text-xs
-    print:[&:nth-of-type(3n+2)]:border-y print:[&:nth-of-type(3n+2)]:border-dotted
-    print:[&:nth-of-type(3n+4)]:break-before-page
-    *:border-gray-500 *:box-border"
+	class="slip relative block h-[calc((257mm)/3)] p-4 font-sans text-xs
+    *:box-border *:border-gray-500
+    print:[&:nth-of-type(3n+2)]:border-y
+    print:[&:nth-of-type(3n+2)]:border-dotted print:[&:nth-of-type(3n+4)]:break-before-page"
 >
-	<h2 class="h-[12%] w-full font-semibold text-center">
+	<h2 class="h-[12%] w-full text-center font-semibold">
 		ESL Communication Slip / ESL 課程溝通事項
 	</h2>
-	<div class="h-[22%] border flex items-center text-sm *:w-1/2 *:px-3 *:leading-6">
+	<div class="flex h-[22%] items-center border text-sm *:w-1/2 *:px-3 *:leading-6">
 		<div class="*:leading-6">
-			<h3 class="text-xs pr-1 text-gray-600">Student 學生:</h3>
+			<h3 class="pr-1 text-xs text-gray-600">Student 學生:</h3>
 			<p class="student-info">
 				{student.name.chinese} / {student.name.english} ({student.id})
 			</p>
 		</div>
 		<div class="*:leading-6">
-			<h3 class="text-xs pr-1 text-gray-600">Class 班級:</h3>
+			<h3 class="pr-1 text-xs text-gray-600">Class 班級:</h3>
 			<p class="class-info">{assignment.esl} / {student.cClass}</p>
 		</div>
 	</div>
 
-	<div class="h-[22%] border-x border-b flex items-center">
-		<p class="assignment-info px-3 leading-6 whitespace-pre-line *:font-semibold">
+	<div class="flex h-[22%] items-center border-x border-b">
+		<p class="assignment-info whitespace-pre-line px-3 leading-6 *:font-semibold">
 			The assignment <span>**{assignment.type.english}** {student.status.english}</span>
 			and will affect the ESL scores.
 			{`貴子弟ESL課程的`}
@@ -69,10 +69,10 @@
 		</p>
 	</div>
 
-	<div class="h-[22%] border-x flex flex-row *:border-gray-500 *:content-center *:block">
-		<p class="w-[43%] border-r leading-6 text-sm font-semibold pl-3 whitespace-pre-line">
+	<div class="flex h-[22%] flex-row border-x *:block *:content-center *:border-gray-500">
+		<p class="w-[43%] whitespace-pre-line border-r pl-3 text-sm font-semibold leading-6">
 			若於補繳日仍未繳交，此功課成績為零<br />
-			<span class="italic text-xs font-normal">*功課內容請查 Google Classroom</span>
+			<span class="text-xs font-normal italic">*功課內容請查 Google Classroom</span>
 		</p>
 
 		<div class="flex w-[19%] pl-1 text-center leading-6">
