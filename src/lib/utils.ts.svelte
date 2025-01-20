@@ -8,6 +8,8 @@
 		return dateStr === null ? false : REGEX.test(dateStr);
 	}
 
+	// this function would cause an issue if you want precise printing. The tippy object do not hide with parents at print.
+	// it alters the layout of the page
 	export function tooltip(node: HTMLElement, options: () => object) {
 		$effect(() => {
 			const tooltip = tippy(node, options());

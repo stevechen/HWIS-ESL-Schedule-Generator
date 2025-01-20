@@ -1,26 +1,17 @@
 <script lang="ts">
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 
-	//#region Interfaces
+	// Marked Interfaces
 	interface Student {
 		id: string;
-		name: {
-			english: string;
-			chinese: string;
-		};
+		name: { en: string; ch: string };
 		cClass: string;
-		status: {
-			english: string;
-			chinese: string;
-		};
+		status: { en: string; ch: string };
 	}
 
 	interface Assignment {
 		esl: string;
-		type: {
-			english: string;
-			chinese: string;
-		};
+		type: { en: string; ch: string };
 		assigned: string | null;
 		due: string | null;
 		late: string | null;
@@ -29,14 +20,14 @@
 	//#region  Default objects
 	const defaultStudent: Student = {
 		id: '',
-		name: { english: '', chinese: '' },
+		name: { en: '', ch: '' },
 		cClass: '',
-		status: { english: '', chinese: '' }
+		status: { en: '', ch: '' }
 	};
 
 	const defaultAssignment: Assignment = {
 		esl: '',
-		type: { english: '', chinese: '' },
+		type: { en: '', ch: '' },
 		assigned: '',
 		due: '',
 		late: ''
@@ -45,206 +36,81 @@
 	let { student = defaultStudent, assignment = defaultAssignment, signatureSrc = '' } = $props();
 </script>
 
-<!-- MARK: HTML -->
-<div class="slip">
-	<div class="title row">
-		<h2 class="form-title">ESL Communication Slip / ESL 課程溝通事項</h2>
-	</div>
-	<div class="studentInfo row">
-		<div>
-			<p class="student-id">ID 學號: {student.id}</p>
-			<p class="chinese-class">Chinese Class 班級: {student.cClass}</p>
+<div
+	class="block relative h-[calc((257mm)/3)] p-4 font-sans text-xs
+    print:[&:nth-of-type(3n+2)]:border-y print:[&:nth-of-type(3n+2)]:border-dotted
+    print:[&:nth-of-type(3n+4)]:break-before-page
+    *:border-gray-500 *:box-border"
+>
+	<h2 class="h-[12%] w-full font-semibold text-center">
+		ESL Communication Slip / ESL 課程溝通事項
+	</h2>
+	<div class="h-[22%] border flex items-center text-sm *:w-1/2 *:px-3 *:leading-6">
+		<div class="*:leading-6">
+			<h3 class="text-xs pr-1 text-gray-600">Student 學生:</h3>
+			<p>{student.name.ch} / {student.name.en} ({student.id})</p>
 		</div>
-		<div>
-			<p class="name">
-				Chinese / English Name 中/英姓名: <span class="chinese-name">{student.name.chinese}</span> /
-				<span class="english-name">{student.name.english}</span>
-			</p>
-			<p class="esl-class">ESL Class ESL 組別: {assignment.esl}</p>
-		</div>
-	</div>
-	<div class="assignment row">
-		<div>
-			<p class="assignment name">
-				The assignment
-				<span class="stress">
-					[{assignment.type.english}] {student.status.english}
-				</span> and will affect the ESL scores.
-			</p>
-			<p class="assignment name chinese">
-				貴子弟ESL課程的 <span class="stress"
-					>{assignment.type.chinese} 功課{student.status.chinese}</span
-				>， 將影響ESL平時成績，請家長知悉。
-			</p>
+		<div class="*:leading-6">
+			<h3 class="text-xs pr-1 text-gray-600">Class 班級:</h3>
+			<p>{assignment.esl} / {student.cClass}</p>
 		</div>
 	</div>
-	<div class="status row">
-		<div class="info">
-			<p class="stress">若未於補繳日前繳交，此功課成績為零。</p>
-			<p class="footnote">*功課內容請查 Google Classroom.</p>
-		</div>
-		<div class="date assigned">
-			<p>
-				Assigned date<br />指派日：<br />{isValidMonthAndDay(assignment.assigned)
-					? assignment.assigned
-					: ''}
+
+	<div class="h-[22%] border-x border-b flex items-center">
+		<p class="px-3 leading-6 whitespace-pre-line *:font-semibold">
+			The assignment <span>**{assignment.type.en}** {student.status.en}</span>
+			and will affect the ESL scores.
+			{`貴子弟ESL課程的`}
+			<span>**{assignment.type.ch}** {student.status.ch} </span>，將影響ESL平時成績，請家長知悉。
+		</p>
+	</div>
+
+	<div class="h-[22%] border-x flex flex-row *:border-gray-500 *:content-center *:block">
+		<p class="w-[43%] border-r leading-6 text-sm font-semibold pl-3 whitespace-pre-line">
+			若於補繳日仍未繳交，此功課成績為零<br />
+			<span class="italic text-xs font-normal">*功課內容請查 Google Classroom</span>
+		</p>
+
+		<div class="flex w-[19%] pl-1 text-center leading-6">
+			<h3 class="text-center leading-6">Assigned 指派日</h3>
+			<p class="h-1/2 text-lg">
+				{isValidMonthAndDay(assignment.assigned) ? assignment.assigned : ''}
 			</p>
 		</div>
-		<div class="date due">
-			<p>Due date<br />繳交日：<br />{isValidMonthAndDay(assignment.due) ? assignment.due : ''}</p>
+
+		<div class="flex w-[19%] pl-1 text-center leading-6 border-x border-gray-500">
+			<h3 class="text-center leading-6">Due 繳交日</h3>
+			<p class="h-1/2 text-lg">
+				{isValidMonthAndDay(assignment.due) ? assignment.due : ''}
+			</p>
 		</div>
-		<div class="date late stress">
-			<p>
-				Make up date<br />
-				<span>補繳日：<br /> {isValidMonthAndDay(assignment.late) ? assignment.late : ''}</span>
+
+		<div class="flex w-[19%] pl-1 text-center leading-6">
+			<h3 class="text-center leading-6">Make up 補繳日</h3>
+			<p class="h-1/2 text-lg font-semibold">
+				{isValidMonthAndDay(assignment.late) ? assignment.late : ''}
 			</p>
 		</div>
 	</div>
-	<div class="signature row">
-		<div class="teacher signature">
-			<p>Teacher's signature</p>
-			<p class="title chinese">ESL 老師簽名：</p>
+
+	<div class="h-[22%] flex flex-row flex-row-grow border *:content-start *:px-3 *:py-2">
+		<h3 class="relative w-1/2 border-r border-gray-500 whitespace-pre-line">
+			{`Teacher's signature
+                ESL 老師簽名`}
 			{#if signatureSrc}
-				<img src={signatureSrc} alt="Teacher's Signature" />
+				<img
+					class="absolute top-[2mm] left-[32mm] h-[14mm]"
+					src={signatureSrc}
+					alt="Teacher's Signature"
+				/>
 			{/if}
-		</div>
-		<div class="parent signature stress">
-			<p class="title chinese">家長簽名 <span class="pen">🖊️</span></p>
-		</div>
+		</h3>
+		<h3 class="w-1/2">家長簽名 🖊️</h3>
 	</div>
 </div>
 
-<!-- MARK: STYLE -->
 <style>
 	* {
-		font-family: 'Arial Unicode MS', Helvetica, Verdana, Tahoma, sans-serif;
-		font-size: 11.4px;
-	}
-
-	p {
-		margin: 0.8em 0;
-	}
-
-	.slip {
-		width: 90%;
-		max-height: 125mm;
-		margin: 0 5% 1em 5%;
-		padding: 0;
-		display: table;
-		flex-flow: column;
-		border-collapse: collapse;
-		border-left: 1px solid gray;
-		border-top: 1px solid gray;
-	}
-
-	.form-title {
-		display: table-cell;
-		border-right: 1px solid gray;
-		border-bottom: 1px solid gray;
-		text-align: center;
-		font-weight: 900;
-		padding: 0.5em;
-	}
-
-	.row {
-		display: table-cell;
-		border-collapse: collapse;
-		display: table;
-		width: 100%;
-
-		& > div {
-			display: table-cell;
-			border-right: 1px solid gray;
-			border-bottom: 1px solid gray;
-			padding: 0 0.5em;
-		}
-	}
-
-	.stress {
-		font-weight: 900;
-		margin: 0.5em 0;
-	}
-
-	.footnote {
-		font-size: 0.9em;
-		font-style: italic;
-		margin: 0;
-	}
-
-	.date {
-		width: 10em;
-	}
-
-	.signature.row > div {
-		width: 50%;
-	}
-
-	.teacher {
-		position: relative;
-		&.signature img {
-			position: absolute;
-			top: 2mm;
-			left: 34mm;
-			height: 14mm;
-		}
-	}
-
-	.pen {
-		font-family: Arial, Helvetica, sans-serif;
-	}
-
-	/* #region @media print */
-	@media print {
-		@page {
-			margin: 0;
-			padding: 0;
-		}
-
-		.slip {
-			position: relative;
-			display: block;
-			margin-bottom: 12.844mm;
-			margin-left: 3%;
-			page-break-inside: avoid;
-		}
-
-		.slip:nth-of-type(3n + 2)::before,
-		.slip:nth-of-type(3n + 2)::after {
-			content: '';
-			position: absolute;
-			left: 0;
-			right: 0;
-			border-top: 1px dotted dimgray; /* divider line color */
-		}
-
-		.slip:nth-of-type(3n + 2)::before {
-			top: -6.422mm; /* line position */
-		}
-
-		.slip:nth-of-type(3n + 2)::after {
-			bottom: -6.422mm; /* line position */
-		}
-
-		.slip:nth-of-type(3n + 4) {
-			break-before: page;
-			margin-top: 4.422mm;
-		}
-		.slip:nth-of-type(3n) {
-			margin-bottom: 0;
-		}
-
-		/* Safari only */
-		/* @media print and (-webkit-min-device-pixel-ratio: 0) {
-			* {
-				font-size: 11.3px;
-			}
-
-			.slip:first-of-type {
-				margin-top: 15.422mm;
-			}
-			.slip:nth-of-type(3n + 4) {
-				margin-top: 10.422mm;
-			}
-		} */
+		font-family: 'Microsoft JhengHei', 'Arial Unicode MS', Helvetica, Verdana, Tahoma, sans-serif;
 	}
 </style>
