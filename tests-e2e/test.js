@@ -118,15 +118,18 @@ test('should show only workbook and speech assignment type for CLIL', async({ pa
 });
 
 // #region paste student
-test('should auto insert today as the due date and have matching students in the table', async ({ page, context }) => {
+test('should auto insert due, late dates and have matching pasted students in the table', async ({ page, context }) => {
   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
-   // Get today's date in MM/DD format
+   // Get today's date, and 7 days later in MM/DD format
   const today = new Date();
-  const formattedDate = (today.getMonth() + 1).toString() + '/' + today.getDate().toString();
+  const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const dueDate = `${today.getMonth() + 1}/${today.getDate()}`;
+	const lateDate = `${sevenDaysLater.getMonth() + 1}/${sevenDaysLater.getDate()}`;
 
-  // Check if the due date input field has today's date
-  await expect(page.locator('#due')).toHaveValue(formattedDate);
+  // Check if the due date input field has today as the date and 7 days later as the late date
+  await expect(page.locator('#due')).toHaveValue(dueDate);
+  await expect(page.locator('#late')).toHaveValue(lateDate);
 
   // Verify that the student data is processed and displayed in the table
   await expect(page.locator('text=1234567')). toBeVisible();
