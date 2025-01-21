@@ -64,7 +64,7 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
   await page.keyboard.press(`${modifier}+V`);
 
   // Wait for the #master-checkbox to appear
-  await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout: 500 });
+  await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout: 1000 });
 }
 
 //#region platform detection
@@ -262,7 +262,7 @@ test.describe('signature upload', () => {
   const __dirname = path.dirname(fileURLToPath(import.meta.url)); //current file path
   async function uploadSignature(page, image) {
     const filePath = path.join(__dirname, 'fixtures');
-    const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 500 });
+    const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 1000 });
     await page.locator('#browse').click()
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(`${filePath}/${image}`);
