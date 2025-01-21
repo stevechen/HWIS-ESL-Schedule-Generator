@@ -344,15 +344,7 @@
 			grade === 'Unknown'
 	);
 
-	let printCaution = $derived(
-		!printInvalid && !isValidMonthAndDay(assignment.assigned)
-		// (!isValidMonthAndDay(assignment.assigned) ||
-		// 	!isValidMonthAndDay(assignment.due) ||
-		// 	!isValidMonthAndDay(assignment.late))
-	);
-
-	// let tooltips: HTMLElement[] | null = [];
-	// let tooltip: HTMLElement | null;
+	let printCaution = $derived(!printInvalid && !isValidMonthAndDay(assignment.assigned));
 
 	// let handlePrint = () => {
 	// 	tooltip = document.querySelector('[id^="tippy-"]');
@@ -404,6 +396,303 @@
 </script>
 
 <!-- MARK: **** HTML **** -->
+<TabBar />
+<main
+	class="m-auto mb-4 flex w-[43em] flex-wrap items-center justify-start rounded-lg border-2 border-dotted p-2 font-sans print:hidden"
+>
+	<!-- MARK: assignment type -->
+	<fieldset class="mb-2 mr-2 flex w-full flex-row items-center justify-start">
+		<!-- inkwell icon -->
+		<svg class="mx-4 my-1 h-6 w-6 text-slate-500" viewBox="0 0 64 64">
+			<use href="#icon-inkWell" />
+		</svg>
+
+		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
+			{#each assignmentTypes as { code, english }}
+				<label
+					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+					for={code}
+				>
+					<input
+						id={code}
+						class="appearance-none"
+						type="radio"
+						bind:group={UI_Assignment}
+						value={code}
+					/>
+					{english}
+				</label>
+			{/each}
+		</div>
+	</fieldset>
+
+	<!-- MARK: dates -->
+	<fieldset
+		class="mb-2 flex w-full flex-row items-start justify-start py-1 pr-2 border-b border-dotted border-b-gray-400"
+	>
+		<svg class="my-1 ml-5 mr-4 h-6 w-6 fill-slate-500" viewBox="0 0 612 612">
+			<use href="#icon-calendar" />
+		</svg>
+		{#each DATE_FIELDS as { key, label }}
+			<label class="group px-2 text-sm text-slate-600" for={key}>
+				{label}
+				<input
+					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2focus:border-blue-800 focus:outline-none group-first-of-type:invalid:border-orange-400 ${!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key]) ? 'border-2 border-red-400 text-red-400' : ''}`}
+					type="text"
+					name={key}
+					id={key}
+					bind:value={UI_Dates[key as keyof typeof UI_Dates]}
+					maxlength="5"
+					placeholder={key === 'assigned' ? 'Optional' : 'Required'}
+					required
+				/>
+			</label>
+		{/each}
+	</fieldset>
+
+	<!-- MARK: class-info -->
+	<fieldset class="class-info mb-2 flex w-full flex-row items-center justify-start pr-2">
+		<!-- blackboard icon -->
+		<svg class="mx-4 my-1 h-6 w-6 fill-slate-500" viewBox="0 0 512 512">
+			<use href="#icon-student" />
+		</svg>
+		{#if grade !== 'Unknown'}
+			<span class={students.length == 0 ? 'text-red-500' : 'text-black'}
+				>{students.length} selected</span
+			>
+		{:else}
+			<!-- spin circle -->
+			<svg
+				class="inline-block h-6 w-6 origin-center animate-[spin_3s_linear_infinite] text-red-500"
+				viewBox="0 0 24 24"
+			>
+				<use href="#icon-spin" />
+			</svg>
+			<span class="ml-1 text-red-500">0 students</span>
+		{/if}
+		<div class="px-3">
+			<p
+				class="rounded-full px-2 {grade === 'Unknown'
+					? 'hidden'
+					: 'text-white bg-gradient-to-b from-slate-700 to-slate-500 shadow-sm shadow-blue-800'}"
+				transition:fade
+			>
+				{#if grade !== 'Unknown'}
+					{grade}
+				{/if}
+			</p>
+		</div>
+
+		<!-- MARK: ESL-level -->
+		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
+			{#each LEVEL_TYPE as { id, label, value }}
+				<label
+					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+					for={id}
+				>
+					<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />
+					{label}
+				</label>
+			{/each}
+		</div>
+
+		<!-- MARK: ESL-type -->
+		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
+			{#each Object.entries(ClassType) as [type, value]}
+				<!-- only render out CLIL if class is not G9 -->
+				{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
+					<label
+						class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in
+						hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+						for={type}
+						>{value}
+						<input
+							id={type}
+							class="appearance-none"
+							type="radio"
+							bind:group={UI_ClassType}
+							{value}
+							aria-label={value}
+						/>
+					</label>
+				{/if}
+			{/each}
+		</div>
+
+		<!-- MARK: class-number -->
+		<div>
+			<input
+				type="number"
+				class={`appearance:textfield duration-400 h-6 w-8 rounded-full bg-gradient-to-b from-slate-700 to-slate-500 text-center text-white shadow-sm shadow-blue-800 transition ease-in invalid:rounded  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+				bind:value={UI_ClassNum}
+				placeholder="#?"
+				max="9"
+				min="1"
+				required
+			/>
+		</div>
+	</fieldset>
+	<!-- MARK: students -->
+	<fieldset class="w-full">
+		<textarea
+			id="student-list-input"
+			class="h-10 min-w-full rounded-md border p-2 placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-none {shouldHideTextarea
+				? 'hidden'
+				: ''}"
+			bind:value={studentsText}
+			placeholder="Paste Excel students with fields in any order: [ID, Chinese Name, English Name, Chinese Class]"
+			required
+		>
+		</textarea>
+	</fieldset>
+	<!-- MARK: student table -->
+	{#if studentsRaw.length > 0}
+		<table class="mx-6 mb-4 w-full table-auto border-collapse text-sm">
+			<thead class="bg-slate-100 text-xs font-semibold">
+				<tr>
+					<th class="border border-solid border-slate-300">
+						<input
+							id="master-checkbox"
+							type="checkbox"
+							class="h-4 w-4 m-1"
+							bind:checked={isAllChecked.checked}
+							indeterminate={isAllChecked.indeterminate}
+							onchange={handleToggleAll}
+						/>
+					</th>
+					{#each ['ID', 'C. Name', 'English Name', 'C. Class', 'Status'] as header}
+						<th class="border border-solid border-slate-300">{header}</th>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
+				{#each studentsRaw as student}
+					<tr class="student *:border *: border-slate-200 *:p-[4px]">
+						<td class="student-checkbox">
+							<input type="checkbox" class="h-4 w-4 m-1" bind:checked={student.selected} />
+						</td>
+						<td class="student-id w-[4.5rem]">
+							<input class="text-center" type="text" bind:value={student.id} />
+						</td>
+						<td class="chinese-name w-20">
+							<input class="text-center" type="text" bind:value={student.name.chinese} />
+						</td>
+						<td class="english-name w-auto">
+							<input type="text-center" bind:value={student.name.english} />
+						</td>
+						<td class="chinese-class w-14">
+							<input class="text-center" type="text" bind:value={student.cClass} />
+						</td>
+						<td class="w-auto text-center">
+							<select bind:value={student.status}>
+								<option value={StatusTypeCode.NOT_SUBMITTED}>
+									{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
+								</option>
+								<option value={StatusTypeCode.NOT_COMPLETED}>
+									{STATUS_TYPE[StatusTypeCode.NOT_COMPLETED].text.english}
+								</option>
+							</select>
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	{/if}
+
+	<!-- MARK: signature-drop-zone -->
+	<section class="w-full flex">
+		<div
+			id="signature-drop-zone"
+			class={`${signatureImage ? 'has-signature grid border-slate-300' : 'border-orange-400'} text-decoration-none ml-2 w-full cursor-pointer grid-cols-[auto_2.75em] rounded-lg border-2 border-dashed bg-slate-50 px-4 py-2 text-center text-slate-400`}
+			ondragover={handleDragOver}
+			ondrop={handleDrop}
+			ondragleave={handleDragLeave}
+			onclick={handleClick}
+			onkeyup={handleKeyUp}
+			aria-label="Drag & drop signature file"
+			tabindex="0"
+			role="button"
+		>
+			{#if signatureImage}
+				<img
+					class="signature-preview block h-[14mm] self-center justify-self-center"
+					src={signatureImage}
+					alt="Signature Preview"
+					in:fade={{ delay: 300 }}
+				/>
+
+				<!-- remove signature button -->
+				<button
+					id="remove-signature"
+					class="hover:pointer block self-center justify-self-center rounded-lg bg-blue-400 p-1.5 text-white hover:bg-blue-500"
+					onclick={(event) => removeSignature(event)}
+					aria-label={'remove-signature'}
+					in:fade={{ delay: 500 }}
+				>
+					<svg class="w-8 h-8" viewBox="0 0 32 32">
+						<use href="#icon-trash" />
+					</svg>
+				</button>
+			{:else}
+				<svg class="block float-left h-24 w-24 fill-slate-300" viewBox="0 0 24 24">
+					<use href="#icon-image" />
+				</svg>
+
+				<p class="block text-md text-orange-400" out:slide>
+					Drop a jpg/png signature image to upload
+					<span class="block text-slate-400">or</span>
+				</p>
+				<button
+					id="browse"
+					class="hover:pointer mt-2 block self-center justify-self-center rounded-lg border bg-blue-400 px-4 py-1 text-white hover:bg-blue-500"
+					in:slide
+					>Browse…
+				</button>
+				<p class="block text-sm text-slate-400" out:slide>Max upload image size: {Limit.size}KB</p>
+			{/if}
+		</div>
+
+		<input
+			id="signature-upload"
+			class="absolue -m-px h-px w-px overflow-hidden border-0 p-0"
+			type="file"
+			accept="image/*"
+			onchange={handleFileSelect}
+		/>
+
+		<!-- MARK: print-comment-->
+		<div class="w-2/6 text-center h-full">
+			<p
+				class="my-1 w-full whitespace-pre-line text-sm font-bold
+				{printInvalid ? 'text-red-400' : printCaution ? 'text-orange-400' : 'font-normal text-blue-400'} "
+				transition:slide
+			>
+				{printInvalid || printCaution
+					? 'Missing Info!'
+					: `Single Sided 
+				B5/JIS-B5`}
+			</p>
+
+			<button
+				class="mt-1 mb-2 text-white bg-blue-500 py-1 px-4 rounded-lg animate-pulse
+				 {printCaution ? 'bg-orange-500 hover:bg-orange-600' : ''}
+				 {printInvalid ? 'bg-red-500 animate-none hover:bg-red-600 cursor-default' : ''} print:hidden"
+				onclick={() => window.print()}
+			>
+				Print {students.length} Slips
+			</button>
+		</div>
+	</section>
+</main>
+<!-- MARK: Slips -->
+<div class="m-auto box-border flex w-[182mm] flex-col p-0">
+	{#each students as student, i}
+		<p class="block text-center text-slate-500 print:hidden" transition:slide>Slip #{i + 1}</p>
+		<!-- <Slip /> -->
+		<Slip {student} signatureSrc={signatureImage} {assignment} />
+	{/each}
+</div>
+
 <!-- svg icons -->
 <svg class="hidden" xmlns="http://www.w3.org/2000/svg" xml:space="preserve">
 	<g id="icon-student">
@@ -505,321 +794,6 @@
 		/>
 	</g>
 </svg>
-
-<TabBar />
-<main
-	class="m-auto mb-4 flex w-[43em] flex-wrap items-center justify-start rounded-lg border-2 border-dotted p-2 font-sans print:hidden"
->
-	<!-- MARK: students -->
-	<fieldset class="w-full">
-		<!-- student icon -->
-		<svg class="my-2 ml-4 inline-block h-6 w-6 fill-slate-500 text-slate-500" viewBox="0 0 512 512">
-			<use href="#icon-student" />
-		</svg>
-		<h2 class="mx-4 mb-1 inline-block text-base font-semibold text-slate-500">
-			Students
-			{studentsRaw.length != 0 ? `(selected: ${students.length} )` : ''}
-		</h2>
-		<textarea
-			id="student-list-input"
-			class="h-10 min-w-full rounded-md border p-2 placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-none {shouldHideTextarea
-				? 'hidden'
-				: ''}"
-			bind:value={studentsText}
-			placeholder="Paste Excel students with fields in any order: [ID, Chinese Name, English Name, Chinese Class]"
-			required
-		>
-		</textarea>
-	</fieldset>
-	<!-- MARK: student table -->
-	{#if studentsRaw.length > 0}
-		<table class="mx-6 mb-4 w-full table-auto border-collapse text-sm">
-			<thead class="bg-slate-100 text-xs font-semibold">
-				<tr>
-					<th class="border border-solid border-slate-300">
-						<input
-							id="master-checkbox"
-							type="checkbox"
-							class="h-4 w-4 m-1"
-							bind:checked={isAllChecked.checked}
-							indeterminate={isAllChecked.indeterminate}
-							onchange={handleToggleAll}
-						/>
-					</th>
-					{#each ['ID', 'C. Name', 'English Name', 'C. Class', 'Status'] as header}
-						<th class="border border-solid border-slate-300">{header}</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each studentsRaw as student}
-					<tr class="student *:border *: border-slate-200 *:p-[4px]">
-						<td class="student-checkbox">
-							<input type="checkbox" class="h-4 w-4 m-1" bind:checked={student.selected} />
-						</td>
-						<td class="student-id w-[4.5rem]">
-							<input class="text-center" type="text" bind:value={student.id} />
-						</td>
-						<td class="chinese-name w-20">
-							<input class="text-center" type="text" bind:value={student.name.chinese} />
-						</td>
-						<td class="english-name w-auto">
-							<input type="text-center" bind:value={student.name.english} />
-						</td>
-						<td class="chinese-class w-14">
-							<input class="text-center" type="text" bind:value={student.cClass} />
-						</td>
-						<td class="w-auto text-center">
-							<select bind:value={student.status}>
-								<option value={StatusTypeCode.NOT_SUBMITTED}>
-									{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
-								</option>
-								<option value={StatusTypeCode.NOT_COMPLETED}>
-									{STATUS_TYPE[StatusTypeCode.NOT_COMPLETED].text.english}
-								</option>
-							</select>
-						</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	{/if}
-
-	<!-- MARK: class-info -->
-	<fieldset class="class-info mb-2 flex w-full flex-row items-center justify-start pr-2">
-		<!-- blackboard icon -->
-		<svg class="mx-4 my-1 h-6 w-6 fill-slate-500" viewBox="0 0 512 512">
-			<use href="#icon-blackboard" />
-		</svg>
-		<div class="px-3">
-			<p
-				class="rounded-full px-2 {grade === 'Unknown'
-					? 'text-red-500'
-					: 'text-white bg-gradient-to-b from-slate-700 to-slate-500 shadow-sm shadow-blue-800'}"
-				transition:fade
-			>
-				{#if grade !== 'Unknown'}
-					{grade}
-				{:else}
-					<!-- spin circle -->
-					<svg
-						class="ml-[-1rem] inline-block h-6 w-6 origin-center animate-[spin_3s_linear_infinite]"
-						viewBox="0 0 24 24"
-						transition:fade
-					>
-						<use href="#icon-spin" />
-					</svg>
-					0 students
-				{/if}
-			</p>
-		</div>
-
-		<!-- MARK: ESL-level -->
-		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
-			{#each LEVEL_TYPE as { id, label, value }}
-				<label
-					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
-					for={id}
-				>
-					<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />
-					{label}
-				</label>
-			{/each}
-		</div>
-
-		<!-- MARK: ESL-type -->
-		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
-			{#each Object.entries(ClassType) as [type, value]}
-				<!-- only render out CLIL if class is not G9 -->
-				{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
-					<label
-						class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in
-						hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
-						for={type}
-						>{value}
-						<input
-							id={type}
-							class="appearance-none"
-							type="radio"
-							bind:group={UI_ClassType}
-							{value}
-							aria-label={value}
-						/>
-					</label>
-				{/if}
-			{/each}
-		</div>
-
-		<!-- MARK: class-number -->
-		<div>
-			<input
-				type="number"
-				class={`appearance:textfield duration-400 h-6 w-8 rounded-full bg-gradient-to-b from-slate-700 to-slate-500 text-center text-white shadow-sm shadow-blue-800 transition ease-in invalid:rounded  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
-				bind:value={UI_ClassNum}
-				placeholder="#?"
-				max="9"
-				min="1"
-				required
-			/>
-		</div>
-	</fieldset>
-
-	<!-- MARK: assignment type -->
-	<fieldset class="mb-2 mr-2 flex w-full flex-row items-center justify-start">
-		<!-- inkwell icon -->
-		<svg class="mx-4 my-1 h-6 w-6 text-slate-500" viewBox="0 0 64 64">
-			<use href="#icon-inkWell" />
-		</svg>
-
-		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
-			{#each assignmentTypes as { code, english }}
-				<label
-					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
-					for={code}
-				>
-					<input
-						id={code}
-						class="appearance-none"
-						type="radio"
-						bind:group={UI_Assignment}
-						value={code}
-					/>
-					{english}
-				</label>
-			{/each}
-		</div>
-	</fieldset>
-
-	<!-- MARK: dates -->
-	<fieldset class="mb-2 flex w-full flex-row items-start justify-start py-1 pr-2">
-		<svg class="my-1 ml-5 mr-4 h-6 w-6 fill-slate-500" viewBox="0 0 612 612">
-			<use href="#icon-calendar" />
-		</svg>
-		{#each DATE_FIELDS as { key, label }}
-			<label class="group px-2 text-sm text-slate-600" for={key}>
-				{label}
-				<input
-					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2focus:border-blue-800 focus:outline-none group-first-of-type:invalid:border-orange-400 ${!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key]) ? 'border-2 border-red-400 text-red-400' : ''}`}
-					type="text"
-					name={key}
-					id={key}
-					bind:value={UI_Dates[key as keyof typeof UI_Dates]}
-					maxlength="5"
-					placeholder={key === 'assigned' ? 'Optional' : 'Required'}
-					required
-				/>
-			</label>
-		{/each}
-	</fieldset>
-
-	<!-- MARK: signature-drop-zone -->
-	<section class="w-full flex">
-		<div
-			id="signature-drop-zone"
-			class={`${signatureImage ? 'has-signature grid border-slate-300' : 'border-orange-400'} text-decoration-none ml-2 w-full cursor-pointer grid-cols-[auto_2.75em] rounded-lg border-2 border-dashed bg-slate-50 px-4 py-2 text-center text-slate-400`}
-			ondragover={handleDragOver}
-			ondrop={handleDrop}
-			ondragleave={handleDragLeave}
-			onclick={handleClick}
-			onkeyup={handleKeyUp}
-			aria-label="Drag & drop signature file"
-			tabindex="0"
-			role="button"
-		>
-			{#if signatureImage}
-				<img
-					class="signature-preview block h-[14mm] self-center justify-self-center"
-					src={signatureImage}
-					alt="Signature Preview"
-					in:fade={{ delay: 300 }}
-				/>
-
-				<!-- remove signature button -->
-				<button
-					id="remove-signature"
-					class="hover:pointer block self-center justify-self-center rounded-lg bg-blue-400 p-1.5 text-white hover:bg-blue-500"
-					onclick={(event) => removeSignature(event)}
-					aria-label={'remove-signature'}
-					in:fade={{ delay: 500 }}
-				>
-					<svg class="w-8 h-8" viewBox="0 0 32 32">
-						<use href="#icon-trash" />
-					</svg>
-				</button>
-			{:else}
-				<svg class="block float-left h-24 w-24 fill-slate-300" viewBox="0 0 24 24">
-					<use href="#icon-image" />
-				</svg>
-
-				<p class="block text-md text-orange-400" out:slide>
-					Drop a jpg/png signature image to upload
-					<span class="block text-slate-400">or</span>
-				</p>
-				<button
-					id="browse"
-					class="hover:pointer mt-2 block self-center justify-self-center rounded-lg border bg-blue-400 px-4 py-1 text-white hover:bg-blue-500"
-					in:slide
-					>Browse…
-				</button>
-				<p class="block text-sm text-slate-400" out:slide>Max upload image size: {Limit.size}KB</p>
-			{/if}
-		</div>
-
-		<input
-			id="signature-upload"
-			class="absolue -m-px h-px w-px overflow-hidden border-0 p-0"
-			type="file"
-			accept="image/*"
-			onchange={handleFileSelect}
-		/>
-
-		<!-- MARK: print-comment-->
-		<div class="w-2/6 text-center h-full">
-			<p
-				class="my-1 w-full whitespace-pre-line text-sm font-bold
-				{printInvalid ? 'text-red-400' : printCaution ? 'text-orange-400' : 'font-normal text-blue-400'} "
-				transition:slide
-			>
-				{printInvalid || printCaution
-					? 'Missing Info!'
-					: `Single Sided 
-				B5/JIS-B5`}
-			</p>
-
-			<!-- <button
-				class="print:hidden text-white bg-blue-500 mt-1 mb-2 py-1 px-4 rounded-lg animate-pulse
-				 {printCaution ? 'bg-orange-500 hover:bg-orange-600' : ''}
-				 {printInvalid ? 'bg-red-500 animate-none hover:bg-red-600 cursor-default' : ''}"
-				use:tippy={{
-					content: 'B5/JIS-B5, Single Sided',
-					placement: 'bottom',
-					animation: 'perspective'
-				}}
-				onclick={() => window.print()}
-			>
-				Print {students.length} Slips
-			</button> -->
-
-			<button
-				class="mt-1 mb-2 text-white bg-blue-500 py-1 px-4 rounded-lg animate-pulse
-				 {printCaution ? 'bg-orange-500 hover:bg-orange-600' : ''}
-				 {printInvalid ? 'bg-red-500 animate-none hover:bg-red-600 cursor-default' : ''} print:hidden"
-				onclick={() => window.print()}
-			>
-				Print {students.length} Slips
-			</button>
-		</div>
-	</section>
-</main>
-
-<!-- MARK: Slips -->
-<div class="m-auto box-border flex w-[182mm] flex-col p-0">
-	{#each students as student, i}
-		<p class="block text-center text-slate-500 print:hidden" transition:slide>Slip #{i + 1}</p>
-		<!-- <Slip /> -->
-		<Slip {student} signatureSrc={signatureImage} {assignment} />
-	{/each}
-</div>
 
 <style>
 	/* region -------------- CSS -------------------- 
