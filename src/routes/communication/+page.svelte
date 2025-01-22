@@ -584,11 +584,10 @@
 	<!-- MARK: signature-drop-zone -->
 	<section class="w-full grid grid-cols-12 *:box-border">
 		<div
-			class="col-start-1 col-end-9 flex flex-wrap *:rounded-lg *:border-dashed"
+			class="col-start-1 col-end-9 flex flex-wrap cursor-default *:rounded-lg *:border-dashed"
 			ondragover={handleDragOver}
 			ondrop={handleDrop}
 			ondragleave={handleDragLeave}
-			onclick={handleClick}
 			onkeyup={handleKeyUp}
 			aria-label="Drag & drop signature file"
 			tabindex="0"
@@ -596,28 +595,29 @@
 		>
 			<div
 				id="signature-drop-zone"
-				class="{[
-					signatureImage && 'hidden self-start'
-				]} w-full border-2 border-orange-500 bg-blue-50 bg-[url('icon-image.svg')] bg-no-repeat text-center"
+				class="{signatureImage
+					? '-z-10 mt-[-50%] scale-y-0 self-start opacity-0'
+					: 'z-1 mt-0'}  w-full border-2 border-orange-300 bg-slate-50 bg-[url('icon-image.svg')] bg-no-repeat text-center transition-all duration-450"
 			>
-				<p class="my-2 ml-24 whitespace-pre text-center text-sm text-orange-500">
+				<p class="mt-2 ml-24 whitespace-pre text-center text-sm text-orange-500">
 					{`Drop a jpg/png signature image to upload
 or`}
 				</p>
 				<button
 					id="browse"
 					class="hover:pointer my-2 ml-24 rounded-lg bg-blue-400 px-4 py-1 text-white hover:bg-blue-500 shadow-sm shadow-blue-800 animate-pulse hover:animate-none"
+					onclick={handleClick}
 					aria-label="browse image"
 				>
 					Browse…
 				</button>
-				<p class="ml-24 text-sm text-slate-400">Max upload image size: {Limit.size}KB</p>
+				<p class="ml-24 mb-2 text-sm text-slate-400">Max upload image size: {Limit.size}KB</p>
 			</div>
 
 			<div
 				class="{signatureImage
-					? 'has-signature border-2'
-					: 'self-start hidden'} flex w-full items-center border-slate-300 bg-slate-50"
+					? 'has-signature z-1 mt-0 border-2'
+					: '-z-10 mt-[-50%] scale-y-0 self-start opacity-0'} flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450"
 			>
 				<img class="signature-preview m-auto h-[14mm]" src={signatureImage} alt="Signature" />
 				<button
@@ -657,7 +657,7 @@ or`}
 				 {printInvalid ? '!animate-none cursor-default bg-red-500 shadow-red-800' : ''}"
 				onclick={() => window.print()}
 			>
-				Print {students.length} Slips
+				Print {students.length} Slip{students.length == 1 ? '' : 's'}
 			</button>
 		</div>
 	</section>
