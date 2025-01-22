@@ -597,7 +597,7 @@
 				id="signature-drop-zone"
 				class="{signatureImage
 					? '-z-10 mt-[-50%] scale-y-0 self-start opacity-0'
-					: 'z-1 mt-0'}  w-full border-2 border-orange-300 bg-slate-50 bg-[url('icon-image.svg')] bg-no-repeat text-center transition-all duration-450"
+					: 'z-1 mt-0'}  w-full border-2 border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')] bg-no-repeat text-center transition-all duration-450"
 			>
 				<p class="mt-2 ml-24 whitespace-pre text-center text-sm text-orange-500">
 					{`Drop a jpg/png signature image to upload
