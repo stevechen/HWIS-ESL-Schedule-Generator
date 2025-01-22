@@ -3,10 +3,8 @@
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import Slip from '$lib/components/Slip.svelte';
-	import { fade, slide } from 'svelte/transition';
-
-	// import tippy from 'tippy.js';
-	// import 'tippy.js/animations/perspective.css';
+	import { fade, slide, crossfade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
 
 	//#region Student ---------------------------------------------------------------
 	interface Student {
@@ -344,25 +342,9 @@
 			grade === 'Unknown'
 	);
 
-	let printCaution = $derived(!printInvalid && !isValidMonthAndDay(assignment.assigned));
-
-	// let handlePrint = () => {
-	// 	tooltip = document.querySelector('[id^="tippy-"]');
-
-	// 	if (tooltip) {
-	// 		tooltip.style.display = 'none';
-	// 	}
-
-	// 	tooltips = Array.from(document.querySelectorAll('[id^="tippy-"]'));
-
-	// 	if (tooltips.length > 0) {
-	// 		tooltips.forEach((tooltip) => {
-	// 			tooltip.style.display = 'none';
-	// 		});
-	// 	}
-
-	// 	window.print();
-	// };
+	let printCaution = $derived(
+		!printInvalid && (!isValidMonthAndDay(assignment.assigned) || !signatureImage)
+	);
 
 	// #region Life cycles -------------------------------------------
 	onMount(async () => {
@@ -437,7 +419,7 @@
 			<label class="group px-2 text-sm text-slate-600" for={key}>
 				{label}
 				<input
-					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2focus:border-blue-800 focus:outline-none group-first-of-type:invalid:border-orange-400 ${!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key]) ? 'border-2 border-red-400 text-red-400' : ''}`}
+					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:!border-blue-800 focus:outline-none group-first-of-type:invalid:border-orange-400 ${!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key]) ? 'border-2 border-red-400 text-red-400' : ''}`}
 					type="text"
 					name={key}
 					id={key}
@@ -452,7 +434,7 @@
 
 	<!-- MARK: class-info -->
 	<fieldset class="class-info mb-2 flex w-full flex-row items-center justify-start pr-2">
-		<!-- blackboard icon -->
+		<!-- student icon -->
 		<svg class="mx-4 my-1 h-6 w-6 fill-slate-500" viewBox="0 0 512 512">
 			<use href="#icon-student" />
 		</svg>
@@ -468,12 +450,12 @@
 			>
 				<use href="#icon-spin" />
 			</svg>
-			<span class="ml-1 text-red-500">0 students</span>
+			<span class="ml-1 mr-2 text-red-500">0 students</span>
 		{/if}
-		<div class="px-3">
+		<div class="px-3 {grade === 'Unknown' ? 'hidden' : ''}">
 			<p
 				class="rounded-full px-2 {grade === 'Unknown'
-					? 'hidden'
+					? ''
 					: 'text-white bg-gradient-to-b from-slate-700 to-slate-500 shadow-sm shadow-blue-800'}"
 				transition:fade
 			>
@@ -600,10 +582,9 @@
 	{/if}
 
 	<!-- MARK: signature-drop-zone -->
-	<section class="w-full flex">
+	<section class="w-full grid grid-cols-12 *:box-border">
 		<div
-			id="signature-drop-zone"
-			class={`${signatureImage ? 'has-signature grid border-slate-300' : 'border-orange-400'} text-decoration-none ml-2 w-full cursor-pointer grid-cols-[auto_2.75em] rounded-lg border-2 border-dashed bg-slate-50 px-4 py-2 text-center text-slate-400`}
+			class="col-start-1 col-end-9 flex flex-wrap *:rounded-lg *:border-dashed"
 			ondragover={handleDragOver}
 			ondrop={handleDrop}
 			ondragleave={handleDragLeave}
@@ -613,70 +594,67 @@
 			tabindex="0"
 			role="button"
 		>
-			{#if signatureImage}
-				<img
-					class="signature-preview block h-[14mm] self-center justify-self-center"
-					src={signatureImage}
-					alt="Signature Preview"
-					in:fade={{ delay: 300 }}
-				/>
-
-				<!-- remove signature button -->
-				<button
-					id="remove-signature"
-					class="hover:pointer block self-center justify-self-center rounded-lg bg-blue-400 p-1.5 text-white hover:bg-blue-500"
-					onclick={(event) => removeSignature(event)}
-					aria-label={'remove-signature'}
-					in:fade={{ delay: 500 }}
-				>
-					<svg class="w-8 h-8" viewBox="0 0 32 32">
-						<use href="#icon-trash" />
-					</svg>
-				</button>
-			{:else}
-				<svg class="block float-left h-24 w-24 fill-slate-300" viewBox="0 0 24 24">
-					<use href="#icon-image" />
-				</svg>
-
-				<p class="block text-md text-orange-400" out:slide>
-					Drop a jpg/png signature image to upload
-					<span class="block text-slate-400">or</span>
+			<div
+				id="signature-drop-zone"
+				class="{[
+					signatureImage && 'hidden self-start'
+				]} w-full border-2 border-orange-500 bg-blue-50 bg-[url('icon-image.svg')] bg-no-repeat text-center"
+			>
+				<p class="my-2 ml-24 whitespace-pre text-center text-sm text-orange-500">
+					{`Drop a jpg/png signature image to upload
+or`}
 				</p>
 				<button
 					id="browse"
-					class="hover:pointer mt-2 block self-center justify-self-center rounded-lg border bg-blue-400 px-4 py-1 text-white hover:bg-blue-500"
-					in:slide
-					>Browse…
+					class="hover:pointer my-2 ml-24 rounded-lg bg-blue-400 px-4 py-1 text-white hover:bg-blue-500 shadow-sm shadow-blue-800 animate-pulse hover:animate-none"
+					aria-label="browse image"
+				>
+					Browse…
 				</button>
-				<p class="block text-sm text-slate-400" out:slide>Max upload image size: {Limit.size}KB</p>
-			{/if}
+				<p class="ml-24 text-sm text-slate-400">Max upload image size: {Limit.size}KB</p>
+			</div>
+
+			<div
+				class="{signatureImage
+					? 'has-signature border-2'
+					: 'self-start hidden'} flex w-full items-center border-slate-300 bg-slate-50"
+			>
+				<img class="signature-preview m-auto h-[14mm]" src={signatureImage} alt="Signature" />
+				<button
+					id="remove-signature"
+					class="hover:pointer m-4 h-12 w-12 rounded-lg bg-blue-400 p-1.5 hover:bg-blue-500 shadow-sm shadow-blue-800"
+					onclick={(event) => removeSignature(event)}
+					aria-label="remove-signature"
+				>
+					<svg class="h-8 w-8 text-white" viewBox="0 0 32 32">
+						<use href="#icon-trash" />
+					</svg>
+				</button>
+			</div>
+
+			<input
+				id="signature-upload"
+				class="absolue -m-px h-px w-px overflow-hidden border-0 p-0"
+				type="file"
+				accept="image/*"
+				onchange={handleFileSelect}
+			/>
 		</div>
 
-		<input
-			id="signature-upload"
-			class="absolue -m-px h-px w-px overflow-hidden border-0 p-0"
-			type="file"
-			accept="image/*"
-			onchange={handleFileSelect}
-		/>
-
-		<!-- MARK: print-comment-->
-		<div class="w-2/6 text-center h-full">
+		<div class="col-start-10 col-end-13 text-center">
 			<p
-				class="my-1 w-full whitespace-pre-line text-sm font-bold
-				{printInvalid ? 'text-red-400' : printCaution ? 'text-orange-400' : 'font-normal text-blue-400'} "
-				transition:slide
+				class="py-2 text-center text-sm {printInvalid
+					? 'text-red-400'
+					: printCaution
+						? 'text-orange-400'
+						: ' text-blue-400'}"
 			>
-				{printInvalid || printCaution
-					? 'Missing Info!'
-					: `Single Sided 
-				B5/JIS-B5`}
+				{printInvalid || printCaution ? 'Missing Critical Info!' : `Single Sided  B5/JIS-B5`}
 			</p>
-
 			<button
-				class="mt-1 mb-2 text-white bg-blue-500 py-1 px-4 rounded-lg animate-pulse
-				 {printCaution ? 'bg-orange-500 hover:bg-orange-600' : ''}
-				 {printInvalid ? 'bg-red-500 animate-none hover:bg-red-600 cursor-default' : ''} print:hidden"
+				class="print-slips animate-pulse rounded-lg bg-blue-500 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none
+				 {printCaution ? 'bg-orange-500 shadow-orange-800 hover:bg-orange-600' : ''}
+				 {printInvalid ? '!animate-none cursor-default bg-red-500 shadow-red-800' : ''}"
 				onclick={() => window.print()}
 			>
 				Print {students.length} Slips
@@ -711,15 +689,6 @@
 			d="M131.67,131.824c0,18.649,56.118,42.306,119.188,42.306s119.188-23.656,119.188-42.306v-25.706l43.503-17.702 v55.962c-5.068,0.792-8.964,5.186-8.964,10.45c0,4.503,2.966,8.432,7.242,9.852l-8.653,57.111h40.704l-8.651-57.111 c4.27-1.421,7.232-5.35,7.232-9.852c0-5.295-3.919-9.697-9.014-10.466l-0.21-67.197c0.357-0.621,0.357-1.266,0.357-1.607 c0-0.342,0-0.978-0.149-0.978h-0.002c-0.262-2.446-2.011-4.612-4.56-5.652l-11.526-4.72L267.551,3.238 C262.361,1.118,256.59,0,250.858,0s-11.502,1.118-16.69,3.238L72.834,68.936c-2.863,1.172-4.713,3.773-4.713,6.622 c0,2.842,1.848,5.443,4.716,6.63l58.833,23.928V131.824z"
 		>
 		</path>
-	</g>
-	<g id="icon-blackboard">
-		<path
-			d="M46,330.4332v26.219a13.1555,13.1555,0,0,0,13.157,13.156h66.2894l-24.3445,66.8875c-9.1794,27.3587,30.5631,41.822,41.1118,14.9632l7.4982-20.5986H362.29l7.496,20.5986c10.553,26.8631,50.3,12.388,41.1118-14.9632l-24.3445-66.8865-46.5592-.001,12.74,35.0021h-193.47l12.74-35.0021h280.84A13.1551,13.1551,0,0,0,466,356.6522v-26.219Z"
-		/>
-		<path
-			d="M247.2521,247.3477a13.1631,13.1631,0,0,1,13.1635-13.1624H391.5887a13.163,13.163,0,0,1,13.1634,13.1624v56.8355H439.75V59.1917a13.1341,13.1341,0,0,0-13.1335-13.1335H85.3835A13.1341,13.1341,0,0,0,72.25,59.1917V304.1832H247.2521Z"
-		/>
-		<rect height="43.75" width="105" x="273.5" y="260.4332" />
 	</g>
 	<g id="icon-inkWell">
 		<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -786,11 +755,6 @@
 		<path
 			fill="currentColor"
 			d="M15 4c-.522 0-1.06.185-1.438.563C13.185 4.94 13 5.478 13 6v1H7v2h1v16c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V9h1V7h-6V6c0-.522-.185-1.06-.563-1.438C20.06 4.186 19.523 4 19 4zm0 2h4v1h-4zm-5 3h14v16c0 .555-.445 1-1 1H11c-.555 0-1-.445-1-1zm2 3v11h2V12zm4 0v11h2V12zm4 0v11h2V12z"
-		/>
-	</g>
-	<g id="icon-image">
-		<path d="M0 0h24v24H0V0z" fill="none" /><path
-			d="M18 20H4V6h9V4H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-9h-2v9zm-7.79-3.17l-1.96-2.36L5.5 18h11l-3.54-4.71zM20 4V1h-2v3h-3c.01.01 0 2 0 2h3v2.99c.01.01 2 0 2 0V6h3V4h-3z"
 		/>
 	</g>
 </svg>
