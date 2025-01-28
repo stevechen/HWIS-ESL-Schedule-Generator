@@ -76,27 +76,23 @@
 </script>
 
 <title>HWIS ESL Tools</title>
-<main>
-	<section id="output">
+<main
+	class="flex min-h-[calc(100vh-2.3em)] items-stretch justify-center gap-4 pb-4 font-sans text-sm"
+>
+	<section id="input" class="flex flex-col">
 		<h3>Class</h3>
-		<div id="options">
-			<div
-				id="types"
-				class="panel my-2 w-max flex items-center rounded-full bg-slate-800 p-1 shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1)]"
-			>
+		<div
+			id="options"
+			class="flex flex-col border rounded-lg border-dotted border-gray-500 p-2 pt-0"
+		>
+			<div id="types" class="panel my-2 w-max flex items-center rounded-full bg-slate-800 p-1">
 				<h3 class="mr-2 px-2 font-sans text-white text-sm">Type</h3>
 				{#each classControl as { code, key, label }}
 					<label
 						class="cursor-pointer rounded-full px-2 py-1 text-gray-500 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
 						for={key}
-						><input
-							type="radio"
-							class="hidden"
-							id={key}
-							name={key}
-							bind:group={UIStateClassType}
-							value={code}
-						/>
+					>
+						<input type="radio" class="hidden" bind:group={UIStateClassType} value={code} />
 						{label}
 					</label>
 				{/each}
@@ -113,60 +109,31 @@
 					</span>
 				</button>
 			</h3>
-			<textarea rows="30" class="font-mono" bind:value={UIStateEventsText} readonly></textarea>
+			<textarea
+				rows="30"
+				class="font-mono min-w-[36em] flex-1 text-xs border border-dotted border-gray-500 m-w-80"
+				bind:value={UIStateEventsText}
+				readonly
+			></textarea>
 		</div>
 	</section>
-	<section id="output">
+	<section id="output" class="flex flex-col">
 		<h3>Generated Dates (Paste to Excel)</h3>
-		<!-- <textarea rows="30" bind:value={UIStateOutput} readonly></textarea> -->
-		<textarea class="font-mono" rows="30" value={UIStateOutput} readonly></textarea>
+		<textarea
+			class="font-mono flex-1 text-xs border border-dotted border-gray-500 min-w-96"
+			rows="30"
+			value={UIStateOutput}
+			readonly
+		></textarea>
 	</section>
 </main>
 
 <style>
-	main {
-		display: flex;
-		flex-direction: row;
-		align-items: stretch;
-		justify-content: center;
-		column-gap: 15px;
-		font-size: 0.8em;
-		font-family: Verdana, Geneva, Tahoma, sans-serif;
-		min-height: calc(100vh - 2.3em);
-		padding-bottom: 1em;
-	}
-
 	.panel {
 		background: -webkit-linear-gradient(270deg, #444, #222);
 		box-shadow:
 			0px 0px 3px 1px rgba(0, 0, 0, 1),
 			inset 0 8px 3px -8px rgba(255, 255, 255, 0.4);
-	}
-
-	#input,
-	#output {
-		display: flex;
-		flex-direction: column;
-	}
-
-	textarea {
-		min-width: 36em;
-		flex: 1;
-		font-size: 0.8em;
-		border: 1px dotted gray;
-	}
-
-	h3 {
-		/* font-size: 0.9em; */
-		margin-bottom: 0.3em;
-	}
-
-	#options {
-		display: flex;
-		flex-direction: column;
-		border: 1px dotted gray;
-		padding: 0 0.5em 0.5em 0.5em;
-		border-radius: 10px;
 	}
 
 	button.info {
@@ -180,22 +147,5 @@
 	button.info:hover .info_note {
 		display: inline;
 		font-size: 0.8em;
-	}
-
-	#schoolEvents {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		row-gap: 5px;
-	}
-
-	#events {
-		min-width: 50em;
-		flex: 1;
-		font-size: 0.8em;
-	}
-
-	.warning {
-		color: red;
 	}
 </style>

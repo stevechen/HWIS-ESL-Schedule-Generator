@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
 	import { inject } from '@vercel/analytics';
 	import { dev } from '$app/environment';
 	inject({ mode: dev ? 'development' : 'production' });

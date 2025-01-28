@@ -19,15 +19,15 @@
 
 	//#region  Default objects
 	const defaultStudent: Student = {
-		id: '',
-		name: { english: '', chinese: '' },
-		cClass: '',
-		status: { english: '', chinese: '' }
+		id: '123456',
+		name: { english: 'Daniel Wang', chinese: '王小明' },
+		cClass: 'J101',
+		status: { english: "hasn't been submitted", chinese: '未繳交' }
 	};
 
 	const defaultAssignment: Assignment = {
-		esl: '',
-		type: { english: '', chinese: '' },
+		esl: 'G7 Elementary 1 Comm',
+		type: { english: 'Passport', chinese: '英文護照' },
 		assigned: '',
 		due: '',
 		late: ''
