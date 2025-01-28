@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { getDates } from '$lib/getAllClassDays.ts.svelte';
 	import { getClassDaysByType } from '$lib/getClassDaysByType.ts.svelte';
-	import TabBar from '$lib/components/TabBar.svelte';
+	import Switches from '$lib/components/Switches.svelte';
 
 	enum ClassTypeCode {
 		Comm = 'Comm',
@@ -15,7 +15,7 @@
 		{ code: ClassTypeCode.CLIL, key: 'CLIL', label: 'G7/8 CLIL' },
 		{ code: ClassTypeCode.Comm, key: 'Comm', label: 'G7/8 Comm' },
 		{ code: ClassTypeCode.G9, key: 'G9', label: 'G9' },
-		{ code: ClassTypeCode.H, key: 'H', label: 'H10/11' }
+		{ code: ClassTypeCode.H, key: 'H', label: 'H10' }
 	];
 
 	let UIStateClassType = $state(ClassTypeCode.CLIL); //default
@@ -76,29 +76,32 @@
 </script>
 
 <title>HWIS ESL Tools</title>
-<TabBar />
 <main>
 	<section id="output">
-		<h3>Controls</h3>
+		<h3>Class</h3>
 		<div id="options">
-			<div id="weekdays">
-				<div id="types">
-					<h3>Type</h3>
-					{#each classControl as { code, key, label }}
-						<input type="radio" id={key} name={key} bind:group={UIStateClassType} value={code} />
-						<label for={key}>{label}</label>
-					{/each}
-
-					<h3>Days</h3>
-					{#if UIStateCheckedDays.length === 0}
-						<p class="warning">Select at least one day!</p>
-					{/if}
-					{#each UIStateCheckedDays as _, index (index)}
-						<input type="checkbox" id={WEEKDAYS[index]} bind:checked={UIStateCheckedDays[index]} />
-						<label for={WEEKDAYS[index]}>{WEEKDAYS[index]}</label>
-					{/each}
-				</div>
+			<div
+				id="types"
+				class="panel my-2 w-max flex items-center rounded-full bg-slate-800 p-1 shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1)]"
+			>
+				<h3 class="mr-2 px-2 font-sans text-white text-sm">Type</h3>
+				{#each classControl as { code, key, label }}
+					<label
+						class="cursor-pointer rounded-full px-2 py-1 text-gray-500 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+						for={key}
+						><input
+							type="radio"
+							class="hidden"
+							id={key}
+							name={key}
+							bind:group={UIStateClassType}
+							value={code}
+						/>
+						{label}
+					</label>
+				{/each}
 			</div>
+			<Switches title="Days" days={WEEKDAYS} checkedDays={UIStateCheckedDays} />
 		</div>
 		<div id="schoolEvents">
 			<h3>
@@ -133,6 +136,13 @@
 		padding-bottom: 1em;
 	}
 
+	.panel {
+		background: -webkit-linear-gradient(270deg, #444, #222);
+		box-shadow:
+			0px 0px 3px 1px rgba(0, 0, 0, 1),
+			inset 0 8px 3px -8px rgba(255, 255, 255, 0.4);
+	}
+
 	#input,
 	#output {
 		display: flex;
@@ -140,14 +150,14 @@
 	}
 
 	textarea {
-		min-width: 58em;
+		min-width: 36em;
 		flex: 1;
 		font-size: 0.8em;
 		border: 1px dotted gray;
 	}
 
 	h3 {
-		font-size: 0.9em;
+		/* font-size: 0.9em; */
 		margin-bottom: 0.3em;
 	}
 

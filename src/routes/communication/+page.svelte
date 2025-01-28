@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
-	import TabBar from '$lib/components/TabBar.svelte';
 	import Slip from '$lib/components/Slip.svelte';
-	import { fade, slide, crossfade } from 'svelte/transition';
-	import { flip } from 'svelte/animate';
+	import { fade, slide } from 'svelte/transition';
 
 	//#region Student ---------------------------------------------------------------
 	interface Student {
@@ -378,7 +376,6 @@
 </script>
 
 <!-- MARK: **** HTML **** -->
-<TabBar />
 <main
 	class="m-auto mb-4 flex w-[43em] flex-wrap items-center justify-start rounded-lg border-2 border-dotted p-2 font-sans print:hidden"
 >
@@ -416,10 +413,12 @@
 			<use href="#icon-calendar" />
 		</svg>
 		{#each DATE_FIELDS as { key, label }}
+			{@const invalid =
+				!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key])}
 			<label class="group px-2 text-sm text-slate-600" for={key}>
 				{label}
 				<input
-					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:!border-blue-800 focus:outline-none group-first-of-type:invalid:border-orange-400 ${!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key]) ? 'border-2 border-red-400 text-red-400' : ''}`}
+					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:!border-blue-800 focus:outline-none group-first-of-type:invalid:border-orange-400 ${invalid ? 'border-2 border-red-400 text-red-400' : ''}`}
 					type="text"
 					name={key}
 					id={key}
