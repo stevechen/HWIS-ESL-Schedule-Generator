@@ -85,18 +85,28 @@
 			id="options"
 			class="flex flex-col border rounded-lg border-dotted border-gray-500 p-2 pt-0"
 		>
-			<div id="types" class="panel my-2 w-max flex items-center rounded-full bg-slate-800 p-1">
+			<div
+				id="types"
+				class="my-2 w-max flex items-center rounded-full bg-slate-800 p-1 bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_0.4)]"
+			>
 				<h3 class="mr-2 px-2 font-sans text-white text-sm">Type</h3>
 				{#each classControl as { code, key, label }}
 					<label
-						class="cursor-pointer rounded-full px-2 py-1 text-gray-500 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+						class="cursor-pointer rounded-full px-2 py-1 text-gray-500 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
 						for={key}
 					>
-						<input type="radio" class="hidden" bind:group={UIStateClassType} value={code} />
+						<input
+							type="radio"
+							class="hidden"
+							id={key}
+							bind:group={UIStateClassType}
+							value={code}
+						/>
 						{label}
 					</label>
 				{/each}
 			</div>
+			{UIStateClassType}
 			<Switches title="Days" days={WEEKDAYS} checkedDays={UIStateCheckedDays} />
 		</div>
 		<div id="schoolEvents">
@@ -129,13 +139,6 @@
 </main>
 
 <style>
-	.panel {
-		background: -webkit-linear-gradient(270deg, #444, #222);
-		box-shadow:
-			0px 0px 3px 1px rgba(0, 0, 0, 1),
-			inset 0 8px 3px -8px rgba(255, 255, 255, 0.4);
-	}
-
 	button.info {
 		border: none;
 		background: none;

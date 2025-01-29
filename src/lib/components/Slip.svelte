@@ -39,8 +39,8 @@
 <div
 	class="slip relative block h-[calc((257mm)/3)] p-4 font-sans text-xs
     *:box-border *:border-gray-500
-    print:[&:nth-of-type(3n+2)]:border-y
-    print:[&:nth-of-type(3n+2)]:border-dotted print:[&:nth-of-type(3n+4)]:break-before-page"
+    print:nth-of-type-[3n+2]:border-y
+    print:nth-of-type-[3n+2]:border-dotted print:nth-of-type-[3n+4]:break-before-page"
 >
 	<h2 class="h-[12%] w-full text-center font-semibold">
 		ESL Communication Slip / ESL 課程溝通事項

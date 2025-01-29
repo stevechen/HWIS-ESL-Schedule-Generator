@@ -389,7 +389,7 @@
 		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
 			{#each assignmentTypes as { code, english }}
 				<label
-					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
 					for={code}
 				>
 					<input
@@ -418,7 +418,7 @@
 			<label class="group px-2 text-sm text-slate-600" for={key}>
 				{label}
 				<input
-					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:!border-blue-800 focus:outline-none group-first-of-type:invalid:border-orange-400 ${invalid ? 'border-2 border-red-400 text-red-400' : ''}`}
+					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:border-blue-800! focus:outline-hidden invalid:group-first-of-type:border-orange-400 ${invalid ? 'border-2 border-red-400 text-red-400' : ''}`}
 					type="text"
 					name={key}
 					id={key}
@@ -455,7 +455,7 @@
 			<p
 				class="rounded-full px-2 {grade === 'Unknown'
 					? ''
-					: 'text-white bg-gradient-to-b from-slate-700 to-slate-500 shadow-sm shadow-blue-800'}"
+					: 'text-white bg-linear-to-b from-slate-700 to-slate-500 shadow-xs shadow-blue-800'}"
 				transition:fade
 			>
 				{#if grade !== 'Unknown'}
@@ -468,7 +468,7 @@
 		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
 			{#each LEVEL_TYPE as { id, label, value }}
 				<label
-					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
 					for={id}
 				>
 					<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />
@@ -484,7 +484,7 @@
 				{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
 					<label
 						class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in
-						hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-[:checked]:animate-none has-[:checked]:cursor-default has-[:checked]:bg-gradient-to-b has-[:checked]:from-slate-700 has-[:checked]:to-slate-500 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:checked]:shadow-blue-800"
+						hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
 						for={type}
 						>{value}
 						<input
@@ -504,7 +504,7 @@
 		<div>
 			<input
 				type="number"
-				class={`appearance:textfield duration-400 h-6 w-8 rounded-full bg-gradient-to-b from-slate-700 to-slate-500 text-center text-white shadow-sm shadow-blue-800 transition ease-in invalid:rounded  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+				class={`appearance:textfield duration-400 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition ease-in invalid:rounded-sm  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
 				bind:value={UI_ClassNum}
 				placeholder="#?"
 				max="9"
@@ -517,7 +517,7 @@
 	<fieldset class="w-full">
 		<textarea
 			id="student-list-input"
-			class="h-10 min-w-full rounded-md border p-2 placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-none {shouldHideTextarea
+			class="h-10 min-w-full rounded-md border p-2 placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden {shouldHideTextarea
 				? 'hidden'
 				: ''}"
 			bind:value={studentsText}
@@ -548,7 +548,9 @@
 			</thead>
 			<tbody>
 				{#each studentsRaw as student}
-					<tr class="student *:border *: border-slate-200 *:p-[4px]">
+					<tr
+						class="student *: border-slate-200 *:border *:p-1 **:text-center **:focus:border **:focus:border-blue-500 **:focus:bg-blue-50 **:focus:outline-none"
+					>
 						<td class="student-checkbox">
 							<input type="checkbox" class="h-4 w-4 m-1" bind:checked={student.selected} />
 						</td>
@@ -604,7 +606,7 @@ or`}
 				</p>
 				<button
 					id="browse"
-					class="hover:pointer my-2 ml-24 rounded-lg bg-blue-400 px-4 py-1 text-white hover:bg-blue-500 shadow-sm shadow-blue-800 animate-pulse hover:animate-none"
+					class="hover:pointer my-2 ml-24 rounded-lg bg-blue-400 px-4 py-1 text-white hover:bg-blue-500 shadow-xs shadow-blue-800 animate-pulse hover:animate-none"
 					onclick={handleClick}
 					aria-label="browse image"
 				>
@@ -621,7 +623,7 @@ or`}
 				<img class="signature-preview m-auto h-[14mm]" src={signatureImage} alt="Signature" />
 				<button
 					id="remove-signature"
-					class="hover:pointer m-4 h-12 w-12 rounded-lg bg-blue-400 p-1.5 hover:bg-blue-500 shadow-sm shadow-blue-800"
+					class="hover:pointer m-4 h-12 w-12 rounded-lg bg-blue-400 p-1.5 hover:bg-blue-500 shadow-xs shadow-blue-800"
 					onclick={(event) => removeSignature(event)}
 					aria-label="remove-signature"
 				>
@@ -653,7 +655,7 @@ or`}
 			<button
 				class="print-slips animate-pulse rounded-lg bg-blue-500 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none
 				 {printCaution ? 'bg-orange-500 shadow-orange-800 hover:bg-orange-600' : ''}
-				 {printInvalid ? '!animate-none cursor-default bg-red-500 shadow-red-800' : ''}"
+				 {printInvalid ? 'animate-none! cursor-default bg-red-500 shadow-red-800' : ''}"
 				onclick={() => window.print()}
 			>
 				Print {students.length} Slip{students.length == 1 ? '' : 's'}
@@ -759,6 +761,7 @@ or`}
 </svg>
 
 <style>
+	@reference "../../app.css";
 	/* region -------------- CSS -------------------- 
 	/* prevents x axis shifting when the scrollbar appears */
 	@media screen {
@@ -774,19 +777,10 @@ or`}
 		}
 
 		/* region .student          */
-		.student td {
-			input {
-				width: 100%;
-				border: none;
-				background-color: transparent;
-				padding: 0;
-				margin: 0;
-				box-sizing: border-box;
-
-				&:focus {
-					outline: none;
-					background-color: #eef; /* Optional: highlight on focus */
-				}
+		.student td input {
+			@apply w-full h-full border-none bg-transparent p-0 m-0 box-border;
+			&:focus {
+				@apply bg-[#eef];
 			}
 		}
 
