@@ -29,5 +29,5 @@ export const schoolEvents =
 2025-06-14		Workbook Check	CLIL
 2025-06-26	Exam		
 2025-06-27	Exam		
-2025-06-30	Exam			
+2025-06-30	Exam		
 `;
