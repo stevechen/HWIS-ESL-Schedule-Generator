@@ -12,7 +12,7 @@ export const schoolEvents =
 2025-04-17	Off	G9 Mock Exam	G9
 2025-04-18	Off	G9 Mock Exam	G9
 2025-04-26	Off	School Anniversary	
-2025-04-28	Off	for 4/27 sports day	
+2025-04-28	Off	Make up for 4/26 School Anniversary	
 2025-05-14	Exam		
 2025-05-15	Exam		
 2025-05-16	Only morning classes		G9
@@ -29,5 +29,5 @@ export const schoolEvents =
 2025-06-14		Workbook Check	CLIL
 2025-06-26	Exam		
 2025-06-27	Exam		
-2025-06-30	Exam		
+2025-06-30	Exam			
 `;
