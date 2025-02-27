@@ -377,19 +377,19 @@
 
 <!-- MARK: **** HTML **** -->
 <main
-	class="m-auto mb-4 flex w-[43em] flex-wrap items-center justify-start rounded-lg border-2 border-dotted p-2 font-sans print:hidden"
+	class="print:hidden flex flex-wrap justify-start items-center m-auto mb-4 p-2 border-2 border-dotted rounded-lg w-[43em] font-sans"
 >
 	<!-- MARK: assignment type -->
-	<fieldset class="mb-2 mr-2 flex w-full flex-row items-center justify-start">
+	<fieldset class="flex flex-row justify-start items-center mr-2 mb-2 w-full">
 		<!-- inkwell icon -->
-		<svg class="mx-4 my-1 h-6 w-6 text-slate-500" viewBox="0 0 64 64">
+		<svg class="mx-4 my-1 w-6 h-6 text-slate-500" viewBox="0 0 64 64">
 			<use href="#icon-inkWell" />
 		</svg>
 
-		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
+		<div class="flex flex-row justify-start items-center bg-slate-200 mx-1 p-1 rounded-full">
 			{#each assignmentTypes as { code, english }}
 				<label
-					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
+					class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 					for={code}
 				>
 					<input
@@ -407,15 +407,15 @@
 
 	<!-- MARK: dates -->
 	<fieldset
-		class="mb-2 flex w-full flex-row items-start justify-start py-1 pr-2 border-b border-dotted border-b-gray-400"
+		class="flex flex-row justify-start items-start mb-2 py-1 pr-2 border-b border-b-gray-400 border-dotted w-full"
 	>
-		<svg class="my-1 ml-5 mr-4 h-6 w-6 fill-slate-500" viewBox="0 0 612 612">
+		<svg class="fill-slate-500 my-1 mr-4 ml-5 w-6 h-6" viewBox="0 0 612 612">
 			<use href="#icon-calendar" />
 		</svg>
 		{#each DATE_FIELDS as { key, label }}
 			{@const invalid =
 				!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key])}
-			<label class="group px-2 text-sm text-slate-600" for={key}>
+			<label class="group px-2 text-slate-600 text-sm" for={key}>
 				{label}
 				<input
 					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:border-blue-800! focus:outline-hidden invalid:group-first-of-type:border-orange-400 ${invalid ? 'border-2 border-red-400 text-red-400' : ''}`}
@@ -432,9 +432,9 @@
 	</fieldset>
 
 	<!-- MARK: class-info -->
-	<fieldset class="class-info mb-2 flex w-full flex-row items-center justify-start pr-2">
+	<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
 		<!-- student icon -->
-		<svg class="mx-4 my-1 h-6 w-6 fill-slate-500" viewBox="0 0 512 512">
+		<svg class="fill-slate-500 mx-4 my-1 w-6 h-6" viewBox="0 0 512 512">
 			<use href="#icon-student" />
 		</svg>
 		{#if grade !== 'Unknown'}
@@ -444,12 +444,12 @@
 		{:else}
 			<!-- spin circle -->
 			<svg
-				class="inline-block h-6 w-6 origin-center animate-[spin_3s_linear_infinite] text-red-500"
+				class="inline-block w-6 h-6 text-red-500 origin-center animate-[spin_3s_linear_infinite]"
 				viewBox="0 0 24 24"
 			>
 				<use href="#icon-spin" />
 			</svg>
-			<span class="ml-1 mr-2 text-red-500">0 students</span>
+			<span class="mr-2 ml-1 text-red-500">0 students</span>
 		{/if}
 		<div class="px-3 {grade === 'Unknown' ? 'hidden' : ''}">
 			<p
@@ -465,10 +465,10 @@
 		</div>
 
 		<!-- MARK: ESL-level -->
-		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
+		<div class="flex flex-row justify-start items-center bg-slate-200 mx-1 p-1 rounded-full">
 			{#each LEVEL_TYPE as { id, label, value }}
 				<label
-					class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
+					class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 					for={id}
 				>
 					<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />
@@ -478,13 +478,12 @@
 		</div>
 
 		<!-- MARK: ESL-type -->
-		<div class="mx-1 flex flex-row items-center justify-start rounded-full bg-slate-200 p-1">
+		<div class="flex flex-row justify-start items-center bg-slate-200 mx-1 p-1 rounded-full">
 			{#each Object.entries(ClassType) as [type, value]}
 				<!-- only render out CLIL if class is not G9 -->
 				{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
 					<label
-						class="cursor-pointer rounded-full px-2 text-slate-400 transition duration-500 ease-in
-						hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
+						class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 						for={type}
 						>{value}
 						<input
@@ -528,42 +527,42 @@
 	</fieldset>
 	<!-- MARK: student table -->
 	{#if studentsRaw.length > 0}
-		<table class="mx-6 mb-4 w-full table-auto border-collapse text-sm">
-			<thead class="bg-slate-100 text-xs font-semibold">
+		<table class="mx-6 mb-4 w-full text-sm border-collapse table-auto">
+			<thead class="bg-slate-100 font-semibold text-xs">
 				<tr>
-					<th class="border border-solid border-slate-300">
+					<th class="border border-slate-300 border-solid">
 						<input
 							id="master-checkbox"
 							type="checkbox"
-							class="h-4 w-4 m-1"
+							class="m-1 w-4 h-4"
 							bind:checked={isAllChecked.checked}
 							indeterminate={isAllChecked.indeterminate}
 							onchange={handleToggleAll}
 						/>
 					</th>
-					{#each ['ID', 'C. Name', 'English Name', 'C. Class', 'Status'] as header}
-						<th class="border border-solid border-slate-300">{header}</th>
+					{#each ['ID', 'English Name', 'C. Name', 'C. Class', 'Status'] as header}
+						<th class="border border-slate-300 border-solid">{header}</th>
 					{/each}
 				</tr>
 			</thead>
 			<tbody>
 				{#each studentsRaw as student}
 					<tr
-						class="student *: border-slate-200 *:border *:p-1 **:text-center **:focus:border **:focus:border-blue-500 **:focus:bg-blue-50 **:focus:outline-none"
+						class="**:focus:bg-blue-50 *:p-1 **:focus:border *:border border-slate-200 **:focus:border-blue-500 **:focus:outline-none **:text-center student *:"
 					>
 						<td class="student-checkbox">
-							<input type="checkbox" class="h-4 w-4 m-1" bind:checked={student.selected} />
+							<input type="checkbox" class="m-1 w-4 h-4" bind:checked={student.selected} />
 						</td>
-						<td class="student-id w-[4.5rem]">
+						<td class="w-[4.5rem] student-id">
 							<input class="text-center" type="text" bind:value={student.id} />
 						</td>
-						<td class="chinese-name w-20">
-							<input class="text-center" type="text" bind:value={student.name.chinese} />
-						</td>
-						<td class="english-name w-auto">
+						<td class="w-auto english-name">
 							<input type="text-center" bind:value={student.name.english} />
 						</td>
-						<td class="chinese-class w-14">
+						<td class="w-20 chinese-name">
+							<input class="text-center" type="text" bind:value={student.name.chinese} />
+						</td>
+						<td class="w-14 chinese-class">
 							<input class="text-center" type="text" bind:value={student.cClass} />
 						</td>
 						<td class="w-auto text-center">
@@ -583,9 +582,9 @@
 	{/if}
 
 	<!-- MARK: signature-drop-zone -->
-	<section class="w-full grid grid-cols-12 *:box-border">
+	<section class="*:box-border grid grid-cols-12 w-full">
 		<div
-			class="col-start-1 col-end-9 flex flex-wrap cursor-default *:rounded-lg *:border-dashed"
+			class="flex flex-wrap col-start-1 col-end-9 *:border-dashed *:rounded-lg cursor-default"
 			ondragover={handleDragOver}
 			ondrop={handleDrop}
 			ondragleave={handleDragLeave}
@@ -600,19 +599,19 @@
 					? '-z-10 mt-[-50%] scale-y-0 self-start opacity-0'
 					: 'z-1 mt-0'}  w-full border-2 border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')] bg-no-repeat text-center transition-all duration-450"
 			>
-				<p class="mt-2 ml-24 whitespace-pre text-center text-sm text-orange-500">
+				<p class="mt-2 ml-24 text-orange-500 text-sm text-center whitespace-pre">
 					{`Drop a jpg/png signature image to upload
 or`}
 				</p>
 				<button
 					id="browse"
-					class="hover:pointer my-2 ml-24 rounded-lg bg-blue-400 px-4 py-1 text-white hover:bg-blue-500 shadow-xs shadow-blue-800 animate-pulse hover:animate-none"
+					class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
 					onclick={handleClick}
 					aria-label="browse image"
 				>
 					Browse…
 				</button>
-				<p class="ml-24 mb-2 text-sm text-slate-400">Max upload image size: {Limit.size}KB</p>
+				<p class="mb-2 ml-24 text-slate-400 text-sm">Max upload image size: {Limit.size}KB</p>
 			</div>
 
 			<div
@@ -620,14 +619,14 @@ or`}
 					? 'has-signature z-1 mt-0 border-2'
 					: '-z-10 mt-[-50%] scale-y-0 self-start opacity-0'} flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450"
 			>
-				<img class="signature-preview m-auto h-[14mm]" src={signatureImage} alt="Signature" />
+				<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
 				<button
 					id="remove-signature"
-					class="hover:pointer m-4 h-12 w-12 rounded-lg bg-blue-400 p-1.5 hover:bg-blue-500 shadow-xs shadow-blue-800"
+					class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs m-4 p-1.5 rounded-lg w-12 h-12 hover:pointer"
 					onclick={(event) => removeSignature(event)}
 					aria-label="remove-signature"
 				>
-					<svg class="h-8 w-8 text-white" viewBox="0 0 32 32">
+					<svg class="w-8 h-8 text-white" viewBox="0 0 32 32">
 						<use href="#icon-trash" />
 					</svg>
 				</button>
@@ -635,7 +634,7 @@ or`}
 
 			<input
 				id="signature-upload"
-				class="absolue -m-px h-px w-px overflow-hidden border-0 p-0"
+				class="-m-px p-0 border-0 w-px h-px overflow-hidden absolue"
 				type="file"
 				accept="image/*"
 				onchange={handleFileSelect}
@@ -664,10 +663,9 @@ or`}
 	</section>
 </main>
 <!-- MARK: Slips -->
-<div class="m-auto box-border flex w-[182mm] flex-col p-0">
+<div class="box-border flex flex-col m-auto p-0 w-[182mm]">
 	{#each students as student, i}
-		<p class="block text-center text-slate-500 print:hidden" transition:slide>Slip #{i + 1}</p>
-		<!-- <Slip /> -->
+		<p class="print:hidden block text-slate-500 text-center" transition:slide>Slip #{i + 1}</p>
 		<Slip {student} signatureSrc={signatureImage} {assignment} />
 	{/each}
 </div>
@@ -747,7 +745,7 @@ or`}
 			fill="currentColor"
 		/>
 		<path
-			class=" animate-[spin_3s_linear_infinite] origin-center"
+			class="origin-center animate-[spin_3s_linear_infinite]"
 			d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
 			fill="currentColor"
 		/>
@@ -778,7 +776,7 @@ or`}
 
 		/* region .student          */
 		.student td input {
-			@apply w-full h-full border-none bg-transparent p-0 m-0 box-border;
+			@apply box-border bg-transparent m-0 p-0 border-none w-full h-full;
 			&:focus {
 				@apply bg-[#eef];
 			}
