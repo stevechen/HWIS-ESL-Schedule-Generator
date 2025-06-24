@@ -133,7 +133,7 @@
 	let className = $derived([UI_Grade, UI_Level, UI_ClassNum, UI_ClassType].join(' '));
 
 	$effect(() => {
-		UI_Grade = grade;
+		UI_Grade = grade || '';
 		if (UI_ClassType === ClassType.CLIL) UI_Assignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
 		assignmentRaw.esl = className;
 	});
@@ -148,7 +148,7 @@
 				return `G${matchCode + 6}`;
 			}
 		}
-		return 'Unknown'; //out or range
+		return null; //out or range
 	}
 
 	// #region Assignment ----------------------------------------------------------------
@@ -337,7 +337,7 @@
 			!studentsRaw.length ||
 			!isValidMonthAndDay(assignment.due) ||
 			!isValidMonthAndDay(assignment.late) ||
-			grade === 'Unknown'
+			!grade
 	);
 
 	let printCaution = $derived(
@@ -418,7 +418,10 @@
 			<label class="group px-2 text-slate-600 text-sm" for={key}>
 				{label}
 				<input
-					class={`mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:border-blue-800! focus:outline-hidden invalid:group-first-of-type:border-orange-400 ${invalid ? 'border-2 border-red-400 text-red-400' : ''}`}
+					class={[
+						invalid && 'border-2 border-red-400 text-red-400',
+						'mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:border-blue-800! focus:outline-hidden invalid:group-first-of-type:border-orange-400'
+					]}
 					type="text"
 					name={key}
 					id={key}
@@ -437,8 +440,8 @@
 		<svg class="fill-slate-500 mx-4 my-1 w-6 h-6" viewBox="0 0 512 512">
 			<use href="#icon-student" />
 		</svg>
-		{#if grade !== 'Unknown'}
-			<span class={students.length == 0 ? 'text-red-500' : 'text-black'}
+		{#if grade}
+			<span class={[!students.length && 'text-red-500', 'text-black']}
 				>{students.length} selected</span
 			>
 		{:else}
@@ -451,16 +454,16 @@
 			</svg>
 			<span class="mr-2 ml-1 text-red-500">0 students</span>
 		{/if}
-		<div class="px-3 {grade === 'Unknown' ? 'hidden' : ''}">
+		<div class={[!grade && 'hidden', 'px-3']}>
 			<p
-				class="rounded-full px-2 {grade === 'Unknown'
-					? ''
-					: 'text-white bg-linear-to-b from-slate-700 to-slate-500 shadow-xs shadow-blue-800'}"
+				class={[
+					grade &&
+						'text-white bg-linear-to-b from-slate-700 to-slate-500 shadow-xs shadow-blue-800',
+					'rounded-full px-2'
+				]}
 				transition:fade
 			>
-				{#if grade !== 'Unknown'}
-					{grade}
-				{/if}
+				{grade}
 			</p>
 		</div>
 
@@ -516,9 +519,10 @@
 	<fieldset class="w-full">
 		<textarea
 			id="student-list-input"
-			class="h-10 min-w-full rounded-md border p-2 placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden {shouldHideTextarea
-				? 'hidden'
-				: ''}"
+			class={[
+				shouldHideTextarea && 'hidden',
+				'h-10 min-w-full rounded-md border p-2 placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
+			]}
 			bind:value={studentsText}
 			placeholder="Paste Excel students with fields in any order: [ID, Chinese Name, English Name, Chinese Class]"
 			required
@@ -548,7 +552,7 @@
 			<tbody>
 				{#each studentsRaw as student}
 					<tr
-						class="**:focus:bg-blue-50 *:p-1 **:focus:border *:border border-slate-200 **:focus:border-blue-500 **:focus:outline-none **:text-center student *:"
+						class="**:focus:bg-blue-50 *:p-1 *:border **:focus:border border-slate-200 **:focus:border-blue-500 **:focus:outline-none **:text-center student *:"
 					>
 						<td class="student-checkbox">
 							<input type="checkbox" class="m-1 w-4 h-4" bind:checked={student.selected} />
@@ -595,9 +599,11 @@
 		>
 			<div
 				id="signature-drop-zone"
-				class="{signatureImage
-					? '-z-10 mt-[-50%] scale-y-0 self-start opacity-0'
-					: 'z-1 mt-0'}  w-full border-2 border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')] bg-no-repeat text-center transition-all duration-450"
+				class={[
+					signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+					!signatureImage && 'z-1 mt-0',
+					"w-full border-2 border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')] bg-no-repeat text-center transition-all duration-450"
+				]}
 			>
 				<p class="mt-2 ml-24 text-orange-500 text-sm text-center whitespace-pre">
 					{`Drop a jpg/png signature image to upload
@@ -615,9 +621,11 @@ or`}
 			</div>
 
 			<div
-				class="{signatureImage
-					? 'has-signature z-1 mt-0 border-2'
-					: '-z-10 mt-[-50%] scale-y-0 self-start opacity-0'} flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450"
+				class={[
+					signatureImage && 'has-signature z-1 mt-0 border-2',
+					!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+					'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
+				]}
 			>
 				<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
 				<button
@@ -643,18 +651,20 @@ or`}
 
 		<div class="col-start-10 col-end-13 text-center">
 			<p
-				class="py-2 text-center text-sm {printInvalid
-					? 'text-red-400'
-					: printCaution
-						? 'text-orange-400'
-						: ' text-blue-400'}"
+				class={[
+					printInvalid && 'text-red-400',
+					printCaution && 'text-orange-400',
+					'text-blue-400 py-2 text-center text-sm'
+				]}
 			>
 				{printInvalid || printCaution ? 'Missing Critical Info!' : `Single Sided  B5/JIS-B5`}
 			</p>
 			<button
-				class="print-slips animate-pulse rounded-lg bg-blue-500 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none
-				 {printCaution ? 'bg-orange-500 shadow-orange-800 hover:bg-orange-600' : ''}
-				 {printInvalid ? 'animate-none! cursor-default bg-red-500 shadow-red-800' : ''}"
+				class={[
+					printCaution && 'bg-orange-500 shadow-orange-800 hover:bg-orange-600',
+					printInvalid && 'animate-none! cursor-default bg-red-500 shadow-red-800',
+					'print-slips animate-pulse rounded-lg bg-blue-500 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none'
+				]}
 				onclick={() => window.print()}
 			>
 				Print {students.length} Slip{students.length == 1 ? '' : 's'}
