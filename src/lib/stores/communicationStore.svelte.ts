@@ -25,16 +25,16 @@ export const StatusTypeCode = {
 	NOT_COMPLETED: '1'
 } as const;
 
-export const STATUS_TYPE = [
-	{
+export const STATUS_TYPE = {
+	[StatusTypeCode.NOT_SUBMITTED]: {
 		code: StatusTypeCode.NOT_SUBMITTED,
 		text: { english: "hasn't been submitted", chinese: '未繳交' }
 	},
-	{
+	[StatusTypeCode.NOT_COMPLETED]: {
 		code: StatusTypeCode.NOT_COMPLETED,
 		text: { english: "wasn't completed", chinese: '完成度不佳' }
 	}
-];
+};
 
 export const COMM_ASSIGNMENT_TYPES = [
 	{ code: AssignmentCode.passport, english: 'Passport', chinese: '英文護照', isG9: true },
@@ -77,8 +77,48 @@ export enum Limit {
 }
 
 export class CommunicationStore {
-	// We will move state and logic here in the next steps.
+	// State variables
+	studentsText: string = $state('');
+	studentsRaw: Student[] = $state([]);
+	shouldHideTextarea: boolean = $state(false);
+
+	UI_Grade: string = $state('');
+	UI_Level = $state(LEVEL_TYPE[2].value);
+	UI_ClassType: string = $state(ClassType.COMM);
+	UI_ClassNum: string = $state('');
+
+	assignmentRaw = $state({
+		esl: '',
+		type: '',
+		assigned: '',
+		due: '',
+		late: ''
+	});
+	UI_Assignment: AssignmentCode = $state(AssignmentCode.passport);
+
+	UI_Dates: { [key: string]: string } = $state({
+		assigned: '',
+		due: '',
+		late: ''
+	});
+
+	signatureImage: string = $state('');
+
 	constructor() {
-		// Initialization logic will go here.
+		// Initialization logic from onMount
+		const today = new Date();
+		const dueDate = `${today.getMonth() + 1}/${today.getDate()}`;
+		const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+		const lateDate = `${sevenDaysLater.getMonth() + 1}/${sevenDaysLater.getDate()}`;
+		this.UI_Dates.due = dueDate;
+		this.UI_Dates.late = lateDate;
+
+		if (
+			typeof window !== 'undefined' &&
+			(location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+		) {
+			// Use a local path for the dev server signature image
+			this.signatureImage = 'sig.png';
+		}
 	}
 }

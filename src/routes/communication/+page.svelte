@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import Slip from '$lib/components/Slip.svelte';
 	import { fade, slide } from 'svelte/transition';
-
 	import {
 		type Student,
 		AssignmentCode,
@@ -13,12 +12,23 @@
 		LEVEL_TYPE,
 		ClassType,
 		DATE_FIELDS,
-		Limit
-	} from '$lib/stores/communicationStore';
+		Limit,
+		CommunicationStore
+	} from '$lib/stores/communicationStore.svelte';
 
-	let studentsText: string = $state('');
-	let studentsRaw: Student[] = $state([]);
-	let shouldHideTextarea: boolean = $state(false);
+	const store = new CommunicationStore();
+
+	let studentsText = $state(store.studentsText);
+	let studentsRaw = $state(store.studentsRaw);
+	let shouldHideTextarea = $state(store.shouldHideTextarea);
+	let UI_Grade = $state(store.UI_Grade);
+	let UI_Level = $state(store.UI_Level);
+	let UI_ClassType = $state(store.UI_ClassType);
+	let UI_ClassNum = $state(store.UI_ClassNum);
+	const assignmentRaw = $state(store.assignmentRaw);
+	let UI_Assignment = $state(store.UI_Assignment);
+	const UI_Dates = $state(store.UI_Dates);
+	let signatureImage = $state(store.signatureImage);
 
 	$effect(() => {
 		shouldHideTextarea = studentsRaw.length > 0;
@@ -73,20 +83,12 @@
 			.map(({ status, ...rest }) => {
 				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
 				const studentStatus = STATUS_TYPE[status as keyof typeof STATUS_TYPE];
-				if (studentStatus && typeof studentStatus === 'object' && 'text' in studentStatus) {
-					return {
-						...rest,
-						status: {
-							english: studentStatus.text.english,
-							chinese: studentStatus.text.chinese
-						}
-					};
-				} else {
-					return {
-						...rest,
-						status: { english: 'Unknown', chinese: '未知' }
-					};
-				}
+				return {
+					...rest,
+					status: studentStatus
+						? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
+						: { english: 'Unknown', chinese: '未知' }
+				};
 			});
 		return studentsSelected;
 	});
@@ -113,11 +115,6 @@
 
 	//#region ESL class ---------------------------------------------------------------
 	const grade = $derived.by(() => determineGradeFromText(studentsText));
-
-	let UI_Grade = $state('');
-	let UI_Level = $state(LEVEL_TYPE[2].value);
-	let UI_ClassType = $state(ClassType.COMM); //default to Comm if it's G9
-	let UI_ClassNum = $state('');
 	let className = $derived([UI_Grade, UI_Level, UI_ClassNum, UI_ClassType].join(' '));
 
 	$effect(() => {
@@ -151,16 +148,6 @@
 				: COMM_ASSIGNMENT_TYPES;
 	});
 
-	let assignmentRaw = $state({
-		esl: '',
-		type: '',
-		assigned: '',
-		due: '',
-		late: ''
-	});
-
-	let UI_Assignment = $state(AssignmentCode.passport); //default to passport
-
 	let assignment = $derived.by(() => {
 		const assignmentTypeText = assignmentTypes.find((type) => type.code === UI_Assignment);
 		return {
@@ -172,12 +159,6 @@
 		};
 	});
 
-	let UI_Dates: { [key: string]: string } = $state({
-		assigned: '',
-		due: '',
-		late: ''
-	});
-
 	$effect(() => {
 		assignmentRaw.assigned = UI_Dates.assigned;
 		assignmentRaw.due = UI_Dates.due;
@@ -185,8 +166,6 @@
 	});
 
 	// #region Signature -------------------------------------------
-	let signatureImage: string = $state('');
-
 	function validateAndSetImage(file: File): boolean {
 		// Check if the file type is JPEG or PNG
 		if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
@@ -287,32 +266,10 @@
 		!printInvalid && (!isValidMonthAndDay(assignment.assigned) || !signatureImage)
 	);
 
-	// #region Life cycles -------------------------------------------
-	onMount(async () => {
-		const today = new Date();
-		const dueDate = `${today.getMonth() + 1}/${today.getDate()}`;
-		const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-		const lateDate = `${sevenDaysLater.getMonth() + 1}/${sevenDaysLater.getDate()}`;
-		UI_Dates.due = dueDate; // Directly set due date to today
-		UI_Dates.late = lateDate; // Directly set late due date to 7 days later
-
-		if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-			const img = new Image();
-			img.onload = () => {
-				// Image exists and is loaded, update signatureImage to its path
-				signatureImage = 'sig.png';
-			};
-			img.onerror = (e) => {
-				// Image doesn't exist, do nothing or log an error if needed
-			};
-			img.src = 'sig.png'; // Adjust the path as necessary
-		}
-	});
-
 	onDestroy(() => {
 		// If the image URL is still set, revoke it before the component is destroyed
 		const currentFileURL = signatureImage;
-		if (currentFileURL) {
+		if (currentFileURL && currentFileURL.startsWith('blob:')) {
 			URL.revokeObjectURL(currentFileURL);
 		}
 	});
