@@ -4,17 +4,17 @@
 	import Slip from '$lib/components/Slip.svelte';
 	import { fade, slide } from 'svelte/transition';
 
-	//#region Student ---------------------------------------------------------------
-	interface Student {
-		id: string;
-		name: {
-			english: string;
-			chinese: string;
-		};
-		cClass: string;
-		status: string;
-		selected: boolean;
-	}
+	import {
+		type Student,
+		AssignmentCode,
+		StatusTypeCode,
+		STATUS_TYPE,
+		COMM_ASSIGNMENT_TYPES,
+		LEVEL_TYPE,
+		ClassType,
+		DATE_FIELDS,
+		Limit
+	} from '$lib/stores/communicationStore';
 
 	let studentsText: string = $state('');
 	let studentsRaw: Student[] = $state([]);
@@ -72,13 +72,21 @@
 			.filter((student) => student.selected) // filter out unselected
 			.map(({ status, ...rest }) => {
 				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
-				const studentStatus = STATUS_TYPE.find((type) => type.code === status);
-				return {
-					...rest,
-					status: studentStatus
-						? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
-						: { english: 'Unknown', chinese: '未知' }
-				};
+				const studentStatus = STATUS_TYPE[status as keyof typeof STATUS_TYPE];
+				if (studentStatus && typeof studentStatus === 'object' && 'text' in studentStatus) {
+					return {
+						...rest,
+						status: {
+							english: studentStatus.text.english,
+							chinese: studentStatus.text.chinese
+						}
+					};
+				} else {
+					return {
+						...rest,
+						status: { english: 'Unknown', chinese: '未知' }
+					};
+				}
 			});
 		return studentsSelected;
 	});
@@ -105,26 +113,6 @@
 
 	//#region ESL class ---------------------------------------------------------------
 	const grade = $derived.by(() => determineGradeFromText(studentsText));
-	enum Level {
-		PreElementary = 'Pre-Elementary',
-		Elementary = 'Elementary',
-		Basic = 'Basic',
-		Intermediate = 'Intermediate',
-		Advanced = 'Advanced'
-	}
-
-	const LEVEL_TYPE = [
-		{ id: 'pre-ele', label: 'Pre-Ele', value: Level.PreElementary },
-		{ id: 'ele', label: 'Ele', value: Level.Elementary },
-		{ id: 'bas', label: 'Basic', value: Level.Basic },
-		{ id: 'int', label: 'Int', value: Level.Intermediate },
-		{ id: 'adv', label: 'Adv', value: Level.Advanced }
-	];
-
-	const ClassType = {
-		COMM: 'Comm',
-		CLIL: 'CLIL'
-	};
 
 	let UI_Grade = $state('');
 	let UI_Level = $state(LEVEL_TYPE[2].value);
@@ -151,23 +139,6 @@
 		return null; //out or range
 	}
 
-	// #region Assignment ----------------------------------------------------------------
-	const enum AssignmentCode {
-		workbook = 'workbook',
-		passport = 'passport',
-		recording = 'recording',
-		exam = 'exam',
-		speech = 'speech'
-	}
-
-	const COMM_ASSIGNMENT_TYPES = [
-		{ code: AssignmentCode.passport, english: 'Passport', chinese: '英文護照', isG9: true },
-		{ code: AssignmentCode.recording, english: 'Recording', chinese: '錄影/錄音', isG9: true },
-		{ code: AssignmentCode.workbook, english: 'Workbook', chinese: '作業本', isCLIL: true },
-		{ code: AssignmentCode.exam, english: 'Oral Exam', chinese: '期中/末考口試', isG9: true },
-		{ code: AssignmentCode.speech, english: 'Speech Practice', chinese: '演講練習', isCLIL: true }
-	];
-
 	const G9_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isG9);
 
 	const CLIL_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isCLIL);
@@ -179,22 +150,6 @@
 				? CLIL_ASSIGNMENT_TYPES
 				: COMM_ASSIGNMENT_TYPES;
 	});
-
-	const StatusTypeCode = {
-		NOT_SUBMITTED: '0',
-		NOT_COMPLETED: '1'
-	} as const;
-
-	const STATUS_TYPE = [
-		{
-			code: StatusTypeCode.NOT_SUBMITTED,
-			text: { english: "hasn't been submitted", chinese: '未繳交' }
-		},
-		{
-			code: StatusTypeCode.NOT_COMPLETED,
-			text: { english: "wasn't completed", chinese: '完成度不佳' }
-		}
-	];
 
 	let assignmentRaw = $state({
 		esl: '',
@@ -217,13 +172,6 @@
 		};
 	});
 
-	// #region Date fields -------------------------------------------
-	const DATE_FIELDS = [
-		{ label: 'Assigned:', key: 'assigned' },
-		{ label: 'Due:', key: 'due' },
-		{ label: 'Late:', key: 'late' }
-	];
-
 	let UI_Dates: { [key: string]: string } = $state({
 		assigned: '',
 		due: '',
@@ -238,11 +186,6 @@
 
 	// #region Signature -------------------------------------------
 	let signatureImage: string = $state('');
-
-	enum Limit {
-		size = 200,
-		height = 160
-	}
 
 	function validateAndSetImage(file: File): boolean {
 		// Check if the file type is JPEG or PNG
