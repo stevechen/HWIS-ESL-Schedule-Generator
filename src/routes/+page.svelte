@@ -35,7 +35,7 @@
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 	let UIStateCheckedDays = $state([true, false, true, false, true]); //default
 
-	let UIStateEventsText = $state('');
+	let UIStateEventsText = $state('Loading...');
 
 	let checkedDays = $derived(
 		UIStateCheckedDays.map((isChecked, index) => (isChecked ? index + 1 : null)) //return day number if the checkbox is checked
@@ -43,31 +43,62 @@
 	);
 
 	let UIStateOutput = $derived.by(() => {
-		const allClassDays = getDates(UIStateEventsText);
-		const classDays = getClassDaysByType(allClassDays, checkedDays, UIStateClassType, grade);
-		return ['#\tDate\tDescription\tNote']
-			.concat(classDays.map((r) => [r.countdown, r.date, r.description, r.note].join('\t')))
-			.join('\n');
+		if (!UIStateEventsText || UIStateEventsText === 'Loading...') {
+			return 'Loading data...';
+		}
+		try {
+			const allClassDays = getDates(UIStateEventsText);
+			const classDays = getClassDaysByType(allClassDays, checkedDays, UIStateClassType, grade);
+			return ['#\tDate\tDescription\tNote']
+				.concat(classDays.map((r) => [r.countdown, r.date, r.description, r.note].join('\t')))
+				.join('\n');
+		} catch (error) {
+			console.error('Error processing data:', error);
+			return 'Error processing data. Check console for details.';
+		}
 	});
 
 	onMount(async () => {
 		const CUT_OFF_MONTH = 6;
 		// if we are close to semester 2, load the semester 2 events data
+		const currentMonth = new Date().getMonth();
+		const currentYear = new Date().getFullYear();
+		// console.log('Current month:', currentMonth, 'Current year:', currentYear);
+
 		const yearAndSemester =
-			new Date().getMonth() < CUT_OFF_MONTH - 1
-				? `${new Date().getFullYear() - 1}-${new Date().getFullYear()}-2`
-				: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}-1`;
-		UIStateEventsText =
-			(await loadSchoolEvents(yearAndSemester)) || (await loadSchoolEvents('2023-2024-1'));
+			currentMonth < CUT_OFF_MONTH - 1
+				? `${currentYear - 1}-${currentYear}-2`
+				: `${currentYear}-${currentYear + 1}-1`;
+
+		// console.log('Loading data for:', yearAndSemester);
+		// console.log(
+		// 	'CUT_OFF_MONTH:',
+		// 	CUT_OFF_MONTH,
+		// 	'currentMonth < CUT_OFF_MONTH - 1:',
+		// 	currentMonth < CUT_OFF_MONTH - 1
+		// );
+
+		let loadedData = await loadSchoolEvents(yearAndSemester);
+
+		if (loadedData) {
+			UIStateEventsText = loadedData;
+			// console.log('Data loaded successfully, length:', loadedData.length);
+		} else {
+			UIStateEventsText = 'Failed to load data';
+			console.error('Failed to load any school events data');
+		}
 	});
 
 	async function loadSchoolEvents(fileNamePrefix: string) {
 		try {
+			// console.log('Attempting to load:', fileNamePrefix);
 			const module = await import(`$lib/data/${fileNamePrefix}-schoolEvents.js`);
-			return module.schoolEvents
+			const data = module.schoolEvents
 				.split('\n')
 				.filter((line: string) => line.trim() !== '')
 				.join('\n');
+			// console.log('Loaded data for', fileNamePrefix, 'length:', data.length);
+			return data;
 		} catch (error) {
 			console.error(`Failed to load ${fileNamePrefix}-schoolEvents.js`, error);
 			return null;
@@ -77,22 +108,22 @@
 
 <title>HWIS ESL Tools</title>
 <main
-	class="flex min-h-[calc(100vh-2.3em)] items-stretch justify-center gap-4 pb-4 font-sans text-sm"
+	class="flex justify-center items-stretch gap-4 pb-4 min-h-[calc(100vh-2.3em)] font-sans text-sm"
 >
 	<section id="input" class="flex flex-col">
 		<h3>Class</h3>
 		<div
 			id="options"
-			class="flex flex-col border rounded-lg border-dotted border-gray-500 p-2 pt-0"
+			class="flex flex-col p-2 pt-0 border border-gray-500 border-dotted rounded-lg"
 		>
 			<div
 				id="types"
-				class="my-2 w-max flex items-center rounded-full bg-slate-800 p-1 bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_0.4)]"
+				class="flex items-center bg-slate-800 bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_0.4)] my-2 p-1 rounded-full w-max"
 			>
 				<h3 class="mr-2 px-2 font-sans text-white text-sm">Type</h3>
 				{#each classControl as { code, key, label }}
 					<label
-						class="cursor-pointer rounded-full px-2 py-1 text-gray-500 transition duration-500 ease-in hover:animate-pulse hover:bg-blue-400 hover:text-slate-100 hover:shadow-green-300 has-checked:animate-none has-checked:cursor-default has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:text-white has-checked:shadow-xs has-checked:shadow-blue-800"
+						class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 						for={key}
 					>
 						<input
@@ -121,7 +152,7 @@
 			</h3>
 			<textarea
 				rows="30"
-				class="font-mono min-w-[36em] flex-1 text-xs border border-dotted border-gray-500 m-w-80"
+				class="flex-1 m-w-80 border border-gray-500 border-dotted min-w-[36em] font-mono text-xs"
 				bind:value={UIStateEventsText}
 				readonly
 			></textarea>
@@ -130,7 +161,7 @@
 	<section id="output" class="flex flex-col">
 		<h3>Generated Dates (Paste to Excel)</h3>
 		<textarea
-			class="font-mono flex-1 text-xs border border-dotted border-gray-500 min-w-96"
+			class="flex-1 border border-gray-500 border-dotted min-w-96 font-mono text-xs"
 			rows="30"
 			value={UIStateOutput}
 			readonly

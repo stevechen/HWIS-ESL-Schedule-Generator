@@ -1,8 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { inject } from '@vercel/analytics';
-	import { dev } from '$app/environment';
-	inject({ mode: dev ? 'development' : 'production' });
 	import '../app.css';
 
 	let { children } = $props();
@@ -13,10 +10,10 @@
 	];
 </script>
 
-<nav class="mb-1 flex justify-center bg-slate-200 print:hidden">
+<nav class="print:hidden flex justify-center bg-slate-200 mb-1">
 	{#each NAV_ITEM as { url, title }}
 		<a
-			class="text-decoration-none rounded-t-lg px-6 py-2 font-bold text-slate-500 hover:cursor-pointer hover:bg-red-800 hover:text-white aria-current:cursor-default aria-current:bg-white aria-current:text-black"
+			class="aria-current:bg-white hover:bg-red-800 px-6 py-2 rounded-t-lg font-bold text-slate-500 aria-current:text-black hover:text-white text-decoration-none aria-current:cursor-default hover:cursor-pointer"
 			href={url}
 			aria-current={page.url.pathname === url}
 			>{title}

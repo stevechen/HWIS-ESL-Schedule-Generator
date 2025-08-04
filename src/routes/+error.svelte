@@ -3,8 +3,8 @@
 	export let status; // HTTP status code (e.g., 500)
 	export let error; // Error object
 
-	// Extract the error message and stack trace
-	const errorMessage = error.message;
+	// Extract the error message and stack trace with proper error handling
+	const errorMessage = error?.message || error?.toString() || 'An unknown error occurred';
 </script>
 
 <h1>Error {status}</h1>
