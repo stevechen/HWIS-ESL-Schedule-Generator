@@ -20,7 +20,6 @@
     "@eslint-community/eslint-utils": "^4.7.0",
     "@eslint/js": "^9.32.0",
     "@playwright/test": "^1.54.2",
-    "@sveltejs/adapter-vercel": "^5.8.1",
     "@sveltejs/kit": "^2.27.0",
     "@sveltejs/vite-plugin-svelte": "^6.1.0",
     "@tailwindcss/postcss": "^4.1.11",
@@ -29,7 +28,6 @@
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.11.0",
-    "globals": "^16.3.0",
     "playwright": "^1.54.2",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
@@ -37,7 +35,6 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "svelte": "^5.37.3",
     "svelte-check": "^4.3.1",
-    "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.0",
     "vite": "^7.0.6",
@@ -45,8 +42,8 @@
   },
   "type": "module",
   "dependencies": {
-    "@jitpackjoyride/lucia-adapter-edgedb": "^0.3.0",
-    "@vercel/analytics": "^1.5.0",
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.1.0",
+    "@vercel/analytics": "^1.5.0"
+
   }
 }
