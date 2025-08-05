@@ -4,8 +4,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
 	plugins: [
-		tailwindcss(), 
-		sveltekit()
+		sveltekit(),
+		tailwindcss(),
 	],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}', 'tests/*.{test,spec}.{js,ts}']
