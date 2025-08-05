@@ -161,6 +161,3 @@
 		></textarea>
 	</section>
 </main>
-
-<style>
-</style>
