@@ -4,21 +4,23 @@
 	import { getClassDaysByType } from '$lib/getClassDaysByType.ts.svelte';
 	import Switches from '$lib/components/Switches.svelte';
 
-	enum ClassTypeCode {
-		Comm = 'Comm',
-		CLIL = 'CLIL',
-		G9 = 'G9',
-		H = 'H'
-	}
+	const ClassTypeCode = {
+		Comm: 'Comm',
+		CLIL: 'CLIL',
+		G9: 'G9',
+		H: 'H'
+	} as const;
 
-	const classControl = [
+	type ClassType = (typeof ClassTypeCode)[keyof typeof ClassTypeCode];
+
+	const classControl: { code: ClassType; key: string; label: string }[] = [
 		{ code: ClassTypeCode.CLIL, key: 'CLIL', label: 'G7/8 CLIL' },
 		{ code: ClassTypeCode.Comm, key: 'Comm', label: 'G7/8 Comm' },
 		{ code: ClassTypeCode.G9, key: 'G9', label: 'G9' },
 		{ code: ClassTypeCode.H, key: 'H', label: 'H10' }
 	];
 
-	let UIStateClassType = $state(ClassTypeCode.CLIL); //default
+	let UIStateClassType: ClassType = $state(ClassTypeCode.CLIL); //default
 
 	const grade = $derived.by(() => {
 		if (UIStateClassType === ClassTypeCode.CLIL) {

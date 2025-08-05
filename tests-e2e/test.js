@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
-import fs from 'fs';
+import fs from 'fs/promises'; // Use promises-based fs for async/await
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const BASE_URL = 'http://localhost:5173';
+
 const MOCK_STUDENT_DATA = `1234567\t張三\tSan Chang\tJ101
 7654321\t李四\tSi Li\tJ102`;
 
@@ -68,17 +69,7 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
 }
 
 //#region platform detection
-const isMac = async () => {
-  if ('userAgentData' in navigator) {
-    const { platform } = await navigator.userAgentData.getHighEntropyValues(["platform"]);
-    return platform === "macOS";
-  } else {
-    // Fallback for browsers that do not support User-Agent Client Hints
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-  }
-};
-
-let modifier = isMac ? 'Meta' : 'Control';
+const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
 
 //#region before test
 test.beforeEach(async ({ page }) => {
@@ -258,70 +249,83 @@ test('should check, uncheck all with master-checkbox and master-checkbox should 
   }
 });
 //#region signature upload-----------------------------------------------------------------
-test.describe('signature upload', () => {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url)); //current file path
-  async function uploadSignature(page, image) {
-    const filePath = path.join(__dirname, 'fixtures');
-    const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 1000 });
-    await page.locator('#browse').click()
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles(`${filePath}/${image}`);
-  }
-  test.beforeEach(async ({ page, context }) => {   
-    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
-    // remove signature first
-    // Construct the path to the file
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const filePath = path.join(__dirname, '..', 'static', 'sig.png');
-    // Check if the file exists
-    fs.access(filePath, fs.constants.F_OK, async (err) => {
-      if (err) {
-        console.error('File does not exist:', filePath);
-      } else {
-        const removeSignatureButton = page.locator('#remove-signature');
-        await removeSignatureButton.waitFor({ state: 'visible', timeout: 500 }).catch(() => console.log('#remove-signature not visible yet'));
+test.describe('Signature Upload', () => {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-        if (await removeSignatureButton.isVisible()) {
-          await removeSignatureButton.focus();
-          await removeSignatureButton.click();
-        }
-      }
-    });
- 
+  async function uploadSignature(page, image) {
+    // Construct the absolute path to the fixture file. Using path.join for the
+    // full path is more robust across different operating systems.
+    const fixturePath = path.join(__dirname, 'fixtures', image);
+
+    // Before asking Playwright to upload the file, we can add a quick check
+    // to see if the file actually exists. This provides a much clearer error
+    // message ("Fixture file not found...") than a generic Playwright timeout.
+    try {
+      await fs.access(fixturePath);
+    } catch {
+      // If fs.access throws, the file doesn't exist or we can't access it.
+      throw new Error(`Test setup error: Fixture file not found at ${fixturePath}`);
+    }
+
+    // The rest of the upload logic remains the same.
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    await page.locator('#browse').click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles(fixturePath);
+  }
+
+  test.beforeEach(async ({ page, context }) => {
+    await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+
+    // Safely remove the signature if it exists, awaiting every step.
+    const filePath = path.join(__dirname, '..', 'static', 'sig.png');
+
+    try {
+      // Check if the file exists using promises
+      await fs.access(filePath);
+
+      // If the file exists, the signature preview should be visible.
+      // Click the remove button and wait for the preview to disappear.
+      const removeSignatureButton = page.locator('#remove-signature');
+      await removeSignatureButton.click();
+      await expect(page.locator('.signature-preview')).toBeHidden();
+    } catch (error) {
+      // If the file doesn't exist, fs.access throws. We can safely ignore it
+      // as it means there's no signature to remove.
+    }
   });
 
-  //#region image too short
   test('should reject signature images too short in height', async ({ page }) => {
+    // Set up the listener BEFORE performing the action that triggers it.
+    const dialogPromise = page.waitForEvent('dialog');
     await uploadSignature(page, 'sig_short.png');
 
-    page.once('dialog', dialog => {
-      expect(dialog.message()).toContain('greater than');
-      dialog.dismiss().catch(() => {});
-    });
+    // Await the dialog and perform assertions.
+    const dialog = await dialogPromise;
+    expect(dialog.message()).toContain('greater than');
+    await dialog.dismiss();
   });
 
-  //#region image too big
   test('should reject signature images over size limit', async ({ page }) => {
     await uploadSignature(page, 'sig_big.jpg');
 
-    page.once('dialog', dialog => {
+   page.once('dialog', dialog => {
       expect(dialog.message()).toContain('KB');
       dialog.dismiss().catch(() => {});
     });
   });
 
-  //#region image wrong format
   test('should only accept jpg or png signature images', async ({ page }) => {
     await uploadSignature(page, 'sig_bmp.bmp');
 
-    page.once('dialog', dialog => {
+  page.once('dialog', dialog => {
       expect(dialog.message()).toContain('JPG');
       expect(dialog.message()).toContain('PNG');
       dialog.dismiss().catch(() => {});
     });
+
   });
 
-  //#region png upload
   test('should upload valid png signature and display on Slip Templates', async ({ page }) => {
     await uploadSignature(page, 'sig_test.png');
 
@@ -329,42 +333,15 @@ test.describe('signature upload', () => {
     await expect(page.locator('.signature-preview')).toBeVisible();
     await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
 
+    // Verify it can be removed
     await page.locator('#remove-signature').click();
-    // await expect(page.locator('.signature-preview')).toBeHidden();
+    await expect(page.locator('.signature-preview')).toBeHidden();
   });
 
-  //#region jpg upload
   test('should upload valid jpg signature image and display on Slip Templates', async ({ page }) => {
     await uploadSignature(page, 'sig_test.jpeg');
 
-    // await expect(page.getByText('Drop signature image here or')).toBeHidden();
-    // await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
     await expect(page.locator('.signature-preview')).toBeVisible();
     await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
   });
-
 });
-
-// test('should upload valid signature image with drag & drop', async ({ page, context }) => {
-//   await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
-
-// // Read your file into a buffer.
-//   const buffer = readFileSync('./tests-e2e/fixtures/sig_test.png');
-
-//   // Create the DataTransfer and File
-//   const dataTransfer = await page.evaluateHandle((data) => {
-//       const dt = new DataTransfer();
-//       // Convert the buffer to a hex array
-//       const file = new File([data.toString('hex')], 'sig_test.png', { type: 'img/*' });
-//       dt.items.add(file);
-//       return dt;
-//   }, buffer);
-
-//   // Now dispatch
-//   await page.dispatchEvent('div#signature-drop-zone', 'drop', { dataTransfer });
-
-//   // await expect(page.getByText('Drop signature image here or')).toBeHidden();
-//   await expect(page.getByRole('button', { name: 'browse' })).toBeHidden();
-//   await expect(page.locator('.signature-preview')).toBeVisible();
-//   await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
-// });
