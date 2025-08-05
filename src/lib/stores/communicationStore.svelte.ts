@@ -112,13 +112,5 @@ export class CommunicationStore {
 		const lateDate = `${sevenDaysLater.getMonth() + 1}/${sevenDaysLater.getDate()}`;
 		this.UI_Dates.due = dueDate;
 		this.UI_Dates.late = lateDate;
-
-		if (
-			typeof window !== 'undefined' &&
-			(location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-		) {
-			// Use a local path for the dev server signature image
-			this.signatureImage = 'sig.png';
-		}
 	}
 }

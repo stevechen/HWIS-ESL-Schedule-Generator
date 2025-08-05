@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import Slip from '$lib/components/Slip.svelte';
 	import { fade, slide } from 'svelte/transition';
@@ -29,6 +30,13 @@
 	let UI_Assignment = $state(store.UI_Assignment);
 	const UI_Dates = $state(store.UI_Dates);
 	let signatureImage = $state(store.signatureImage);
+
+	$effect(() => {
+		// This runs only on the client after the component mounts, avoiding hydration errors.
+		if (browser && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+			signatureImage = 'sig.png';
+		}
+	});
 
 	$effect(() => {
 		shouldHideTextarea = studentsRaw.length > 0;
@@ -166,6 +174,9 @@
 	});
 
 	// #region Signature -------------------------------------------
+	let dragCounter = $state(0);
+	const isDraggingOver = $derived(dragCounter > 0);
+
 	function validateAndSetImage(file: File): boolean {
 		// Check if the file type is JPEG or PNG
 		if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
@@ -211,18 +222,23 @@
 		if (file) validateAndSetImage(file);
 	}
 
-	function handleDragOver(event: DragEvent) {
+	function handleDragEnter(event: DragEvent) {
 		event.preventDefault();
-		(event.target as HTMLElement).classList.add('drag-over'); // Add the 'drag-over' class to show drag over effect
+		dragCounter++;
+	}
+
+	function handleDragOver(event: DragEvent) {
+		event.preventDefault(); // This is necessary to allow a drop.
 	}
 
 	function handleDragLeave(event: DragEvent) {
 		event.preventDefault();
-		(event.target as HTMLElement).classList.remove('drag-over'); // Remove the 'drag-over' class when drag leaves
+		dragCounter--;
 	}
 
 	function handleDrop(event: DragEvent) {
 		event.preventDefault();
+		dragCounter = 0;
 		const dataTransfer = event.dataTransfer;
 		if (dataTransfer) {
 			const file = dataTransfer.files[0]; // Get the dropped file
@@ -489,6 +505,7 @@
 	<section class="*:box-border grid grid-cols-12 w-full">
 		<div
 			class="flex flex-wrap col-start-1 col-end-9 *:border-dashed *:rounded-lg cursor-default"
+			ondragenter={handleDragEnter}
 			ondragover={handleDragOver}
 			ondrop={handleDrop}
 			ondragleave={handleDragLeave}
@@ -502,7 +519,10 @@
 				class={[
 					signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
 					!signatureImage && 'z-1 mt-0',
-					"w-full border-2 border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')] bg-no-repeat text-center transition-all duration-450"
+					'w-full border-2 bg-no-repeat text-center transition-all duration-450',
+					isDraggingOver
+						? 'border-orange-400 bg-orange-100'
+						: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
 				]}
 			>
 				<p class="mt-2 ml-24 text-orange-500 text-sm text-center whitespace-pre">
