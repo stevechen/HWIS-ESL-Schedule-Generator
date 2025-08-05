@@ -692,14 +692,6 @@ or`}
 			}
 		}
 
-		/* region #signature-drop-zone  */
-		#signature-drop-zone {
-			&.drag-over {
-				border-color: steelblue; /* Change border color when dragging over */
-				background: #f0ffff;
-			}
-		}
-
 		#signature-upload {
 			clip: rect(0, 0, 0, 0);
 		}

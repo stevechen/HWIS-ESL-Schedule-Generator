@@ -114,7 +114,7 @@
 		<h3>Class</h3>
 		<div
 			id="options"
-			class="flex flex-col p-2 pt-0 border border-gray-500 border-dotted rounded-lg"
+			class="flex flex-col bg-black p-2 pt-0 border border-gray-500 border-dotted rounded-lg"
 		>
 			<div
 				id="types"
@@ -137,19 +137,10 @@
 					</label>
 				{/each}
 			</div>
-			{UIStateClassType}
 			<Switches title="Days" days={WEEKDAYS} checkedDays={UIStateCheckedDays} />
 		</div>
 		<div id="schoolEvents">
-			<h3>
-				Events
-				<button class="info">
-					ℹ️
-					<span class="info_note">
-						Copy a table from spreadsheet with 4 fields: date, description, note, type
-					</span>
-				</button>
-			</h3>
+			<h3>Events</h3>
 			<textarea
 				rows="30"
 				class="flex-1 m-w-80 border border-gray-500 border-dotted min-w-[36em] font-mono text-xs"
@@ -170,16 +161,4 @@
 </main>
 
 <style>
-	button.info {
-		border: none;
-		background: none;
-	}
-	.info_note {
-		display: none;
-	}
-
-	button.info:hover .info_note {
-		display: inline;
-		font-size: 0.8em;
-	}
 </style>
