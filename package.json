@@ -15,7 +15,7 @@
     "test:integration": "playwright test",
     "test:unit": "vitest",
     "test:e2e": "playwright test",
-    "test-and-push": "vitest --run && playwright test && git push origin master"
+    "test-and-push": "echo 'Connecting to Tailscale...' && tailscale up --exit-node=DaVault && echo 'Running tests...' && vitest --run && playwright test --browser=chromium && playwright test --browser=webkit && echo 'Pushing to git...' && git push origin master && echo 'Disconnecting Tailscale...' && tailscale down"
   },
   "devDependencies": {
     "@eslint-community/eslint-utils": "^4.7.0",
