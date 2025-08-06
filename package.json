@@ -14,7 +14,8 @@
     "test": "vitest",
     "test:integration": "playwright test",
     "test:unit": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test-and-push": "vitest --run && playwright test && git push origin master"
   },
   "devDependencies": {
     "@eslint-community/eslint-utils": "^4.7.0",
