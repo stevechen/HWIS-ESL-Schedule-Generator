@@ -184,7 +184,8 @@ test('should update slip fields with data change', async ({ page, context }) => 
 
   const checkboxes = page.locator('td.student-checkbox > input[type="checkbox"]');
   const count = await checkboxes.count();
-  const randomIndex = Math.floor(Math.random() * count);
+  // Ensure randomIndex is always >= 1 for nth-child
+  const randomIndex = Math.floor(Math.random() * count) + 1;
 
   //change the random row data
   await page.fill(`tr:nth-child(${randomIndex}) td.student-id > input`, '5555555');
