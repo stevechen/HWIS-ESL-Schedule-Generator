@@ -120,7 +120,7 @@
 		>
 			<div
 				id="types"
-				class="flex items-center bg-slate-800 bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_0.4)] my-2 p-1 rounded-full w-max"
+				class="flex items-center bg-slate-800 bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full w-max"
 			>
 				<h3 class="mr-2 px-2 font-sans text-white text-sm">Type</h3>
 				{#each classControl as { code, key, label }}

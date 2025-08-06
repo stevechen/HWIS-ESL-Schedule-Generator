@@ -296,16 +296,18 @@
 
 <!-- MARK: **** HTML **** -->
 <main
-	class="print:hidden flex flex-wrap justify-start items-center m-auto mb-4 p-2 border-2 border-dotted rounded-lg w-[43em] font-sans"
+	class="print:hidden flex flex-wrap justify-start items-center bg-black m-auto mb-4 p-2 border-2 border-dotted rounded-lg w-[43em] font-sans"
 >
 	<!-- MARK: assignment type -->
 	<fieldset class="flex flex-row justify-start items-center mr-2 mb-2 w-full">
 		<!-- inkwell icon -->
-		<svg class="mx-4 my-1 w-6 h-6 text-slate-500" viewBox="0 0 64 64">
+		<svg class="mx-4 my-1 w-6 h-6 text-white" viewBox="0 0 64 64">
 			<use href="#icon-inkWell" />
 		</svg>
 
-		<div class="flex flex-row justify-start items-center bg-slate-200 mx-1 p-1 rounded-full">
+		<div
+			class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full"
+		>
 			{#each assignmentTypes as { code, english }}
 				<label
 					class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
@@ -328,13 +330,13 @@
 	<fieldset
 		class="flex flex-row justify-start items-start mb-2 py-1 pr-2 border-b border-b-gray-400 border-dotted w-full"
 	>
-		<svg class="fill-slate-500 my-1 mr-4 ml-5 w-6 h-6" viewBox="0 0 612 612">
+		<svg class="fill-white my-1 mr-4 ml-5 w-6 h-6" viewBox="0 0 612 612">
 			<use href="#icon-calendar" />
 		</svg>
 		{#each DATE_FIELDS as { key, label }}
 			{@const invalid =
 				!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key])}
-			<label class="group px-2 text-slate-600 text-sm" for={key}>
+			<label class="group px-2 text-white text-sm" for={key}>
 				{label}
 				<input
 					class={[
@@ -356,11 +358,11 @@
 	<!-- MARK: class-info -->
 	<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
 		<!-- student icon -->
-		<svg class="fill-slate-500 mx-4 my-1 w-6 h-6" viewBox="0 0 512 512">
+		<svg class="fill-white mx-4 my-1 w-6 h-6" viewBox="0 0 512 512">
 			<use href="#icon-student" />
 		</svg>
 		{#if grade}
-			<span class={[!students.length && 'text-red-500', 'text-black']}
+			<span class={[!students.length && 'text-red-500', 'text-white']}
 				>{students.length} selected</span
 			>
 		{:else}
@@ -387,7 +389,9 @@
 		</div>
 
 		<!-- MARK: ESL-level -->
-		<div class="flex flex-row justify-start items-center bg-slate-200 mx-1 p-1 rounded-full">
+		<div
+			class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full"
+		>
 			{#each LEVEL_TYPE as { id, label, value }}
 				<label
 					class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
@@ -400,7 +404,9 @@
 		</div>
 
 		<!-- MARK: ESL-type -->
-		<div class="flex flex-row justify-start items-center bg-slate-200 mx-1 p-1 rounded-full">
+		<div
+			class="flex flex-row justify-start items-centerbg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full"
+		>
 			{#each Object.entries(ClassType) as [type, value]}
 				<!-- only render out CLIL if class is not G9 -->
 				{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
@@ -440,17 +446,17 @@
 			id="student-list-input"
 			class={[
 				shouldHideTextarea && 'hidden',
-				'h-10 min-w-full rounded-md border p-2 placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
+				'bg-white h-10 overflow-hidden min-w-15/16 rounded-md border p-2 placeholder:text-sm invalid:border-2  mx-5 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
 			]}
 			bind:value={studentsText}
-			placeholder="Paste Excel students with fields in any order: [ID, Chinese Name, English Name, Chinese Class]"
+			placeholder="Paste students from Excel with fields: [ID, Chinese Name, English Name, Chinese Class]"
 			required
 		>
 		</textarea>
 	</fieldset>
 	<!-- MARK: student table -->
 	{#if studentsRaw.length > 0}
-		<table class="mx-6 mb-4 w-full text-sm border-collapse table-auto">
+		<table class="bg-white mx-6 mb-4 w-full text-sm border-collapse table-auto">
 			<thead class="bg-slate-100 font-semibold text-xs">
 				<tr>
 					<th class="border border-slate-300 border-solid">
@@ -507,7 +513,7 @@
 	<!-- MARK: signature-drop-zone -->
 	<section class="*:box-border grid grid-cols-12 w-full">
 		<div
-			class="flex flex-wrap col-start-1 col-end-9 *:border-dashed *:rounded-lg cursor-default"
+			class="flex flex-wrap col-start-1 col-end-9 ml-5 *:border-dashed *:rounded-lg cursor-default"
 			ondragenter={handleDragEnter}
 			ondragover={handleDragOver}
 			ondrop={handleDrop}
