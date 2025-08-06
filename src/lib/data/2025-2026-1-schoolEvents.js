@@ -8,7 +8,7 @@ export const schoolEvents =
 2025-12-25	Off	Constitution Day	
 2025-12-24	G9 Mock Exam		G9
 2025-12-23	G9 Mock Exam		G9
-2025-12-29		CLIL WB Check	CLIL
+2025-12-19		CLIL WB Check	CLIL
 2025-12-18		CLIL WB Check	CLIL
 2025-12-17		CLIL WB Check	CLIL
 2025-12-16		CLIL WB Check	CLIL
