@@ -249,6 +249,9 @@
 	function removeSignature(event: MouseEvent) {
 		event.stopPropagation(); // This stops the click event from bubbling up to parent elements
 		signatureImage = ''; // Clear the signature image
+		// Reset the file input value so the same file can be uploaded again
+		const input = document.getElementById('signature-upload') as HTMLInputElement | null;
+		if (input) input.value = '';
 	}
 
 	// A11y functions

@@ -445,4 +445,18 @@ test.describe('Signature Upload', () => {
     await expect(page.locator('.signature-preview')).toBeVisible();
     await expect(page.getByRole('img', { name: 'Teacher\'s Signature' })).toHaveCount(2);
   });
+
+    test('should allow re-uploading the same signature file after deletion', async ({ page }) => {
+    // Upload the signature image
+    await uploadSignature(page, 'sig_test.png');
+    await expect(page.locator('.signature-preview')).toBeVisible();
+  
+    // Remove the signature
+    await page.locator('#remove-signature').click();
+    await expect(page.locator('.signature-preview')).toBeHidden();
+  
+    // Try uploading the same file again
+    await uploadSignature(page, 'sig_test.png');
+    await expect(page.locator('.signature-preview')).toBeVisible();
+  });
 });
