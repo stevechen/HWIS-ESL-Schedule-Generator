@@ -30,6 +30,11 @@ export const schoolEvents =
 2023-12-04	CLIL Presentation		CLIL
 2023-12-22	Off G9 Mock exam		G9
 2023-12-21	Off G9 Mock exam		G9
+2023-11-30	BBQ (no class)		
+2023-12-03	off		
+2023-12-04	OFF		
+2023-12-05			
+2023-12-06			
 2023-09-06	Off (Mock exam)		G9
 2023-09-05	Off (Mock exam)		G9
 2023-08-30	Class starts on period 3`;
@@ -66,4 +71,4 @@ export const schoolEvents2 =
 2024-02-22	Off	G9 Mock Exam	G9
 2024-02-21	Off	G9 Mock Exam	G9
 2024-02-17	School day (Make up)	for 2024/02/08 Chinese New Year	
-2024-02-16	Class starts at the 3rd period   		` 
+2024-02-16	Class starts at the 3rd period   		` ;
