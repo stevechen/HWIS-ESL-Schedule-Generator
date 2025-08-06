@@ -27,6 +27,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "@types/eslint": "^9.6.1",
     "@types/node": "^24.2.0",
+    "@vercel/analytics": "^1.5.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.11.0",
@@ -45,9 +46,6 @@
   },
   "type": "module",
   "dependencies": {
-    "date-fns": "^4.1.0",
-
-    "@vercel/analytics": "^1.5.0"
-
+    "date-fns": "^4.1.0"
   }
 }
