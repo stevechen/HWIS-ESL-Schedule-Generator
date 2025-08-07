@@ -131,6 +131,7 @@
 		assignmentRaw.esl = className;
 	});
 
+	//determine grade from the pasted text. Uses Chinese class number
 	function determineGradeFromText(pastedText: string) {
 		const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
 		if (gradeMatch) {
@@ -594,6 +595,7 @@ or`}
 					printInvalid && 'animate-none! cursor-default bg-red-500 shadow-red-800',
 					'print-slips animate-pulse rounded-lg bg-blue-500 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none'
 				]}
+				title={printCaution || printInvalid ? 'Incomplete input' : ''}
 				onclick={() => window.print()}
 			>
 				Print {students.length} Slip{students.length == 1 ? '' : 's'}

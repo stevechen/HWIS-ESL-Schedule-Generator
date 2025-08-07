@@ -106,6 +106,13 @@
 			return null;
 		}
 	}
+
+	function copyOutputToClipboard() {
+		const output = UIStateOutput;
+		if (typeof output === 'string') {
+			navigator.clipboard.writeText(output);
+		}
+	}
 </script>
 
 <title>HWIS ESL Tools</title>
@@ -142,17 +149,57 @@
 			<Switches title="Days" days={WEEKDAYS} checkedDays={UIStateCheckedDays} />
 		</div>
 		<div id="schoolEvents">
-			<h3>Events</h3>
+			<h3 class="text-gray-300">Events</h3>
 			<textarea
 				rows="30"
-				class="flex-1 m-w-80 border border-gray-500 border-dotted min-w-[36em] font-mono text-xs"
+				class="flex-1 grayscale-50 border border-gray-500 border-dotted min-w-[27.5em] h-full overflow-hidden font-mono text-gray-300 text-xs"
 				bind:value={UIStateEventsText}
 				readonly
 			></textarea>
 		</div>
 	</section>
 	<section id="output" class="flex flex-col">
-		<h3>Generated Dates (Paste to Excel)</h3>
+		<div class="flex items-center gap-2">
+			<h3>Copy & paste to spreadsheet like Excel, Sheets, Numbers</h3>
+			<!-- Copy to clipboard icon/button -->
+			<button
+				type="button"
+				class="hover:bg-gray-200 p-1 rounded focus:outline-none copy-btn"
+				title="Copy to clipboard (for spreadsheet programs)"
+				onclick={() => copyOutputToClipboard()}
+			>
+				<!-- Simple clipboard SVG icon -->
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<rect
+						x="9"
+						y="9"
+						width="13"
+						height="13"
+						rx="2"
+						fill="#fff"
+						stroke="#888"
+						stroke-width="2"
+					/>
+					<rect
+						x="3"
+						y="3"
+						width="13"
+						height="13"
+						rx="2"
+						fill="#fff"
+						stroke="#888"
+						stroke-width="2"
+					/>
+				</svg>
+			</button>
+		</div>
 		<textarea
 			class="flex-1 border border-gray-500 border-dotted min-w-96 font-mono text-xs"
 			rows="30"
