@@ -27,6 +27,12 @@ const MOCK_STUDENT_DATA_G9_FULL =
 1100216\tBaron Lin\t林柏丞\tJ308
 1100318\tJeffrey Huang\t黃竑睿\tJ304`
 
+//#region before test
+test.beforeEach(async ({ page }) => {
+  const uniqueParam = new Date().getTime(); // Using current timestamp as a unique parameter
+  await page.goto(`${BASE_URL}/communication?timestamp=${uniqueParam}`);
+});
+
 function initializeLocators(page) {
   return {
     locatorRadioCLIL: page.locator('input[type="radio"][value="CLIL"]'),
@@ -44,8 +50,8 @@ function initializeLocators(page) {
     locatorLabelWorkbook: page.locator('label[for="workbook"]'),
     locatorLabelExam: page.locator('label[for="exam"]'),
     locatorLabelSpeech: page.locator('label[for="speech"]'),
-  };
-}
+  };  
+}  
 
 //#region paste function
 async function pasteDataIntoInput(page, context, selector, mockData) {
@@ -55,7 +61,7 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
   await page.waitForFunction(([selector]) => {
     const element = document.querySelector(selector);
     return document.activeElement === element;
-  }, [selector]);
+  }, [selector]);  
 
   // Cross-browser compatible clipboard simulation
   const browserName = context._browser.browserType().name();
@@ -72,8 +78,8 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
         element.dispatchEvent(new Event('change', { bubbles: true }));
         // Trigger paste event for complete simulation
         element.dispatchEvent(new ClipboardEvent('paste', { bubbles: true }));
-      }
-    }, [selector, mockData]);
+      }  
+    }, [selector, mockData]);  
   } else {
     // For Chromium and Firefox, use the standard clipboard API approach
     try {
@@ -92,23 +98,17 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
           element.dispatchEvent(new Event('input', { bubbles: true }));
           element.dispatchEvent(new Event('change', { bubbles: true }));
           element.dispatchEvent(new ClipboardEvent('paste', { bubbles: true }));
-        }
-      }, [selector, mockData]);
-    }
-  }
+        }  
+      }, [selector, mockData]);  
+    }  
+  }  
 
   // Wait for the #master-checkbox to appear
   await page.locator('#master-checkbox').waitFor({ state: 'visible', timeout: 1000 });
-}
+}  
 
 //#region platform detection
 const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
-
-//#region before test
-test.beforeEach(async ({ page }) => {
-  const uniqueParam = new Date().getTime(); // Using current timestamp as a unique parameter
-  await page.goto(`${BASE_URL}/communication?timestamp=${uniqueParam}`);
-});
 
 // #region auto assignment display
 test('should hide workbook, speech assignment type for G9', async({ page, context }) => {
@@ -379,7 +379,7 @@ test.describe('Signature Upload', () => {
     await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
 
     // Safely remove the signature if it exists, awaiting every step.
-    const filePath = path.join(__dirname, '..', 'static', 'sig.png');
+    const filePath = path.join(__dirname, '..', '..', '..', 'static', 'sig.png');
 
     try {
       // Check if the file exists using promises

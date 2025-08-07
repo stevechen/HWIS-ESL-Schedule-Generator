@@ -5,7 +5,7 @@ const config = {
 		port: 5173,
 		reuseExistingServer: true
 	},
-	testDir: 'tests-e2e',
+	testDir: 'src/tests/integration',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/
 };
 

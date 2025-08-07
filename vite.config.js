@@ -4,10 +4,10 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
 	plugins: [
-		sveltekit(),
 		tailwindcss(),
+		sveltekit(),
 	],
 	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}', 'tests/*.{test,spec}.{js,ts}']
+		include: ['src/tests/unit/*.{test,spec}.{js,ts}']
 	}
 });
