@@ -1,6 +1,5 @@
 /** @type {String} */
-export const schoolEvents = 
-`
+export const schoolEvents = `
 2025-01-17	Exam		
 2025-01-16	Exam		
 2025-01-15	Exam		

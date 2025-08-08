@@ -1,6 +1,5 @@
 /** @type {String} */
-export const schoolEvents = 
-`
+export const schoolEvents = `
 2025-02-11	Back to school. Starts on P3		
 2025-02-19	Off	G9 Mock Exam	G9
 2025-02-20	Off	G9 Mock Exam	G9

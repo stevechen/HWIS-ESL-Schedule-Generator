@@ -1,5 +1,4 @@
-export const schoolEvents = 
-`2024-01-19	Exam		
+export const schoolEvents = `2024-01-19	Exam		
 2024-01-18	Exam		
 2024-01-17	Exam		
 2024-01-01	Off	New Year	
@@ -39,8 +38,7 @@ export const schoolEvents =
 2023-09-05	Off (Mock exam)		G9
 2023-08-30	Class starts on period 3`;
 
-export const schoolEvents2 =
-`2024-06-28	Exam		
+export const schoolEvents2 = `2024-06-28	Exam		
 2024-06-27	Exam		
 2024-06-26	Exam		
 2024-06-19	G8 Speech Contest		Comm
@@ -71,4 +69,4 @@ export const schoolEvents2 =
 2024-02-22	Off	G9 Mock Exam	G9
 2024-02-21	Off	G9 Mock Exam	G9
 2024-02-17	School day (Make up)	for 2024/02/08 Chinese New Year	
-2024-02-16	Class starts at the 3rd period   		` ;
+2024-02-16	Class starts at the 3rd period   		`;

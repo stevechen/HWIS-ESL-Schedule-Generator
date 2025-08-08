@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getDates } from '$lib/getAllClassDays.ts.svelte';
-	import { getClassDaysByType } from '$lib/getClassDaysByType.ts.svelte';
+	import { getDates } from '$lib/getAllClassDays.svelte';
+	import { getClassDaysByType } from '$lib/getClassDaysByType.svelte';
 	import Switches from '$lib/components/Switches.svelte';
 
 	const ClassTypeCode = {
