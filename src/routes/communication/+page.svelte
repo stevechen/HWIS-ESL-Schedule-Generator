@@ -478,10 +478,19 @@
 			<tbody>
 				{#each studentsRaw as student}
 					<tr
-						class="**:focus:bg-blue-50 *:p-1 *:border **:focus:border border-slate-200 **:focus:border-blue-500 **:focus:outline-none **:text-center student *:"
+						class="**:focus:bg-blue-50 *:p-1 *:border *:border-gray-500**:focus:border border-slate-200 **:focus:border-blue-500 **:focus:outline-none **:text-center *:border-collapse student *:"
 					>
-						<td class="student-checkbox">
-							<input type="checkbox" class="m-1 w-4 h-4" bind:checked={student.selected} />
+						<td class="table-cell text-align-center align-middle student-checkbox">
+							<div class="flex justify-center items-center">
+								<label for="checkbox-{student.id}">
+									<input
+										type="checkbox"
+										id="checkbox-{student.id}"
+										class="min-w-4 min-h-4"
+										bind:checked={student.selected}
+									/>
+								</label>
+							</div>
 						</td>
 						<td class="w-[4.5rem] student-id">
 							<input class="text-center" type="text" bind:value={student.id} />
