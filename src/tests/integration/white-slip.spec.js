@@ -1,4 +1,3 @@
-// @ts-ignore
 import { test, expect } from '@playwright/test';
 import fs from 'fs/promises'; // Use promises-based fs for async/await
 import path from 'path';
@@ -32,8 +31,6 @@ test.beforeEach(async ({ page }) => {
 	const uniqueParam = new Date().getTime(); // Using current timestamp as a unique parameter
 	await page.goto(`${BASE_URL}/communication?timestamp=${uniqueParam}`);
 });
-
-// @ts-ignore
 function initializeLocators(page) {
 	return {
 		locatorRadioCLIL: page.locator('input[type="radio"][value="CLIL"]'),
@@ -55,13 +52,11 @@ function initializeLocators(page) {
 }
 
 //#region paste function
-// @ts-ignore
 async function pasteDataIntoInput(page, context, selector, mockData) {
 	await expect
 		.poll(async () => {
 			await page.locator(selector).focus();
 			return await page.evaluate(
-				// @ts-ignore
 				(selector) => document.activeElement === document.querySelector(selector),
 				selector
 			);
@@ -75,7 +70,6 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
 		// WebKit doesn't support clipboard-write permission, so we'll directly set the value
 		// and trigger input events to simulate paste behavior
 		await page.evaluate(
-			// @ts-ignore
 			([selector, data]) => {
 				const element = document.querySelector(selector);
 				if (element) {
@@ -94,16 +88,13 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
 		try {
 			await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 			// Set the clipboard content to the desired data
-			// @ts-ignore
 			await page.evaluate((data) => navigator.clipboard.writeText(data), mockData);
 			// simulate paste event
 			await page.keyboard.press(`${modifier}+V`);
 		} catch (error) {
 			// Fallback to direct value setting if clipboard API fails
-			// @ts-ignore
-			console.warn('Clipboard API failed, falling back to direct input:', error.message);
+  			test.fail('Clipboard API failed, falling back to direct input:', error.message);
 			await page.evaluate(
-				// @ts-ignore
 				([selector, data]) => {
 					const element = document.querySelector(selector);
 					if (element) {
@@ -302,7 +293,6 @@ test.describe('Student Inclusion/Exclusion', () => {
 			.inputValue();
 
 		// For WebKit, use direct DOM manipulation instead of click/uncheck
-		// @ts-ignore
 		const browserName = context._browser.browserType().name();
 
 		if (browserName === 'webkit') {
@@ -313,7 +303,6 @@ test.describe('Student Inclusion/Exclusion', () => {
 						'td.student-checkbox input[type="checkbox"]'
 					);
 					if (checkboxes[index]) {
-						// @ts-ignore
 						checkboxes[index].checked = false;
 						checkboxes[index].dispatchEvent(new Event('change', { bubbles: true }));
 					}
@@ -336,7 +325,6 @@ test.describe('Student Inclusion/Exclusion', () => {
 						'td.student-checkbox input[type="checkbox"]'
 					);
 					if (checkboxes[index]) {
-						// @ts-ignore
 						checkboxes[index].checked = true;
 						checkboxes[index].dispatchEvent(new Event('change', { bubbles: true }));
 					}
@@ -363,7 +351,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Wait for table elements to be attached (not necessarily visible)
 		await checkboxes.first().waitFor({ state: 'attached' });
 
-		// @ts-ignore
+		
 		const browserName = context._browser.browserType().name();
 
 		// Click master checkbox to uncheck all
@@ -381,7 +369,6 @@ test.describe('Student Inclusion/Exclusion', () => {
 			await page.evaluate(() => {
 				const checkboxes = document.querySelectorAll('td.student-checkbox input[type="checkbox"]');
 				if (checkboxes[0]) {
-					// @ts-ignore
 					checkboxes[0].checked = true;
 					checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
 				}
@@ -395,7 +382,6 @@ test.describe('Student Inclusion/Exclusion', () => {
 
 		// master-checkbox should be in indeterminate state
 		const isIndeterminate = await page.evaluate(
-			// @ts-ignore
 			() => document.querySelector('#master-checkbox').indeterminate
 		);
 		expect(isIndeterminate).toBeTruthy();
@@ -414,7 +400,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 test.describe('Signature Upload', () => {
 	const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-	// @ts-ignore
+	
 	async function uploadSignature(page, image) {
 		// Construct the absolute path to the fixture file. Using path.join for the
 		// full path is more robust across different operating systems.
