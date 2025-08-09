@@ -43,4 +43,17 @@ test.describe('Copy to clipboard feature', () => {
 		const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
 		expect(clipboardText).toBe(textareaContent);
 	});
+
+	test('should display a "Copied!" toast message on successful copy', async ({ page }) => {
+		await page.goto('/');
+		const copyButton = page.locator('button.copy-btn');
+		await expect(page.locator('section#output textarea')).not.toContainText('Loading data...');
+		await copyButton.click();
+		await page.waitForSelector('.toast-message');
+
+		const toast = page.locator('.toast-message');
+		await expect(toast).toBeVisible();
+		await expect(toast).toHaveText('Copied!');
+		await expect(toast).toBeHidden();
+	});
 });

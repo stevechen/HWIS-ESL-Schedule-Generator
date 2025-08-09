@@ -3,6 +3,7 @@
 	import { getDates } from '$lib/getAllClassDays.svelte';
 	import { getClassDaysByType } from '$lib/getClassDaysByType.svelte';
 	import Switches from '$lib/components/Switches.svelte';
+	import { fade } from 'svelte/transition';
 
 	const ClassTypeCode = {
 		Comm: 'Comm',
@@ -107,10 +108,28 @@
 		}
 	}
 
-	function copyOutputToClipboard() {
+	let toastMessage = $state('');
+	let showToast = $state(false);
+	let toastType = $state('success'); // 'success' or 'error'
+
+	async function copyOutputToClipboard() {
 		const output = UIStateOutput;
 		if (typeof output === 'string') {
-			navigator.clipboard.writeText(output);
+			try {
+				await navigator.clipboard.writeText(output);
+				toastMessage = 'Copied!';
+				toastType = 'success';
+			} catch (err) {
+				console.error('Failed to copy:', err);
+				toastMessage = 'Failed!';
+				toastType = 'error';
+			} finally {
+				showToast = true;
+				setTimeout(() => {
+					showToast = false;
+					toastMessage = '';
+				}, 1000);
+			}
 		}
 	}
 </script>
@@ -132,7 +151,7 @@
 				<h3 class="mr-2 px-2 font-sans text-white text-sm">Type</h3>
 				{#each classControl as { code, key, label }}
 					<label
-						class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
+						class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 						for={key}
 					>
 						<input
@@ -159,46 +178,57 @@
 		</div>
 	</section>
 	<section id="output" class="flex flex-col">
-		<div class="flex items-center gap-2">
+		<div class="relative flex items-center gap-2">
 			<h3>Copy & paste to spreadsheet like Excel, Sheets, Numbers</h3>
 			<!-- Copy to clipboard icon/button -->
-			<button
-				type="button"
-				class="hover:bg-gray-200 p-1 rounded focus:outline-none copy-btn"
-				title="Copy to clipboard (for spreadsheet programs)"
-				onclick={() => copyOutputToClipboard()}
-			>
-				<!-- Simple clipboard SVG icon -->
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="20"
-					height="20"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
+			<div class="relative">
+				<button
+					type="button"
+					class="hover:bg-gray-200 p-1 rounded focus:outline-none copy-btn"
+					title="Copy to clipboard (for spreadsheet programs)"
+					onclick={() => copyOutputToClipboard()}
 				>
-					<rect
-						x="9"
-						y="9"
-						width="13"
-						height="13"
-						rx="2"
-						fill="#fff"
-						stroke="#888"
-						stroke-width="2"
-					/>
-					<rect
-						x="3"
-						y="3"
-						width="13"
-						height="13"
-						rx="2"
-						fill="#fff"
-						stroke="#888"
-						stroke-width="2"
-					/>
-				</svg>
-			</button>
+					<!-- Simple clipboard SVG icon -->
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<rect
+							x="6"
+							y="6"
+							width="13"
+							height="13"
+							rx="2"
+							fill="#fff"
+							stroke="#888"
+							stroke-width="2"
+						/>
+						<rect
+							x="3"
+							y="3"
+							width="13"
+							height="13"
+							rx="2"
+							fill="#fff"
+							stroke="#888"
+							stroke-width="2"
+						/>
+					</svg>
+				</button>
+				{#if showToast}
+					<div
+						class="toast-message absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 rounded shadow-lg text-white text-sm whitespace-nowrap
+							{toastType === 'success' ? 'bg-blue-600' : 'bg-red-500'}"
+						transition:fade
+					>
+						{toastMessage}
+					</div>
+				{/if}
+			</div>
 		</div>
 		<textarea
 			class="flex-1 border border-gray-500 border-dotted min-w-96 font-mono text-xs"
