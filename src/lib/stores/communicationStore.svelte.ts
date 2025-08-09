@@ -68,7 +68,7 @@ export const ClassType = {
 export const DATE_FIELDS = [
 	{ label: 'Assigned:', key: 'assigned' },
 	{ label: 'Due:', key: 'due' },
-	{ label: 'Late:', key: 'late' }
+	{ label: 'Make up:', key: 'late' }
 ];
 
 export enum Limit {

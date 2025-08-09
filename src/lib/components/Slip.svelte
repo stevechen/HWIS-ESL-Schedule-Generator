@@ -37,7 +37,7 @@
 </script>
 
 <div
-	class="block *:box-border relative p-4 border-gray-800 print:nth-of-type-[3n+2]:border-y *:border-gray-500 print:nth-of-type-[3n+2]:border-dotted h-[calc((257mm)/3)] font-sans text-xs print:nth-of-type-[3n+4]:break-before-page slip"
+	class="block *:box-border relative bg-white shadow-indigo-950 shadow-md print:shadow-none p-4 border-gray-800 *:border-gray-500 print:nth-of-type-[3n+2]:border-y print:nth-of-type-[3n+2]:border-dotted h-[calc((257mm)/3)] font-sans text-xs print:nth-of-type-[3n+4]:break-before-page slip"
 >
 	<h2 class="w-full h-[12%] font-semibold text-center">
 		ESL Communication Slip / ESL 課程溝通事項
