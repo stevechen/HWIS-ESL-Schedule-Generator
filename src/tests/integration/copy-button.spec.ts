@@ -1,14 +1,18 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Copy to clipboard feature', () => {
-	test.beforeEach(async ({ context }) => {
-		// Grant clipboard permissions for testing
-		await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+	test.beforeEach(async ({ context, browserName }) => {
+		// Grant clipboard permissions for testing, but only for browsers that support it
+		if (browserName !== 'webkit') {
+			await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+		}
 	});
 
-	test('should copy output to clipboard when copy button is clicked', async ({ page }) => {
+	test('should copy output to clipboard when copy button is clicked', async ({
+		page,
+		browserName
+	}) => {
 		await page.goto('/');
-
 		const outputTextarea = page.locator('section#output textarea');
 		const copyButton = page.locator('button.copy-btn');
 
@@ -40,8 +44,10 @@ test.describe('Copy to clipboard feature', () => {
 		await copyButton.click();
 
 		// Verify the clipboard content matches the textarea content exactly.
-		const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-		expect(clipboardText).toBe(textareaContent);
+		if (browserName !== 'webkit') {
+			const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+			expect(clipboardText).toBe(textareaContent);
+		}
 	});
 
 	test('should display a "Copied!" toast message on successful copy', async ({ page }) => {
