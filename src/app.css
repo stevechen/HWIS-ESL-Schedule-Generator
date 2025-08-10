@@ -19,7 +19,7 @@
 }
 
 @media print {
-		/* fix tailwindcss print: variant not working on Safari problem */
+		/* fix tailwindcss print: variant not working in dev mode on Safari problem */
   .print\:hidden {
     display: none;
   }

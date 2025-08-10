@@ -38,6 +38,7 @@
 
 <div
 	class="block *:box-border relative bg-white shadow-indigo-950 shadow-md print:shadow-none p-4 border-gray-800 *:border-gray-500 print:nth-of-type-[3n+2]:border-y print:nth-of-type-[3n+2]:border-dotted h-[calc((257mm)/3)] font-sans text-xs print:nth-of-type-[3n+4]:break-before-page slip"
+	data-testid="communication-slip"
 >
 	<h2 class="w-full h-[12%] font-semibold text-center">
 		ESL Communication Slip / ESL 課程溝通事項
@@ -116,7 +117,7 @@
 	}
 
 	@media print {
-		/* fix tailwindcss print: variant not working on Safari problem */
+		/* fix tailwindcss print: variant not working in dev mode on Safari problem */
 		.print\:shadow-none {
 			--tw-shadow: 0 0 #0000;
 			box-shadow:

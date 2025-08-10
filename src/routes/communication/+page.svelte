@@ -754,4 +754,15 @@
 			padding: 0;
 		}
 	}
+
+	@media print {
+		/* fix tailwindcss print: variant not working in dev mode on Safari problem */
+		.print\:m-0 {
+			margin: 0;
+		}
+
+		.print\:p-0 {
+			padding: 0;
+		}
+	}
 </style>
