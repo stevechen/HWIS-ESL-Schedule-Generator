@@ -114,4 +114,27 @@
 	* {
 		font-family: 'Microsoft JhengHei', 'Arial Unicode MS', Helvetica, Verdana, Tahoma, sans-serif;
 	}
+
+	@media print {
+		/* fix tailwindcss print: variant not working on Safari problem */
+		.print\:shadow-none {
+			--tw-shadow: 0 0 #0000;
+			box-shadow:
+				var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow),
+				var(--tw-ring-shadow), var(--tw-shadow);
+		}
+
+		.print\:nth-of-type-\[3n\+2\]\:border-y:nth-of-type(3n + 2) {
+			border-top-width: 1px;
+			border-bottom-width: 1px;
+		}
+
+		.print\:nth-of-type-\[3n\+2\]\:border-dotted:nth-of-type(3n + 2) {
+			border-style: dotted;
+		}
+
+		.print\:nth-of-type-\[3n\+4\]\:break-before-page:nth-of-type(3n + 4) {
+			break-before: page;
+		}
+	}
 </style>

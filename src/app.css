@@ -17,3 +17,11 @@
 		border-color: var(--color-gray-200, currentColor);
 	}
 }
+
+@media print {
+		/* fix tailwindcss print: variant not working on Safari problem */
+  .print\:hidden {
+    display: none;
+  }
+}
+
