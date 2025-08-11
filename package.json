@@ -16,7 +16,7 @@
 		"test:unit": "vitest",
 		"test:e2e": "playwright test && playwright test --browser=webkit",
 		"test:ui": "playwright test --ui",
-		"test-and-push": "echo 'Running tests...' && vitest --run && playwright test --browser=chromium && playwright test --browser=webkit && echo 'Pushing to git...' && git push origin master"
+		"test-and-push": "echo 'Tailscale connect…' && tailscale up && echo 'Running tests...' && vitest --run && playwright test --browser=chromium && playwright test --browser=webkit && echo 'Pushing to git...' && git push origin master && echo 'Tailscale disconnect…' && tailscale down"
 	},
 	"devDependencies": {
 		"@eslint-community/eslint-utils": "^4.7.0",
