@@ -66,26 +66,16 @@
 		// if we are close to semester 2, load the semester 2 events data
 		const currentMonth = new Date().getMonth();
 		const currentYear = new Date().getFullYear();
-		// console.log('Current month:', currentMonth, 'Current year:', currentYear);
 
 		const yearAndSemester =
 			currentMonth < CUT_OFF_MONTH - 1
 				? `${currentYear - 1}-${currentYear}-2`
 				: `${currentYear}-${currentYear + 1}-1`;
 
-		// console.log('Loading data for:', yearAndSemester);
-		// console.log(
-		// 	'CUT_OFF_MONTH:',
-		// 	CUT_OFF_MONTH,
-		// 	'currentMonth < CUT_OFF_MONTH - 1:',
-		// 	currentMonth < CUT_OFF_MONTH - 1
-		// );
-
 		let loadedData = await loadSchoolEvents(yearAndSemester);
 
 		if (loadedData) {
 			UIStateEventsText = loadedData;
-			// console.log('Data loaded successfully, length:', loadedData.length);
 		} else {
 			UIStateEventsText = 'Failed to load data';
 			console.error('Failed to load any school events data');
@@ -94,13 +84,11 @@
 
 	async function loadSchoolEvents(fileNamePrefix: string) {
 		try {
-			// console.log('Attempting to load:', fileNamePrefix);
 			const module = await import(`$lib/data/${fileNamePrefix}-schoolEvents.js`);
 			const data = module.schoolEvents
 				.split('\n')
 				.filter((line: string) => line.trim() !== '')
 				.join('\n');
-			// console.log('Loaded data for', fileNamePrefix, 'length:', data.length);
 			return data;
 		} catch (error) {
 			console.error(`Failed to load ${fileNamePrefix}-schoolEvents.js`, error);
