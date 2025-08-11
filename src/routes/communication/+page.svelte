@@ -400,7 +400,7 @@
 
 				<!-- MARK: ESL-level -->
 				<div
-					class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full"
+					class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-2 p-1 rounded-full"
 				>
 					{#each LEVEL_TYPE as { id, label, value }}
 						<label
@@ -415,7 +415,7 @@
 
 				<!-- MARK: ESL-type -->
 				<div
-					class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full"
+					class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-2 p-1 rounded-full"
 				>
 					{#each Object.entries(ClassType) as [type, value]}
 						<!-- only render out CLIL if class is not G9 -->
@@ -441,7 +441,7 @@
 				<div>
 					<input
 						type="number"
-						class={`appearance:textfield duration-400 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition ease-in invalid:rounded-sm  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+						class={`mx-1 appearance:textfield duration-400 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition ease-in invalid:rounded-sm  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
 						bind:value={UI_ClassNum}
 						placeholder="#?"
 						max="9"
