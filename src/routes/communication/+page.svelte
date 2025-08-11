@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte'; // Add onMount
 	import { browser } from '$app/environment';
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import Slip from '$lib/components/Slip.svelte';
@@ -31,10 +31,13 @@
 	const UI_Dates = $state(store.UI_Dates);
 	let signatureImage = $state(store.signatureImage);
 
-	$effect(() => {
-		// This runs only on the client after the component mounts, avoiding hydration errors.
-		if (browser && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-			signatureImage = 'sig.png';
+	// New onMount block to load from local storage - PLACED HERE
+	onMount(() => {
+		if (browser) {
+			const savedSignature = localStorage.getItem('signatureImage');
+			if (savedSignature) {
+				signatureImage = savedSignature;
+			}
 		}
 	});
 
@@ -191,7 +194,6 @@
 			return false;
 		}
 
-		// Create a URL for the file
 		const fileURL = URL.createObjectURL(file);
 		const img = new Image();
 
@@ -199,16 +201,21 @@
 			// Check if the image height is greater than 160px
 			if (img.height <= Limit.height) {
 				alert(`Image height must be greater than ${Limit.height}px.`);
-				URL.revokeObjectURL(img.src); // Clean up the URL object
 				return;
 			}
 			// Set the image URL if all checks pass
-			signatureImage = fileURL;
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				if (reader.result) {
+					signatureImage = reader.result as string;
+					localStorage.setItem('signatureImage', reader.result as string);
+				}
+			};
+			reader.readAsDataURL(file);
 		};
 
 		img.onerror = () => {
 			alert('Failed to load the image.');
-			URL.revokeObjectURL(img.src); // Clean up the URL object
 		};
 
 		img.src = fileURL;
@@ -250,6 +257,7 @@
 	function removeSignature(event: MouseEvent) {
 		event.stopPropagation(); // This stops the click event from bubbling up to parent elements
 		signatureImage = ''; // Clear the signature image
+		localStorage.removeItem('signatureImage'); // Remove from local storage
 		// Reset the file input value so the same file can be uploaded again
 		const input = document.getElementById('signature-upload') as HTMLInputElement | null;
 		if (input) input.value = '';
@@ -632,7 +640,7 @@
 
 <!-- svg icons -->
 <svg class="hidden" xmlns="http://www.w3.org/2000/svg" xml:space="preserve">
-	<g id="icon-student">
+	<symbol id="icon-student">
 		<path
 			class="st0"
 			d="M116.738,231.551c0,23.245,14.15,43.315,34.513,49.107c15.262,42.368,55.574,70.776,100.582,70.776 s85.32-28.408,100.58-70.776c20.365-5.792,34.515-25.854,34.515-49.107c0-15.691-6.734-30.652-18.061-40.248l1.661-8.921 c0-3.323-0.229-6.568-0.491-9.821l-0.212-2.593l-2.213,1.374c-30.871,19.146-80.885,27.71-116.754,27.71 c-34.85,0-83.895-8.214-114.902-26.568l-2.259-0.59l-0.188,2.554c-0.192,2.632-0.384,5.256-0.357,8.23l1.632,8.649 C123.466,200.923,116.738,215.876,116.738,231.551z"
@@ -648,8 +656,8 @@
 			d="M131.67,131.824c0,18.649,56.118,42.306,119.188,42.306s119.188-23.656,119.188-42.306v-25.706l43.503-17.702 v55.962c-5.068,0.792-8.964,5.186-8.964,10.45c0,4.503,2.966,8.432,7.242,9.852l-8.653,57.111h40.704l-8.651-57.111 c4.27-1.421,7.232-5.35,7.232-9.852c0-5.295-3.919-9.697-9.014-10.466l-0.21-67.197c0.357-0.621,0.357-1.266,0.357-1.607 c0-0.342,0-0.978-0.149-0.978h-0.002c-0.262-2.446-2.011-4.612-4.56-5.652l-11.526-4.72L267.551,3.238 C262.361,1.118,256.59,0,250.858,0s-11.502,1.118-16.69,3.238L72.834,68.936c-2.863,1.172-4.713,3.773-4.713,6.622 c0,2.842,1.848,5.443,4.716,6.63l58.833,23.928V131.824z"
 		>
 		</path>
-	</g>
-	<g id="icon-inkWell">
+	</symbol>
+	<symbol id="icon-inkWell">
 		<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
 			<g id="des-ink-well" fill="currentColor">
 				<path
@@ -669,8 +677,8 @@
 				</path>
 			</g>
 		</g>
-	</g>
-	<g id="icon-calendar">
+	</symbol>
+	<symbol id="icon-calendar">
 		<path
 			d="M499.641,320.573c-12.207-3.251-25.021-5.011-38.25-5.011c-1.602,0-3.189,0.071-4.781,0.119 c-78.843,2.506-142.118,66.556-143.375,145.709c-0.015,0.799-0.062,1.587-0.062,2.391c0,15.85,2.515,31.102,7.119,45.422 C339.474,568.835,395.381,612,461.391,612c81.859,0,148.219-66.359,148.219-148.219 C609.609,395.151,562.954,337.441,499.641,320.573z M461.391,561.797c-54.133,0-98.016-43.883-98.016-98.016 s43.883-98.016,98.016-98.016s98.016,43.883,98.016,98.016S515.523,561.797,461.391,561.797z"
 		>
@@ -695,8 +703,8 @@
 		<circle cx="364.867" cy="260.578" r="37.954"></circle>
 		<circle cx="251.016" cy="375.328" r="37.953"></circle>
 		<circle cx="137.165" cy="375.328" r="37.953"></circle>
-	</g>
-	<g id="icon-spin">
+	</symbol>
+	<symbol id="icon-spin">
 		<path
 			opacity="0.2"
 			fill-rule="evenodd"
@@ -709,13 +717,13 @@
 			d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
 			fill="currentColor"
 		/>
-	</g>
-	<g id="icon-trash">
+	</symbol>
+	<symbol id="icon-trash">
 		<path
 			fill="currentColor"
 			d="M15 4c-.522 0-1.06.185-1.438.563C13.185 4.94 13 5.478 13 6v1H7v2h1v16c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V9h1V7h-6V6c0-.522-.185-1.06-.563-1.438C20.06 4.186 19.523 4 19 4zm0 2h4v1h-4zm-5 3h14v16c0 .555-.445 1-1 1H11c-.555 0-1-.445-1-1zm2 3v11h2V12zm4 0v11h2V12zm4 0v11h2V12z"
 		/>
-	</g>
+	</symbol>
 </svg>
 
 <style>

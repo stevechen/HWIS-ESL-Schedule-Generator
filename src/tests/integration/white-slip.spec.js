@@ -397,51 +397,33 @@ test.describe('Student Inclusion/Exclusion', () => {
 	});
 });
 
-test.describe('Signature Upload', () => {
-	const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-	
-	async function uploadSignature(page, image) {
-		// Construct the absolute path to the fixture file. Using path.join for the
-		// full path is more robust across different operating systems.
-		const fixturePath = path.join(__dirname, 'fixtures', image);
+async function uploadSignature(page, image) {
+	// Construct the absolute path to the fixture file. Using path.join for the
+	// full path is more robust across different operating systems.
+	const fixturePath = path.join(__dirname, 'fixtures', image);
 
-		// Before asking Playwright to upload the file, we can add a quick check
-		// to see if the file actually exists. This provides a much clearer error
-		// message ("Fixture file not found...") than a generic Playwright timeout.
-		try {
-			await fs.access(fixturePath);
-		} catch {
-			// If fs.access throws, the file doesn't exist or we can't access it.
-			throw new Error(`Test setup error: Fixture file not found at ${fixturePath}`);
-		}
-
-		// The rest of the upload logic remains the same.
-		const fileChooserPromise = page.waitForEvent('filechooser');
-		await page.locator('#browse').click();
-		const fileChooser = await fileChooserPromise;
-		await fileChooser.setFiles(fixturePath);
+	// Before asking Playwright to upload the file, we can add a quick check
+	// to see if the file actually exists. This provides a much clearer error
+	// message ("Fixture file not found...") than a generic Playwright timeout.
+	try {
+		await fs.access(fixturePath);
+	} catch {
+		// If fs.access throws, the file doesn't exist or we can't access it.
+		throw new Error(`Test setup error: Fixture file not found at ${fixturePath}`);
 	}
 
+	// The rest of the upload logic remains the same.
+	const fileChooserPromise = page.waitForEvent('filechooser');
+	await page.locator('#browse').click();
+	const fileChooser = await fileChooserPromise;
+	await fileChooser.setFiles(fixturePath);
+}
+
+test.describe('Signature Upload', () => {
 	test.beforeEach(async ({ page, context }) => {
 		await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
-
-		// Safely remove the signature if it exists, awaiting every step.
-		const filePath = path.join(__dirname, '..', '..', '..', 'static', 'sig.png');
-
-		try {
-			// Check if the file exists using promises
-			await fs.access(filePath);
-
-			// If the file exists, the signature preview should be visible.
-			// Click the remove button and wait for the preview to disappear.
-			const removeSignatureButton = page.locator('#remove-signature');
-			await removeSignatureButton.click();
-			await expect(page.locator('.signature-preview')).toBeHidden();
-		} catch (error) {
-			// If the file doesn't exist, fs.access throws. We can safely ignore it
-			// as it means there's no signature to remove.
-		}
 	});
 
 	test('should reject signature images too short in height', async ({ page }) => {
@@ -505,5 +487,46 @@ test.describe('Signature Upload', () => {
 		// Try uploading the same file again
 		await uploadSignature(page, 'sig_test.png');
 		await expect(page.locator('.signature-preview')).toBeVisible();
+	});
+
+	test('should save and load signature image from local storage', async ({ page, context }) => {
+		await page.goto('/communication');
+		await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+
+		// Clear local storage before starting the test to ensure a clean state
+		await page.evaluate(() => localStorage.clear());
+
+		const signaturePreview = page.locator('.signature-preview');
+		const removeSignatureButton = page.locator('#remove-signature');
+
+		// 1. Upload a signature image using the helper function
+		await uploadSignature(page, 'sig_test.png');
+
+		// Wait for the image to be processed and displayed
+		await expect(signaturePreview).toBeVisible();
+		// Verify that the src attribute is a base64 encoded image
+		await expect(signaturePreview).toHaveAttribute('src', /data:image\/(png|jpeg);base64,.+/);
+
+		// Check that the image data is in local storage
+		const storedImage = await page.evaluate(() => localStorage.getItem('signatureImage'));
+		expect(storedImage).toMatch(/data:image\/(png|jpeg);base64,.+/);
+
+		// 2. Reload the page and verify image persists
+		await page.reload();
+		await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+		await expect(signaturePreview).toBeVisible();
+		await expect(signaturePreview).toHaveAttribute('src', /data:image\/(png|jpeg);base64,.+/);
+
+		// 3. Remove the signature
+		await removeSignatureButton.click();
+		await expect(signaturePreview).not.toBeVisible();
+		// Check that the image data is removed from local storage
+		expect(await page.evaluate(() => localStorage.getItem('signatureImage'))).toBeNull();
+
+		// 4. Reload the page and verify image is still gone
+		await page.reload();
+		await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+		await expect(signaturePreview).not.toBeVisible();
+		expect(await page.evaluate(() => localStorage.getItem('signatureImage'))).toBeNull();
 	});
 });
