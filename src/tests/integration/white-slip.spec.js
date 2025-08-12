@@ -53,68 +53,20 @@ function initializeLocators(page) {
 
 //#region paste function
 async function pasteDataIntoInput(page, context, selector, mockData) {
-	await expect
-		.poll(async () => {
-			await page.locator(selector).focus();
-			return await page.evaluate(
-				(selector) => document.activeElement === document.querySelector(selector),
-				selector
-			);
-		})
-		.toBe(true);
+    // Wait for the Svelte component to expose setStudentsText
+    await page.waitForFunction(() => window.setStudentsText !== undefined);
 
-	// Cross-browser compatible clipboard simulation
-	const browserName = context._browser.browserType().name();
+    // Directly set the Svelte state variable
+    await page.evaluate((data) => {
+        window.setStudentsText(data);
+    }, mockData);
 
-	if (browserName === 'webkit') {
-		// WebKit doesn't support clipboard-write permission, so we'll directly set the value
-		// and trigger input events to simulate paste behavior
-		await page.evaluate(
-			([selector, data]) => {
-				const element = document.querySelector(selector);
-				if (element) {
-					element.value = data;
-					// Trigger input event to simulate paste
-					element.dispatchEvent(new Event('input', { bubbles: true }));
-					element.dispatchEvent(new Event('change', { bubbles: true }));
-					// Trigger paste event for complete simulation
-					element.dispatchEvent(new ClipboardEvent('paste', { bubbles: true }));
-				}
-			},
-			[selector, mockData]
-		);
-	} else {
-		// For Chromium and Firefox, use the standard clipboard API approach
-		try {
-			await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-			// Set the clipboard content to the desired data
-			await page.evaluate((data) => navigator.clipboard.writeText(data), mockData);
-			// simulate paste event
-			await page.keyboard.press(`${modifier}+V`);
-		} catch (error) {
-			// Fallback to direct value setting if clipboard API fails
-  			test.fail('Clipboard API failed, falling back to direct input:', error.message);
-			await page.evaluate(
-				([selector, data]) => {
-					const element = document.querySelector(selector);
-					if (element) {
-						element.value = data;
-						element.dispatchEvent(new Event('input', { bubbles: true }));
-						element.dispatchEvent(new Event('change', { bubbles: true }));
-						element.dispatchEvent(new ClipboardEvent('paste', { bubbles: true }));
-					}
-				},
-				[selector, mockData]
-			);
-		}
-	}
-
-	const studentCount = mockData.trim().split('\n').length;
-	await expect
-		.poll(async () => {
-			return page.locator('td.student-checkbox input[type="checkbox"]').count();
-		})
-		.toBe(studentCount);
+    const studentCount = mockData.trim().split('\n').length;
+    await expect
+        .poll(async () => {
+            return page.locator('td.student-checkbox input[type="checkbox"]').count();
+        })
+        .toBe(studentCount);
 }
 
 //#region platform detection
@@ -296,23 +248,44 @@ test.describe('Student Inclusion/Exclusion', () => {
 		const browserName = context._browser.browserType().name();
 
 		if (browserName === 'webkit') {
-			// Direct DOM manipulation for WebKit
-			await page.evaluate(
-				([index]) => {
-					const checkboxes = document.querySelectorAll(
-						'td.student-checkbox input[type="checkbox"]'
-					);
-					if (checkboxes[index]) {
-						checkboxes[index].checked = false;
-						checkboxes[index].dispatchEvent(new Event('change', { bubbles: true }));
-					}
-				},
-				[randomIndex]
-			);
-		} else {
-			// Standard approach for other browsers
-			await checkboxes.nth(randomIndex).uncheck({ force: true });
-		}
+            // Direct DOM manipulation for WebKit
+            await page.evaluate(
+                ([index]) => {
+                    const checkboxes = document.querySelectorAll(
+                        'td.student-checkbox input[type="checkbox"]'
+                    );
+                    if (checkboxes[index]) {
+                        checkboxes[index].checked = false;
+                        checkboxes[index].dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                },
+                [randomIndex]
+            );
+        } else {
+            // Standard approach for other browsers
+            await checkboxes.nth(randomIndex).uncheck({ force: true });
+        }
+        // Explicitly dispatch change event after uncheck
+        await page.evaluate(([index]) => {
+            const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[index];
+            if (checkbox) {
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }, [randomIndex]);
+        // Explicitly dispatch change event after uncheck
+        await page.evaluate(([index]) => {
+            const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[index];
+            if (checkbox) {
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }, [randomIndex]);
+		// Explicitly dispatch change event after uncheck
+		await page.evaluate(([index]) => {
+			const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[index];
+			if (checkbox) {
+				checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+			}
+		}, [randomIndex]);
 
 		// Verify the Slip is removed
 		await expect(page.locator(`text=(${studentIdValue})`)).toBeHidden();

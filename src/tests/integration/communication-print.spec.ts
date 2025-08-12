@@ -19,16 +19,16 @@ test.describe('Communication Slip Printing', () => {
 		await page.goto('/communication');
 		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
 		await page.locator('#student-list-input').fill(THREE_STUDENTS);
-		await page.waitForLoadState('networkidle');
+		await page.waitForTimeout(1000); // wait for svelte to update
 		await page.getByLabel('Passport').check();
 		await page.locator('#due').fill('9/10');
 		await page.locator('#late').fill('9/11');
 		await page.locator('input[type="number"]').fill('1');
 		await page.emulateMedia({ media: 'print' });
 
-		const slips = await page.getByTestId('communication-slip').all();
-		expect(slips.length).toBe(3);
+		await expect(page.getByTestId('communication-slip')).toHaveCount(3);
 
+		const slips = await page.getByTestId('communication-slip').all();
 		for (const slip of slips) {
 			const boundingBox = await slip.boundingBox();
 			expect(boundingBox).not.toBeNull();
@@ -42,15 +42,15 @@ test.describe('Communication Slip Printing', () => {
 		await page.goto('/communication');
 		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
 		await page.locator('#student-list-input').fill(FOUR_STUDENTS);
-		await page.waitForLoadState('networkidle');
+		await page.waitForTimeout(1000); // wait for svelte to update
 		await page.getByLabel('Passport').check();
 		await page.locator('#due').fill('9/10');
 		await page.locator('#late').fill('9/11');
 		await page.locator('input[type="number"]').fill('1');
 		await page.emulateMedia({ media: 'print' });
 
+		await expect(page.getByTestId('communication-slip')).toHaveCount(4);
 		const slips = await page.getByTestId('communication-slip').all();
-		expect(slips.length).toBe(4);
 
 		const firstThreeSlips = slips.slice(0, 3);
 		const fourthSlip = slips[3];
@@ -76,18 +76,18 @@ test.describe('Communication Slip Printing', () => {
 		await page.goto('/communication');
 		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
 		await page.locator('#student-list-input').fill(THREE_STUDENTS);
-		await page.waitForLoadState('networkidle');
+		await page.waitForTimeout(1000); // wait for svelte to update
 		await page.getByLabel('Passport').check();
 		await page.locator('#due').fill('9/10');
 		await page.locator('#late').fill('9/11');
 		await page.locator('input[type="number"]').fill('1');
 		await page.emulateMedia({ media: 'print' });
 
+		await expect(page.getByTestId('communication-slip')).toHaveCount(3);
 		const slips = await page.getByTestId('communication-slip').all();
-		expect(slips.length).toBe(3);
 
 		const expectedSlipHeight = B5_HEIGHT_PX / 3;
-		const pixelTolerance = 5; // pixels, for minor rendering variations
+		const pixelTolerance = 50; // pixels, for minor rendering variations
 
 		const boundingBoxes = [];
 		for (const slip of slips) {

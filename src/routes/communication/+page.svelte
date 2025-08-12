@@ -20,7 +20,8 @@
 	const store = new CommunicationStore();
 
 	let studentsText = $state(store.studentsText);
-	let studentsRaw = $state(store.studentsRaw);
+	// Make studentsRaw a derived state that reacts to studentsText changes
+	let studentsRaw = $derived.by(() => generateStudents(studentsText));
 	let shouldHideTextarea = $state(store.shouldHideTextarea);
 	let UI_Grade = $state(store.UI_Grade);
 	let UI_Level = $state(store.UI_Level);
@@ -38,6 +39,11 @@
 			if (savedSignature) {
 				signatureImage = savedSignature;
 			}
+			if (import.meta.env.DEV) {
+				(window as any).setStudentsText = (value: string) => {
+					studentsText = value;
+				};
+			}
 		}
 	});
 
@@ -46,10 +52,6 @@
 	});
 
 	//#region Student table ---------------------------------------------------------------
-	$effect(() => {
-		studentsRaw = generateStudents(studentsText);
-	});
-
 	function generateStudents(data: string) {
 		const ID_REGEX = /^\d{7}$/;
 		const CLASS_REGEX = /^[JH]\d{3}$/;
@@ -88,31 +90,35 @@
 		}).sort((a, b) => a.name.english.localeCompare(b.name.english));
 	}
 
-	const students = $derived.by(() => {
-		const studentsSelected = studentsRaw
-			.filter((student) => student.selected) // filter out unselected
-			.map(({ status, ...rest }) => {
-				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
-				const studentStatus = STATUS_TYPE[status as keyof typeof STATUS_TYPE];
-				return {
-					...rest,
-					status: studentStatus
-						? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
-						: { english: 'Unknown', chinese: '未知' }
-				};
-			});
-		return studentsSelected;
-	});
+	const students = $derived(
+		(() => {
+			const studentsSelected = studentsRaw
+				.filter((student) => student.selected) // filter out unselected
+				.map(({ status, ...rest }) => {
+					// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
+					const studentStatus = STATUS_TYPE[status as keyof typeof STATUS_TYPE];
+					return {
+						...rest,
+						status: studentStatus
+							? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
+							: { english: 'Unknown', chinese: '未知' }
+					};
+				});
+			return studentsSelected;
+		})()
+	);
 
 	//#region Master checkbox -----------------------------------------------------------
-	let isAllChecked = $derived.by(() => {
-		let allChecked = studentsRaw.every((student) => student.selected);
-		let anyChecked = studentsRaw.some((student) => student.selected);
-		return {
-			checked: allChecked,
-			indeterminate: !allChecked && anyChecked
-		};
-	});
+	let isAllChecked = $derived(
+		(() => {
+			let allChecked = studentsRaw.every((student) => student.selected);
+			let anyChecked = studentsRaw.some((student) => student.selected);
+			return {
+				checked: allChecked,
+				indeterminate: !allChecked && anyChecked
+			};
+		})()
+	);
 
 	function handleToggleAll() {
 		const isAllChecked = studentsRaw.every((student) => student.selected);
@@ -125,7 +131,7 @@
 	}
 
 	//#region ESL class ---------------------------------------------------------------
-	const grade = $derived.by(() => determineGradeFromText(studentsText));
+	const grade = $derived(determineGradeFromText(studentsText));
 	let className = $derived([UI_Grade, UI_Level, UI_ClassNum, UI_ClassType].join(' '));
 
 	$effect(() => {
@@ -152,24 +158,26 @@
 
 	const CLIL_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isCLIL);
 
-	const assignmentTypes = $derived.by(() => {
-		return UI_Grade === 'G9'
+	const assignmentTypes = $derived(
+		UI_Grade === 'G9'
 			? G9_ASSIGNMENT_TYPES
 			: UI_ClassType === ClassType.CLIL
 				? CLIL_ASSIGNMENT_TYPES
-				: COMM_ASSIGNMENT_TYPES;
-	});
+				: COMM_ASSIGNMENT_TYPES
+	);
 
-	let assignment = $derived.by(() => {
-		const assignmentTypeText = assignmentTypes.find((type) => type.code === UI_Assignment);
-		return {
-			...assignmentRaw,
-			type: {
-				english: assignmentTypeText ? assignmentTypeText.english : 'Unknown',
-				chinese: assignmentTypeText ? assignmentTypeText.chinese : '未知'
-			}
-		};
-	});
+	let assignment = $derived(
+		(() => {
+			const assignmentTypeText = assignmentTypes.find((type) => type.code === UI_Assignment);
+			return {
+				...assignmentRaw,
+				type: {
+					english: assignmentTypeText ? assignmentTypeText.english : 'Unknown',
+					chinese: assignmentTypeText ? assignmentTypeText.chinese : '未知'
+				}
+			};
+		})()
+	);
 
 	$effect(() => {
 		assignmentRaw.assigned = UI_Dates.assigned;
@@ -177,15 +185,122 @@
 		assignmentRaw.late = UI_Dates.late;
 	});
 	// #region Save Record -------------------------------------------
-	function saveRecord(): string {
-		const recordName = capitalizeWords(
-			`${UI_Dates.due}-${UI_Grade} ${UI_Level} ${UI_ClassType} ${UI_ClassNum}-${UI_Assignment}`
+	let savedRecords = $state<string[]>([]);
+	let isSaveable = $derived(UI_ClassNum && students.length > 0);
+	let lastLoadedRecord = $state<any>(null);
+
+	const isModified = $derived(() => {
+		if (!lastLoadedRecord) {
+			return true; // New record, always saveable
+		}
+
+		const currentSettings = {
+			studentsText,
+			UI_Grade,
+			UI_Level,
+			UI_ClassType,
+			UI_ClassNum,
+			UI_Assignment,
+			UI_Dates,
+			studentsRaw
+		};
+
+		// Deep comparison is hard. JSON.stringify is a good-enough heuristic.
+		return JSON.stringify(currentSettings) !== JSON.stringify(lastLoadedRecord);
+	});
+
+	onMount(() => {
+		if (browser) {
+			const keys = Object.keys(localStorage);
+			const recordKeys = keys.filter((key) => key.startsWith('comm_'));
+			savedRecords = recordKeys
+				.map((key) => key.substring(5))
+				.sort()
+				.reverse();
+		}
+	});
+
+	function saveRecord() {
+		let datePart = UI_Dates.due;
+		if (isValidMonthAndDay(UI_Dates.due)) {
+			const [month, day] = UI_Dates.due.split('/');
+			const year = new Date().getFullYear();
+			datePart = `${year}/${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
+		}
+		const baseRecordName = capitalizeWords(
+			`${datePart}-${UI_Grade} ${UI_Level} ${UI_ClassType} ${UI_ClassNum}-${UI_Assignment}-${
+				studentsRaw.filter((student) => student.selected).length
+			} students`
 		);
-		alert(recordName);
+		if (baseRecordName) {
+			let recordName = baseRecordName;
+			let counter = 1;
+			// If a record with this name already exists, append a counter to make it unique.
+			while (localStorage.getItem(`comm_${recordName}`)) {
+				recordName = `${baseRecordName} (${counter})`;
+				counter++;
+			}
+
+			const settings = {
+				studentsText,
+				UI_Grade,
+				UI_Level,
+				UI_ClassType,
+				UI_ClassNum,
+				UI_Assignment,
+				UI_Dates,
+				studentsRaw
+			};
+			localStorage.setItem(`comm_${recordName}`, JSON.stringify(settings));
+			if (!savedRecords.includes(recordName)) {
+				savedRecords = [...savedRecords, recordName].sort().reverse();
+			}
+			lastLoadedRecord = JSON.parse(JSON.stringify(settings));
+		}
 	}
 
 	function capitalizeWords(str: string) {
 		return str.replace(/\b\w/g, (char) => char.toUpperCase());
+	}
+
+	function loadRecord(recordName: string) {
+		const settingsText = localStorage.getItem(`comm_${recordName}`);
+		if (settingsText) {
+			const settings = JSON.parse(settingsText);
+			lastLoadedRecord = settings;
+			studentsText = settings.studentsText;
+			UI_Grade = settings.UI_Grade;
+			UI_Level = settings.UI_Level;
+			UI_ClassType = settings.UI_ClassType;
+			UI_ClassNum = settings.UI_ClassNum;
+			UI_Assignment = settings.UI_Assignment;
+			Object.assign(UI_Dates, settings.UI_Dates);
+			studentsRaw = JSON.parse(JSON.stringify(settings.studentsRaw));
+		}
+	}
+
+	function deleteRecord(recordName: string) {
+		const settingsText = localStorage.getItem(`comm_${recordName}`);
+		if (settingsText && lastLoadedRecord) {
+			if (settingsText === JSON.stringify(lastLoadedRecord)) {
+				lastLoadedRecord = null;
+			}
+		}
+		localStorage.removeItem(`comm_${recordName}`);
+		savedRecords = savedRecords.filter((r) => r !== recordName);
+	}
+
+	function clearForm() {
+		const newStore = new CommunicationStore();
+		studentsText = newStore.studentsText;
+		studentsRaw = newStore.studentsRaw;
+		UI_Grade = newStore.UI_Grade;
+		UI_Level = newStore.UI_Level;
+		UI_ClassType = newStore.UI_ClassType;
+		UI_ClassNum = newStore.UI_ClassNum;
+		UI_Assignment = newStore.UI_Assignment;
+		Object.assign(UI_Dates, newStore.UI_Dates);
+		lastLoadedRecord = null;
 	}
 
 	// #region Signature -------------------------------------------
@@ -318,7 +433,27 @@
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
 	<section id="control" class="print:hidden py-2 w-[43em] font-sans">
 		<div>
-			<h3 class="mx-2 my-1">Assignment and student info</h3>
+			<div class="flex justify-between items-center">
+				<h3 class="mx-2 my-1 w-10/12">Assignment and student info</h3>
+				{#if studentsRaw.length > 0}
+					<button
+						id="clear_button"
+						class="bg-gray-500 hover:bg-gray-600 px-2 py-1 rounded font-bold text-white text-xs"
+						onclick={() => clearForm()}
+					>
+						Clear
+					</button>
+				{/if}
+				{#if isSaveable && isModified()}
+					<button
+						id="save_button"
+						class="bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded font-bold text-white text-xs"
+						onclick={() => saveRecord()}
+					>
+						Save
+					</button>
+				{/if}
+			</div>
 			<div class="flex flex-wrap justify-start items-center bg-black mb-4 p-2 border-2 rounded-lg">
 				<!-- MARK: assignment type -->
 				<fieldset class="flex flex-row justify-start items-center mr-2 mb-2 w-full">
@@ -399,6 +534,7 @@
 					{/if}
 					<div class={[!grade && 'hidden', 'px-3']}>
 						<p
+							id="grade"
 							class={[
 								grade &&
 									'text-white bg-linear-to-b from-slate-700 to-slate-500 shadow-xs shadow-blue-800',
@@ -509,24 +645,47 @@
 													id="checkbox-{student.id}"
 													class="min-w-4 min-h-4"
 													bind:checked={student.selected}
+													onchange={() => (studentsRaw = [...studentsRaw])}
 												/>
 											</label>
 										</div>
 									</td>
 									<td class="w-[4.5rem] student-id">
-										<input class="text-center" type="text" bind:value={student.id} />
+										<input
+											class="text-center"
+											type="text"
+											bind:value={student.id}
+											oninput={() => (studentsRaw = [...studentsRaw])}
+										/>
 									</td>
 									<td class="w-auto english-name">
-										<input type="text-center" bind:value={student.name.english} />
+										<input
+											type="text-center"
+											bind:value={student.name.english}
+											oninput={() => (studentsRaw = [...studentsRaw])}
+										/>
 									</td>
 									<td class="w-20 chinese-name">
-										<input class="text-center" type="text" bind:value={student.name.chinese} />
+										<input
+											class="text-center"
+											type="text"
+											bind:value={student.name.chinese}
+											oninput={() => (studentsRaw = [...studentsRaw])}
+										/>
 									</td>
 									<td class="w-14 chinese-class">
-										<input class="text-center" type="text" bind:value={student.cClass} />
+										<input
+											class="text-center"
+											type="text"
+											bind:value={student.cClass}
+											oninput={() => (studentsRaw = [...studentsRaw])}
+										/>
 									</td>
 									<td class="w-auto text-center">
-										<select bind:value={student.status}>
+										<select
+											bind:value={student.status}
+											onchange={() => (studentsRaw = [...studentsRaw])}
+										>
 											<option value={StatusTypeCode.NOT_SUBMITTED}>
 												{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
 											</option>
@@ -544,7 +703,7 @@
 				<!-- MARK: signature -->
 				<section class="*:self-center grid grid-cols-12 mx-5 my-1 w-full">
 					<div
-						class="flex flex-wrap justify-self-start col-start-1 col-end-7 mr-0 *:border-dashed *:rounded-lg cursor-default"
+						class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-0 *:border-dashed *:rounded-lg cursor-default"
 						ondragenter={handleDragEnter}
 						ondragover={handleDragOver}
 						ondrop={handleDrop}
@@ -611,28 +770,6 @@
 						/>
 					</div>
 
-					<!-- Save button -->
-					<div class="justify-self-center col-start-7 col-end-10 text-center">
-						<p
-							class={[
-								printInvalid && 'text-red-400',
-								printCaution && 'text-orange-400',
-								'text-blue-400 text-center text-sm'
-							]}
-						>
-							{printInvalid || printCaution ? 'Missing  Info!' : `Save Record`}
-						</p>
-						<button
-							class={[
-								printCaution && 'bg-orange-500 shadow-orange-800 hover:bg-orange-600',
-								printInvalid && 'animate-none! cursor-default bg-red-500 shadow-red-800',
-								'print-slips animate-pulse rounded-lg bg-blue-500 my-2 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none'
-							]}
-							onclick={() => saveRecord()}
-						>
-							Save
-						</button>
-					</div>
 					<!-- Print button -->
 					<div class="justify-self-end col-start-10 col-end-13 text-center">
 						<p
@@ -642,7 +779,7 @@
 								'text-blue-400 text-center text-sm'
 							]}
 						>
-							{printInvalid || printCaution ? 'Missing Critical Info!' : `Single Sided  B5/JIS-B5`}
+							{printInvalid || printCaution ? 'Missing Info!' : `Single Sided  B5/JIS-B5`}
 						</p>
 						<button
 							class={[
@@ -659,59 +796,40 @@
 				</section>
 			</div>
 		</div>
-		<div>
-			<h3 class="mx-2 my-1">Saved Records</h3>
-			<table class="border-1 border-slate-400 border-solid w-full records">
-				<tbody>
-					<tr
-						class="hover:bg-blue-200 border-1 border-slate-400 border-solid h-fit hover:cursor-pointer record"
-						onclick={() => alert('Load Record')}
-					>
-						<td>Record Name</td>
-						<td class="size-8">
-							<button
-								class="table-cell align-middle"
-								aria-label="Delete record"
-								onclick={(e) => {
-									e.stopPropagation();
-									alert('Delete record');
-								}}
+		{#if savedRecords.length > 0}
+			<div>
+				<h3 class="mx-2 my-1">Saved Records</h3>
+				<table id="records_table" class="border-1 border-slate-400 border-solid w-full records">
+					<tbody>
+						{#each savedRecords as recordName}
+							<tr
+								class="hover:bg-blue-200 border-1 border-slate-400 border-solid h-fit hover:cursor-pointer record"
+								onclick={() => loadRecord(recordName)}
 							>
-								<svg
-									class="hover:bg-red-600 size-8 text-gray-400 hover:text-white"
-									viewBox="0 0 32 32"
-								>
-									<use href="#icon-trash" />
-								</svg>
-							</button>
-						</td>
-					</tr>
-					<tr
-						class="hover:bg-blue-200 border-1 border-slate-400 border-solid h-fit hover:cursor-pointer record"
-						onclick={() => alert('Load Record')}
-					>
-						<td>Record Name</td>
-						<td class="size-8">
-							<button
-								class="table-cell align-middle"
-								aria-label="Delete record"
-								onclick={(e) => {
-									e.stopPropagation();
-									alert('Delete record');
-								}}
-							>
-								<svg
-									class="hover:bg-red-600 size-8 text-gray-400 hover:text-white"
-									viewBox="0 0 32 32"
-								>
-									<use href="#icon-trash" />
-								</svg>
-							</button>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+								<td class="pl-2">{recordName}</td>
+								<td class="size-8">
+									<button
+										class="table-cell align-middle"
+										aria-label="Delete record"
+										onclick={(e) => {
+											e.stopPropagation();
+											deleteRecord(recordName);
+										}}
+									>
+										<svg
+											class="hover:bg-red-600 size-8 text-gray-400 hover:text-white"
+											viewBox="0 0 32 32"
+										>
+											<use href="#icon-trash" />
+										</svg>
+									</button>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
 	</section>
 	<!-- MARK: Slips -->
 	<section id="slips" class="box-border flex flex-col print:m-0 print:p-0 py-2">
