@@ -1,3 +1,5 @@
+ /* global Event, window, document, localStorage */
+
 import { test, expect } from '@playwright/test';
 import fs from 'fs/promises'; // Use promises-based fs for async/await
 import path from 'path';
@@ -70,7 +72,7 @@ async function pasteDataIntoInput(page, context, selector, mockData) {
 }
 
 //#region platform detection
-const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+// const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
 
 test.describe('Assignment Handling', () => {
 	test('should hide workbook, speech assignment type for G9', async ({ page, context }) => {

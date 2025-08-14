@@ -1,4 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
+interface CustomWindow extends Window {
+	setStudentsText: (studentsText: string) => void;
+}
+
+declare let window: CustomWindow;
 
 test.beforeEach(async ({ page }) => {
 	await page.goto('/communication');
@@ -7,14 +12,12 @@ test.beforeEach(async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded'); // Wait for the DOM to be loaded
 });
 
-const sampleStudentsText = `1234567\t张三\tZhang San\tJ101
+const sampleStudentsText = `1234567\t張三\tChang San\tJ101
 2345678\t李四\tSi Li\tJ102`;
-
-const sampleStudentsText2 = `9876543\t王五\tWang Wu\tJ203`; // New sample data
 
 const fillForm = async (page: Page) => {
 	// Use window.setStudentsText for direct state manipulation
-	await page.waitForFunction(() => (window as any).setStudentsText !== undefined);
+	await page.waitForFunction(() => window.setStudentsText !== undefined);
 	await page.locator('#student-list-input').fill(sampleStudentsText);
 	// Wait for the student table to appear after setting studentsText
 	await expect(page.locator('table.table-auto')).toBeVisible();
@@ -114,7 +117,7 @@ test('2. Loading a Saved Record', async ({ page }) => {
 	};
 	await page.evaluate(
 		([key, settings]) => {
-			localStorage.setItem(key, JSON.stringify(settings));
+			localStorage.setItem(String(key), JSON.stringify(settings));
 		},
 		[recordKey, savedSettings]
 	);
@@ -152,7 +155,7 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	const recordName = 'RecordToDelete';
 	const recordKey = `comm_${recordName}`;
 	const savedSettings = {
-		studentsText: '1111111\t赵六\tZhao Liu\tJ304',
+		studentsText: '1111111\t小明\tMing Liu\tJ304',
 		UI_Grade: 'G9',
 		UI_Level: 'intermediate',
 		UI_ClassType: 'CLIL',
@@ -162,7 +165,7 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 		studentsRaw: [
 			{
 				id: '1111111',
-				name: { english: 'Zhao Liu', chinese: '赵六' },
+				name: { english: 'Ming Liu', chinese: '小明' },
 				cClass: 'J304',
 				status: 0,
 				selected: true
@@ -171,7 +174,7 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	};
 	await page.evaluate(
 		([key, settings]) => {
-			localStorage.setItem(key, JSON.stringify(settings));
+			localStorage.setItem(String(key), JSON.stringify(settings));
 		},
 		[recordKey, savedSettings]
 	);
@@ -197,7 +200,7 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	// First, load the record
 	await page.evaluate(
 		([key, settings]) => {
-			localStorage.setItem(key, JSON.stringify(settings));
+			localStorage.setItem(String(key), JSON.stringify(settings));
 		},
 		[recordKey, savedSettings]
 	);
