@@ -263,8 +263,8 @@
 			</div>
 		</div>
 		<textarea
+			id="output_textarea"
 			class="flex-1 border border-gray-500 border-dotted min-w-96 font-mono text-xs"
-			rows="30"
 			value={UIStateOutput}
 			readonly
 		></textarea>

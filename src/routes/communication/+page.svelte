@@ -431,14 +431,14 @@
 
 <!-- MARK: **** HTML **** -->
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
-	<section id="controls" class="print:hidden top-12 z-10 fixed self-start py-2 w-[41em] font-sans">
+	<section id="controls" class="print:hidden top-13 z-10 fixed self-start py-2 w-[41em] font-sans">
 		<div id="assignment">
 			<div class="flex justify-between items-center">
 				<h3 class="mx-2 my-1 w-10/12">Assignment and class info</h3>
 				{#if studentsRaw.length > 0}
 					<button
 						id="clear_button"
-						class="bg-gray-500 hover:bg-gray-600 px-2 py-1 rounded font-bold text-white text-xs"
+						class="bg-gray-500 hover:bg-gray-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
 						onclick={() => clearForm()}
 					>
 						Clear
@@ -447,7 +447,7 @@
 				{#if isSaveable && isModified()}
 					<button
 						id="save_button"
-						class="bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded font-bold text-white text-xs"
+						class="bg-blue-500 hover:bg-blue-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
 						onclick={() => saveRecord()}
 					>
 						Save
@@ -467,7 +467,7 @@
 					>
 						{#each assignmentTypes as { code, english }}
 							<label
-								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
+								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-defaultt"
 								for={code}
 							>
 								<input
@@ -476,9 +476,8 @@
 									type="radio"
 									bind:group={UI_Assignment}
 									value={code}
-								/>
-								{english}
-							</label>
+								/>{english}</label
+							>
 						{/each}
 					</div>
 				</fieldset>
@@ -552,7 +551,7 @@
 					>
 						{#each LEVEL_TYPE as { id, label, value }}
 							<label
-								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
+								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 								for={id}
 							>
 								<input
@@ -574,7 +573,7 @@
 							<!-- only render out CLIL if class is not G9 -->
 							{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
 								<label
-									class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
+									class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 									for={type}
 									><input
 										id={type}
@@ -841,7 +840,7 @@
 		<h3 class="print:hidden mx-2 my-1">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
 		</h3>
-		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-dvh">
+		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]">
 			{#each students as student, i}
 				<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
 					Slip #{i + 1}
