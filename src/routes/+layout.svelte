@@ -10,7 +10,7 @@
 	];
 </script>
 
-<nav class="print:hidden flex justify-center bg-slate-200 mb-1">
+<nav class="print:hidden flex justify-center bg-slate-200 mt-1 mb-1">
 	{#each NAV_ITEM as { url, title }}
 		<a
 			class="aria-current:bg-white hover:bg-red-800 px-6 py-2 rounded-t-lg font-bold text-slate-500 aria-current:text-black hover:text-white text-decoration-none aria-current:cursor-default hover:cursor-pointer"

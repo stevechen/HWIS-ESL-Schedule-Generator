@@ -431,10 +431,10 @@
 
 <!-- MARK: **** HTML **** -->
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
-	<section id="control" class="print:hidden py-2 w-[43em] font-sans">
-		<div>
+	<section id="controls" class="print:hidden top-12 z-10 fixed self-start py-2 w-[41em] font-sans">
+		<div id="assignment">
 			<div class="flex justify-between items-center">
-				<h3 class="mx-2 my-1 w-10/12">Assignment and student info</h3>
+				<h3 class="mx-2 my-1 w-10/12">Assignment and class info</h3>
 				{#if studentsRaw.length > 0}
 					<button
 						id="clear_button"
@@ -520,7 +520,7 @@
 					</svg>
 					{#if grade}
 						<span class={[!students.length && 'text-red-500', 'text-white']}
-							>{students.length} selected</span
+							>{students.length} Selected</span
 						>
 					{:else}
 						<!-- spin circle -->
@@ -532,7 +532,7 @@
 						</svg>
 						<span class="mr-2 ml-1 text-red-500">0 students</span>
 					{/if}
-					<div class={[!grade && 'hidden', 'px-3']}>
+					<div class={[!grade && 'hidden', 'px-2']}>
 						<p
 							id="grade"
 							class={[
@@ -555,8 +555,13 @@
 								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 								for={id}
 							>
-								<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />
-								{label}
+								<input
+									{id}
+									class="appearance-none"
+									type="radio"
+									bind:group={UI_Level}
+									{value}
+								/>{label}
 							</label>
 						{/each}
 					</div>
@@ -571,16 +576,15 @@
 								<label
 									class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 rounded-full text-slate-400 has-checked:text-white hover:text-slate-100 transition has-checked:animate-none hover:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 									for={type}
-									>{value}
-									<input
+									><input
 										id={type}
 										class="appearance-none"
 										type="radio"
 										bind:group={UI_ClassType}
 										{value}
 										aria-label={value}
-									/>
-								</label>
+									/>{value}</label
+								>
 							{/if}
 						{/each}
 					</div>
@@ -604,10 +608,11 @@
 						id="student-list-input"
 						class={[
 							shouldHideTextarea && 'hidden',
-							'bg-white h-10 overflow-hidden min-w-15/16 rounded-md border p-2 placeholder:text-sm invalid:border-2  mx-5 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
+							'bg-white h-15 overflow-hidden min-w-15/16 rounded-md border p-2 placeholder:text-sm invalid:border-2  mx-5 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
 						]}
 						bind:value={studentsText}
-						placeholder="Paste students from Excel with fields: [ID, Chinese Name, English Name, Chinese Class]"
+						placeholder="Paste students from spreadsheet with fields (order agnostic):
+[ID, Chinese Name, English Name, Chinese Class]"
 						required
 					>
 					</textarea>
@@ -797,7 +802,7 @@
 			</div>
 		</div>
 		{#if savedRecords.length > 0}
-			<div>
+			<div id="saved_records">
 				<h3 class="mx-2 my-1">Saved Records</h3>
 				<table id="records_table" class="border-1 border-slate-400 border-solid w-full records">
 					<tbody>
@@ -832,7 +837,7 @@
 		{/if}
 	</section>
 	<!-- MARK: Slips -->
-	<section id="slips" class="box-border flex flex-col print:m-0 print:p-0 py-2">
+	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
 		<h3 class="print:hidden mx-2 my-1">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
 		</h3>
