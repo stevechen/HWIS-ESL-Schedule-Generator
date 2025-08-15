@@ -377,7 +377,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 async function uploadSignature(page, image) {
 	// Construct the absolute path to the fixture file. Using path.join for the
 	// full path is more robust across different operating systems.
-	const fixturePath = path.join(__dirname, 'fixtures', image);
+	const fixturePath = path.join(__dirname, '../fixtures', image);
 
 	// Before asking Playwright to upload the file, we can add a quick check
 	// to see if the file actually exists. This provides a much clearer error
