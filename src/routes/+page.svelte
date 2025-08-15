@@ -120,6 +120,25 @@
 			}
 		}
 	}
+
+	function downloadCsv() {
+		const output = UIStateOutput;
+		if (typeof output === 'string') {
+			const csvContent = output.replace(/\t/g, ','); // Replace tabs with commas
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+			const link = document.createElement('a');
+			if (link.download !== undefined) {
+				// feature detection
+				const url = URL.createObjectURL(blob);
+				link.setAttribute('href', url);
+				link.setAttribute('download', 'class_schedule.csv');
+				link.style.visibility = 'hidden';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
+		}
+	}
 </script>
 
 <title>HWIS ESL Tools</title>
@@ -168,9 +187,34 @@
 	<section id="output" class="flex flex-col">
 		<div class="relative flex items-center gap-2">
 			<h3>Copy & paste to spreadsheet like Excel, Sheets, Numbers</h3>
-			<!-- Copy to clipboard icon/button -->
-			<div class="relative">
+			<div class="relative ml-auto">
 				<button
+					id="download_button"
+					type="button"
+					class="hover:bg-gray-200 p-1 rounded focus:outline-none download-btn"
+					title="Download as CSV"
+					onclick={() => downloadCsv()}
+				>
+					<!-- Download SVG icon -->
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+						/>
+					</svg>
+				</button>
+				<!-- Copy to clipboard icon/button -->
+				<button
+					id="copy_button"
 					type="button"
 					class="hover:bg-gray-200 p-1 rounded focus:outline-none copy-btn"
 					title="Copy to clipboard (for spreadsheet programs)"
