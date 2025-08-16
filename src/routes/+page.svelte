@@ -61,6 +61,20 @@
 		}
 	});
 
+	let UIStateOutputTable = $derived.by(() => {
+		if (
+			!UIStateOutput ||
+			typeof UIStateOutput !== 'string' ||
+			UIStateOutput === 'Loading data...'
+		) {
+			return { header: [], rows: [] };
+		}
+		const lines = UIStateOutput.split('\n');
+		const header = lines[0].split('\t');
+		const rows = lines.slice(1).map((line) => line.split('\t'));
+		return { header, rows };
+	});
+
 	onMount(async () => {
 		const CUT_OFF_MONTH = 6;
 		// if we are close to semester 2, load the semester 2 events data
@@ -141,11 +155,13 @@
 	}
 </script>
 
+<!-- MARK: HTML -->
 <title>HWIS ESL Tools</title>
 <main
 	class="flex justify-center items-stretch gap-4 pb-4 min-h-[calc(100vh-2.3em)] font-sans text-sm"
 >
-	<section id="input" class="flex flex-col">
+	<!-- MARK: **** Controls **** -->
+	<section id="input" class="flex flex-col mt-2">
 		<h3>Class</h3>
 		<div
 			id="options"
@@ -155,6 +171,7 @@
 				id="types"
 				class="flex items-center bg-slate-800 bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full w-max"
 			>
+				<!-- MARK: ****  Type **** -->
 				<h3 class="mr-2 px-2 font-sans text-white text-sm">Type</h3>
 				{#each classControl as { code, key, label }}
 					<label
@@ -172,8 +189,10 @@
 					</label>
 				{/each}
 			</div>
+			<!-- MARK: **** Days **** -->
 			<Switches title="Days" days={WEEKDAYS} checkedDays={UIStateCheckedDays} />
 		</div>
+		<!-- MARK: **** School Events **** -->
 		<div id="schoolEvents">
 			<h3 class="text-gray-300">Events</h3>
 			<textarea
@@ -184,6 +203,7 @@
 			></textarea>
 		</div>
 	</section>
+	<!-- MARK: **** Output **** -->
 	<section id="output" class="flex flex-col">
 		<div class="relative flex items-center gap-2">
 			<h3>Copy & paste to spreadsheet like Excel, Sheets, Numbers</h3>
@@ -253,7 +273,7 @@
 				</button>
 				{#if showToast}
 					<div
-						class="toast-message absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 rounded shadow-lg text-white text-sm whitespace-nowrap
+						class="toast-message absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 z-10 rounded shadow-lg text-white text-sm whitespace-nowrap
 							{toastType === 'success' ? 'bg-blue-600' : 'bg-red-500'}"
 						transition:fade
 					>
@@ -262,11 +282,26 @@
 				{/if}
 			</div>
 		</div>
-		<textarea
-			id="output_textarea"
-			class="flex-1 border border-gray-500 border-dotted min-w-96 font-mono text-xs"
-			value={UIStateOutput}
-			readonly
-		></textarea>
+		<div class="flex-1 border border-gray-400 min-w-96 overflow-auto font-mono text-xs">
+			<table id="output_table" class="w-full text-left border-separate border-spacing-0">
+				<thead class="top-0 sticky">
+					<tr class="bg-blue-700 text-white">
+						{#each UIStateOutputTable.header as header_item}
+							<th class="p-2 border-t-gray-200 border-r border-blue-600 border-l">{header_item}</th>
+						{/each}
+					</tr>
+				</thead>
+				<tbody>
+					{#each UIStateOutputTable.rows as row}
+						<tr class="border-gray-600 border-b">
+							{#each row as cell}
+								<td class="p-2 border-1 border-gray-200">{cell}</td>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+		<div id="csv-output" style="display:none;">{UIStateOutput}</div>
 	</section>
 </main>
