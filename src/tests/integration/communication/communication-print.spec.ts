@@ -87,7 +87,7 @@ test.describe('Communication Slip Printing', () => {
 		const slips = await page.getByTestId('communication-slip').all();
 
 		const expectedSlipHeight = B5_HEIGHT_PX / 3;
-		const pixelTolerance = 50; // pixels, for minor rendering variations
+		const pixelTolerance = 5; // pixels, for minor rendering variations
 
 		const boundingBoxes = [];
 		for (const slip of slips) {
