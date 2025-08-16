@@ -12,6 +12,23 @@
 
 	const grade = $derived(getGradeForClassType(classType));
 
+	const schoolYearAndSemesterPrefix = $derived(getSchoolYearAndSemesterPrefix());
+
+	const scheduleName = $derived((() => {
+		const [year1, year2, semester] = schoolYearAndSemesterPrefix.split('-');
+		const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
+		const semesterText = `S${semester}`;
+
+		let gradeText;
+		if (grade === 'G7/8') {
+			gradeText = `Junior ${classType}`;
+		} else {
+			gradeText = grade;
+		}
+
+		return `${shortYear} ${semesterText} ${gradeText} schedule`;
+	})());
+
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 	let checkedDaysState = $state([true, false, true, false, true]); //default
 
@@ -112,7 +129,7 @@
 				// feature detection
 				const url = URL.createObjectURL(blob);
 				link.setAttribute('href', url);
-				link.setAttribute('download', 'class_schedule.csv');
+				link.setAttribute('download', `${scheduleName}.csv`);
 				link.style.visibility = 'hidden';
 				document.body.appendChild(link);
 				link.click();
@@ -167,7 +184,7 @@
 	<!-- MARK: **** Output **** -->
 	<section id="output" class="flex flex-col">
 		<div class="relative flex items-center gap-2">
-			<h3>Copy & paste to spreadsheet like Excel, Sheets, Numbers</h3>
+			<h3>{scheduleName}</h3>
 			<div class="relative ml-auto">
 				<button
 					id="download_button"
@@ -243,7 +260,7 @@
 				{/if}
 			</div>
 		</div>
-		<!-- MARK: * Output table *	 -->
+		<!-- MARK: * Output table * 	 -->
 		<div class="flex-1 border border-gray-400 min-w-96 overflow-auto font-mono text-xs">
 			<table id="output_table" class="w-full text-left border-separate border-spacing-0">
 				<thead class="top-0 sticky">
