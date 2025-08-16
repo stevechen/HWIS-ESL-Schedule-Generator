@@ -14,20 +14,22 @@
 
 	const schoolYearAndSemesterPrefix = $derived(getSchoolYearAndSemesterPrefix());
 
-	const scheduleName = $derived((() => {
-		const [year1, year2, semester] = schoolYearAndSemesterPrefix.split('-');
-		const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
-		const semesterText = `S${semester}`;
+	const scheduleName = $derived(
+		(() => {
+			const [year1, year2, semester] = schoolYearAndSemesterPrefix.split('-');
+			const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
+			const semesterText = `S${semester}`;
 
-		let gradeText;
-		if (grade === 'G7/8') {
-			gradeText = `Junior ${classType}`;
-		} else {
-			gradeText = grade;
-		}
+			let gradeText;
+			if (grade === 'G7/8') {
+				gradeText = `Junior ${classType}`;
+			} else {
+				gradeText = grade;
+			}
 
-		return `${shortYear} ${semesterText} ${gradeText} schedule`;
-	})());
+			return `${shortYear} ${semesterText} ${gradeText} schedule`;
+		})()
+	);
 
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 	let checkedDaysState = $state([true, false, true, false, true]); //default
@@ -120,20 +122,34 @@
 	}
 
 	//#region download-csv
+
 	function downloadCsv() {
 		if (typeof output === 'string') {
-			const csvContent = output.replace(/\t/g, ','); // Replace tabs with commas
-			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-			const link = document.createElement('a');
-			if (link.download !== undefined) {
-				// feature detection
-				const url = URL.createObjectURL(blob);
-				link.setAttribute('href', url);
-				link.setAttribute('download', `${scheduleName}.csv`);
-				link.style.visibility = 'hidden';
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
+			try {
+				const csvContent = output.replace(/\t/g, ','); // Replace tabs with commas
+				const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+				const link = document.createElement('a');
+				if (link.download !== undefined) {
+					// feature detection
+					const url = URL.createObjectURL(blob);
+					link.setAttribute('href', url);
+					link.setAttribute('download', `${scheduleName}.csv`);
+					link.style.visibility = 'hidden';
+					document.body.appendChild(link);
+					link.click();
+					toastMessage = 'Downloaded!';
+					toastType = 'success';
+				}
+			} catch (err) {
+				console.error('Failed to download:', err);
+				toastMessage = 'Failed!';
+				toastType = 'error';
+			} finally {
+				showToast = true;
+				setTimeout(() => {
+					showToast = false;
+					toastMessage = '';
+				}, 1000);
 			}
 		}
 	}

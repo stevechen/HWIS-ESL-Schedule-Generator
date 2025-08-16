@@ -73,3 +73,20 @@ test('Schedule title and download filename update dynamically', async ({ page })
 		await expect(download.suggestedFilename()).toBe(`${expectedName}.csv`);
 	}
 });
+
+test('Download button shows "Downloaded!" toast message', async ({ page }) => {
+	await page.goto('/');
+
+	// Wait for the output to be generated
+	await expect(page.locator('#csv-output')).not.toHaveText('Loading data...');
+
+	await page.locator('#download_button').click();
+
+	// Check for the toast message
+	const toastMessage = page.locator('.toast-message');
+	await expect(toastMessage).toBeVisible();
+	await expect(toastMessage).toHaveText('Downloaded!');
+
+	// Wait for the toast message to disappear
+	await expect(toastMessage).not.toBeVisible();
+});
