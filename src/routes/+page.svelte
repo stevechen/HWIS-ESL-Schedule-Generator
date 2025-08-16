@@ -4,54 +4,32 @@
 	import { getClassDaysByType } from '$lib/getClassDaysByType.svelte';
 	import Switches from '$lib/components/Switches.svelte';
 	import { fade } from 'svelte/transition';
+	import { ClassTypeCode, classControl, getGradeForClassType } from '$lib/config/classTypes';
+	import type { ClassType } from '$lib/config/classTypes';
+	import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
 
-	const ClassTypeCode = {
-		Comm: 'Comm',
-		CLIL: 'CLIL',
-		G9: 'G9',
-		H: 'H'
-	} as const;
+	let classType: ClassType = $state(ClassTypeCode.CLIL); //default
 
-	type ClassType = (typeof ClassTypeCode)[keyof typeof ClassTypeCode];
-
-	const classControl: { code: ClassType; key: string; label: string }[] = [
-		{ code: ClassTypeCode.CLIL, key: 'CLIL', label: 'G7/8 CLIL' },
-		{ code: ClassTypeCode.Comm, key: 'Comm', label: 'G7/8 Comm' },
-		{ code: ClassTypeCode.G9, key: 'G9', label: 'G9' },
-		{ code: ClassTypeCode.H, key: 'H', label: 'H10' }
-	];
-
-	let UIStateClassType: ClassType = $state(ClassTypeCode.CLIL); //default
-
-	const grade = $derived.by(() => {
-		if (UIStateClassType === ClassTypeCode.CLIL) {
-			return 'G7/8';
-		} else if (UIStateClassType === ClassTypeCode.Comm) {
-			return 'G7/8';
-		} else if (UIStateClassType === ClassTypeCode.G9) {
-			return 'G9';
-		} else if (UIStateClassType === ClassTypeCode.H) {
-			return 'H';
-		}
-	});
+	const grade = $derived(getGradeForClassType(classType));
 
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-	let UIStateCheckedDays = $state([true, false, true, false, true]); //default
+	let checkedDaysState = $state([true, false, true, false, true]); //default
 
-	let UIStateEventsText = $state('Loading...');
+	let eventsText = $state('Loading...');
 
 	let checkedDays = $derived(
-		UIStateCheckedDays.map((isChecked, index) => (isChecked ? index + 1 : null)) //return day number if the checkbox is checked
+		checkedDaysState
+			.map((isChecked, index) => (isChecked ? index + 1 : null)) //return day number if the checkbox is checked
 			.filter((index): index is number => index !== null) // filter out null values created by unchecked checkboxes)
 	);
 
-	let UIStateOutput = $derived.by(() => {
-		if (!UIStateEventsText || UIStateEventsText === 'Loading...') {
+	let output = $derived.by(() => {
+		if (!eventsText || eventsText === 'Loading...') {
 			return 'Loading data...';
 		}
 		try {
-			const allClassDays = getDates(UIStateEventsText);
-			const classDays = getClassDaysByType(allClassDays, checkedDays, UIStateClassType, grade);
+			const allClassDays = getDates(eventsText);
+			const classDays = getClassDaysByType(allClassDays, checkedDays, classType, grade);
 			return ['#\tDate\tDescription\tNote']
 				.concat(classDays.map((r) => [r.countdown, r.date, r.description, r.note].join('\t')))
 				.join('\n');
@@ -61,41 +39,30 @@
 		}
 	});
 
-	let UIStateOutputTable = $derived.by(() => {
-		if (
-			!UIStateOutput ||
-			typeof UIStateOutput !== 'string' ||
-			UIStateOutput === 'Loading data...'
-		) {
+	let outputTable = $derived.by(() => {
+		if (!output || typeof output !== 'string' || output === 'Loading data...') {
 			return { header: [], rows: [] };
 		}
-		const lines = UIStateOutput.split('\n');
+		const lines = output.split('\n');
 		const header = lines[0].split('\t');
 		const rows = lines.slice(1).map((line) => line.split('\t'));
 		return { header, rows };
 	});
 
 	onMount(async () => {
-		const CUT_OFF_MONTH = 6;
-		// if we are close to semester 2, load the semester 2 events data
-		const currentMonth = new Date().getMonth();
-		const currentYear = new Date().getFullYear();
-
-		const yearAndSemester =
-			currentMonth < CUT_OFF_MONTH - 1
-				? `${currentYear - 1}-${currentYear}-2`
-				: `${currentYear}-${currentYear + 1}-1`;
+		const yearAndSemester = getSchoolYearAndSemesterPrefix();
 
 		let loadedData = await loadSchoolEvents(yearAndSemester);
 
 		if (loadedData) {
-			UIStateEventsText = loadedData;
+			eventsText = loadedData;
 		} else {
-			UIStateEventsText = 'Failed to load data';
+			eventsText = 'Failed to load data';
 			console.error('Failed to load any school events data');
 		}
 	});
 
+	//#region Load data
 	async function loadSchoolEvents(fileNamePrefix: string) {
 		try {
 			const module = await import(`$lib/data/${fileNamePrefix}-schoolEvents.js`);
@@ -110,12 +77,12 @@
 		}
 	}
 
+	// #region copy-to-clipboard
 	let toastMessage = $state('');
 	let showToast = $state(false);
 	let toastType = $state('success'); // 'success' or 'error'
 
 	async function copyOutputToClipboard() {
-		const output = UIStateOutput;
 		if (typeof output === 'string') {
 			try {
 				await navigator.clipboard.writeText(output);
@@ -135,8 +102,8 @@
 		}
 	}
 
+	//#region download-csv
 	function downloadCsv() {
-		const output = UIStateOutput;
 		if (typeof output === 'string') {
 			const csvContent = output.replace(/\t/g, ','); // Replace tabs with commas
 			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -178,27 +145,21 @@
 						class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 						for={key}
 					>
-						<input
-							type="radio"
-							class="hidden"
-							id={key}
-							bind:group={UIStateClassType}
-							value={code}
-						/>
+						<input type="radio" class="hidden" id={key} bind:group={classType} value={code} />
 						{label}
 					</label>
 				{/each}
 			</div>
 			<!-- MARK: **** Days **** -->
-			<Switches title="Days" days={WEEKDAYS} checkedDays={UIStateCheckedDays} />
+			<Switches title="Days" days={WEEKDAYS} checkedDays={checkedDaysState} />
 		</div>
-		<!-- MARK: **** School Events **** -->
+		<!-- MARK: **** Events **** -->
 		<div id="schoolEvents">
 			<h3 class="text-gray-300">Events</h3>
 			<textarea
 				rows="30"
 				class="flex-1 grayscale-50 border border-gray-500 border-dotted min-w-[27.5em] h-full overflow-hidden font-mono text-gray-300 text-xs"
-				bind:value={UIStateEventsText}
+				bind:value={eventsText}
 				readonly
 			></textarea>
 		</div>
@@ -282,17 +243,18 @@
 				{/if}
 			</div>
 		</div>
+		<!-- MARK: * Output table *	 -->
 		<div class="flex-1 border border-gray-400 min-w-96 overflow-auto font-mono text-xs">
 			<table id="output_table" class="w-full text-left border-separate border-spacing-0">
 				<thead class="top-0 sticky">
 					<tr class="bg-blue-700 text-white">
-						{#each UIStateOutputTable.header as header_item}
+						{#each outputTable.header as header_item}
 							<th class="p-2 border-t-gray-200 border-r border-blue-600 border-l">{header_item}</th>
 						{/each}
 					</tr>
 				</thead>
 				<tbody>
-					{#each UIStateOutputTable.rows as row}
+					{#each outputTable.rows as row}
 						<tr class="border-gray-600 border-b">
 							{#each row as cell}
 								<td class="p-2 border-1 border-gray-200">{cell}</td>
@@ -302,6 +264,6 @@
 				</tbody>
 			</table>
 		</div>
-		<div id="csv-output" style="display:none;">{UIStateOutput}</div>
+		<div id="csv-output" style="display:none;">{output}</div>
 	</section>
 </main>
