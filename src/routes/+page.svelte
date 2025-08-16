@@ -3,7 +3,7 @@
 	import { getDates } from '$lib/getAllClassDays.svelte';
 	import { getClassDaysByType } from '$lib/getClassDaysByType.svelte';
 	import Switches from '$lib/components/Switches.svelte';
-	import { fade } from 'svelte/transition';
+	import { fade, draw } from 'svelte/transition';
 	import { ClassTypeCode, classControl, getGradeForClassType } from '$lib/config/classTypes';
 	import type { ClassType } from '$lib/config/classTypes';
 	import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
@@ -268,9 +268,25 @@
 				{#if showToast}
 					<div
 						class="toast-message absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 z-10 rounded shadow-lg text-white text-sm whitespace-nowrap
-							{toastType === 'success' ? 'bg-blue-600' : 'bg-red-500'}"
+							{toastType === 'success' ? 'bg-blue-600' : 'bg-red-500'} flex items-center gap-2"
 						transition:fade
 					>
+						{#if toastType === 'success'}
+							<svg
+								class="block stroke-2 stroke-white m-auto size-5 origin-center checkmark"
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 52 52"
+							>
+								<path
+									class="checkmark__check"
+									fill="none"
+									d="M14.1 27.2l7.1 7.2 16.7-16.8"
+									stroke-dasharray="48"
+									stroke-dashoffset="48"
+									in:draw={{ duration: 400, delay: 400 }}
+								/>
+							</svg>
+						{/if}
 						{toastMessage}
 					</div>
 				{/if}
@@ -300,3 +316,15 @@
 		<div id="csv-output" style="display:none;">{output}</div>
 	</section>
 </main>
+
+<style>
+	.checkmark__check {
+		animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards;
+	}
+
+	@keyframes stroke {
+		100% {
+			stroke-dashoffset: 0;
+		}
+	}
+</style>
