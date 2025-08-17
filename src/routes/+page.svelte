@@ -122,7 +122,6 @@
 	}
 
 	//#region download-csv
-
 	function downloadCsv() {
 		if (typeof output === 'string') {
 			try {
@@ -304,11 +303,16 @@
 				</thead>
 				<tbody>
 					{#each outputTable.rows as row}
+						{@const isOff = row[0].trim() === ''}
+						{@const isExam = row[2].trim() === 'Exam'}
 						<tr class="border-gray-600 border-b">
-							{#each row as cell}
+							{#each row as cell, i}
 								<td
-									class="p-2 border-1 border-gray-200 nth-of-type-3:w-full nth-of-type-4:w-full whitespace-nowrap"
-									>{cell}</td
+									class={[
+										isOff && i !== 3 && 'text-gray-400',
+										isExam && 'text-red-500',
+										'p-2 border-1 border-gray-200 nth-of-type-3:w-full nth-of-type-4:w-full whitespace-nowrap'
+									]}>{cell}</td
 								>
 							{/each}
 						</tr>
