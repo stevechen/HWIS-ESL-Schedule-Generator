@@ -433,7 +433,10 @@
 <!-- MARK: **** HTML **** -->
 <title>White slips</title>
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
-	<section id="controls" class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] font-sans">
+	<section
+		id="controls"
+		class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] font-sans max-h-[calc(100dvh-2.5rem)] overflow-y-auto"
+	>
 		<div id="assignment">
 			<div class="flex justify-between items-center">
 				<h3 class="mx-2 my-1 w-10/12">Assignment and class info</h3>
