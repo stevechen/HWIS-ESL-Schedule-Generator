@@ -430,6 +430,7 @@
 </script>
 
 <!-- MARK: **** HTML **** -->
+<title>White slips</title>
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
 	<section id="controls" class="print:hidden top-13 z-10 fixed self-start py-2 w-[41em] font-sans">
 		<div id="assignment">
