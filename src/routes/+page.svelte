@@ -156,12 +156,12 @@
 </script>
 
 <!-- MARK: HTML -->
-<title>HWIS ESL Tools</title>
+<title>Schedule</title>
 <main
-	class="flex justify-center items-stretch gap-4 pb-4 min-h-[calc(100vh-2.3em)] font-sans text-sm"
+	class="flex flex-row items-start gap-2 mx-auto pb-4 w-fit min-h-[calc(100vh-2.3em)] font-sans text-sm"
 >
 	<!-- MARK: **** Controls **** -->
-	<section id="input" class="flex flex-col mt-2">
+	<section id="input" class="top-13 z-10 fixed flex flex-col mt-2">
 		<h3>Class</h3>
 		<div
 			id="options"
@@ -198,7 +198,7 @@
 		</div>
 	</section>
 	<!-- MARK: **** Output **** -->
-	<section id="output" class="flex flex-col">
+	<section id="output" class="flex flex-col ml-87">
 		<div class="relative flex items-center gap-2">
 			<h3>{scheduleName}</h3>
 			<div class="relative ml-auto">
@@ -294,7 +294,7 @@
 		</div>
 		<!-- MARK: * Output table * 	 -->
 		<div class="flex-1 border border-gray-400 min-w-96 overflow-auto font-mono text-xs">
-			<table id="output_table" class="w-full text-left border-separate border-spacing-0">
+			<table id="output_table" class="w-full min-w-2xl text-left border-separate border-spacing-0">
 				<thead class="top-0 sticky">
 					<tr class="bg-blue-700 text-white">
 						{#each outputTable.header as header_item}
@@ -306,7 +306,10 @@
 					{#each outputTable.rows as row}
 						<tr class="border-gray-600 border-b">
 							{#each row as cell}
-								<td class="p-2 border-1 border-gray-200">{cell}</td>
+								<td
+									class="p-2 border-1 border-gray-200 nth-of-type-3:w-full nth-of-type-4:w-full whitespace-nowrap"
+									>{cell}</td
+								>
 							{/each}
 						</tr>
 					{/each}
