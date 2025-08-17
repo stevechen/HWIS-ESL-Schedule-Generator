@@ -57,7 +57,7 @@ const getExpectedRecordName = (studentsCount: number) => {
 
 test('1. Saving a New Record', async ({ page }) => {
 	// Verify initial state
-	await expect(page.locator('h3:has-text("Saved Records")')).not.toBeVisible();
+	await expect(page.locator('button:has-text("Saved Records")')).not.toBeVisible();
 	await expect(page.locator('#save_button')).not.toBeVisible();
 
 	// Populate form
@@ -68,7 +68,9 @@ test('1. Saving a New Record', async ({ page }) => {
 	await page.locator('#save_button').click();
 
 	// Verify saved state
-	await expect(page.locator('h3:has-text("Saved Records")')).toBeVisible();
+	await expect(page.locator('button:has-text("Saved Records")')).toBeVisible();
+	await page.locator('button:has-text("Saved Records")').click(); // Open accordion
+	await expect(page.locator('#records_table')).toBeVisible(); // Ensure table is visible after opening accordion
 	const expectedRecordName = getExpectedRecordName(2); // 2 students in sampleStudentsText
 	// The displayed record name in the UI does not have the "comm_" prefix
 	await expect(page.locator(`.record:has-text("${expectedRecordName}")`)).toBeVisible();
@@ -125,7 +127,9 @@ test('2. Loading a Saved Record', async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded');
 
 	// Verify initial state
-	await expect(page.locator('h3:has-text("Saved Records")')).toBeVisible();
+	await expect(page.locator('button:has-text("Saved Records")')).toBeVisible();
+	await page.locator('button:has-text("Saved Records")').click(); // Open accordion
+	await expect(page.locator('#records_table')).toBeVisible(); // Ensure table is visible after opening accordion
 	await expect(page.locator(`.record:has-text("${recordName}")`)).toBeVisible();
 
 	// Load record
@@ -182,7 +186,9 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded');
 
 	// Verify initial state
-	await expect(page.locator('h3:has-text("Saved Records")')).toBeVisible();
+	await expect(page.locator('button:has-text("Saved Records")')).toBeVisible();
+	await page.locator('button:has-text("Saved Records")').click(); // Open accordion
+	await expect(page.locator('#records_table')).toBeVisible(); // Ensure table is visible after opening accordion
 	await expect(page.locator(`.record:has-text("${recordName}")`)).toBeVisible();
 
 	// Delete record
@@ -206,6 +212,8 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	);
 	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
+	await page.locator('button:has-text("Saved Records")').click(); // Open accordion
+	await expect(page.locator('#records_table')).toBeVisible(); // Ensure table is visible after opening accordion
 	await page.locator(`.record:has-text("${recordName}")`).click();
 	await page.waitForLoadState('domcontentloaded');
 	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText); // Ensure it's loaded
@@ -245,6 +253,7 @@ test('5. Save Button State Management', async ({ page }) => {
 
 	// 2. Get the name of the created record.
 	const expectedRecordName = getExpectedRecordName(2);
+	await page.locator('button:has-text("Saved Records")').click(); // Open accordion
 	await expect(page.locator(`.record:has-text("${expectedRecordName}")`)).toBeVisible();
 
 	// 3. Reload the page to ensure a clean state for loading.
@@ -252,6 +261,7 @@ test('5. Save Button State Management', async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded');
 
 	// 4. Load the created record.
+	await page.locator('button:has-text("Saved Records")').click(); // Open accordion
 	await expect(page.locator(`.record:has-text("${expectedRecordName}")`)).toBeVisible();
 	await page.locator(`.record:has-text("${expectedRecordName}")`).click();
 	await page.waitForLoadState('domcontentloaded');

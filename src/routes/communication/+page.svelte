@@ -188,6 +188,7 @@
 	let savedRecords = $state<string[]>([]);
 	let isSaveable = $derived(UI_ClassNum && students.length > 0);
 	let lastLoadedRecord = $state<any>(null);
+	let showSavedRecords = $state(false);
 
 	const isModified = $derived(() => {
 		if (!lastLoadedRecord) {
@@ -801,43 +802,52 @@
 				</section>
 			</div>
 		</div>
-		{#if savedRecords.length > 0}
-			<div id="saved_records">
-				<h3 class="mx-2 my-1">Saved Records</h3>
-				<table id="records_table" class="border-1 border-slate-400 border-solid w-full records">
-					<tbody>
-						{#each savedRecords as recordName}
-							<tr
-								class="hover:bg-blue-200 border-1 border-slate-400 border-solid h-fit hover:cursor-pointer record"
-								onclick={() => loadRecord(recordName)}
-							>
-								<td class="pl-2">{recordName}</td>
-								<td class="size-8">
-									<button
-										class="table-cell align-middle"
-										aria-label="Delete record"
-										onclick={(e) => {
-											e.stopPropagation();
-											deleteRecord(recordName);
-										}}
-									>
-										<svg
-											class="hover:bg-red-600 size-8 text-gray-400 hover:text-white"
-											viewBox="0 0 32 32"
-										>
-											<use href="#icon-trash" />
-										</svg>
-									</button>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		{/if}
 	</section>
 	<!-- MARK: Slips -->
 	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
+		{#if savedRecords.length > 0}
+			<div class="print:hidden">
+				<button
+					class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 px-2 rounded text-sm mx-2 my-1"
+					onclick={() => showSavedRecords = !showSavedRecords}
+				>
+					Saved Records ({savedRecords.length})
+				</button>
+				{#if showSavedRecords}
+					<div transition:slide>
+						<table id="records_table" class="border-1 border-slate-400 border-solid w-full records">
+							<tbody>
+								{#each savedRecords as recordName}
+									<tr
+										class="hover:bg-blue-200 border-1 border-slate-400 border-solid h-fit hover:cursor-pointer record"
+										onclick={() => loadRecord(recordName)}
+									>
+										<td class="pl-2">{recordName}</td>
+										<td class="size-8">
+											<button
+												class="table-cell align-middle"
+												aria-label="Delete record"
+												onclick={(e) => {
+													e.stopPropagation();
+													deleteRecord(recordName);
+												}}
+											>
+												<svg
+													class="hover:bg-red-600 size-8 text-gray-400 hover:text-white"
+													viewBox="0 0 32 32"
+												>
+													<use href="#icon-trash" />
+												</svg>
+											</button>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{/if}
+			</div>
+		{/if}
 		<h3 class="print:hidden mx-2 my-1">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
 		</h3>
