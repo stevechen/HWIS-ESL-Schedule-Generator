@@ -1,4 +1,4 @@
- /* global Event, window, document, localStorage */
+/* global Event, window, document, localStorage */
 
 import { test, expect } from '@playwright/test';
 import fs from 'fs/promises'; // Use promises-based fs for async/await
@@ -55,20 +55,20 @@ function initializeLocators(page) {
 
 //#region paste function
 async function pasteDataIntoInput(page, context, selector, mockData) {
-    // Wait for the Svelte component to expose setStudentsText
-    await page.waitForFunction(() => window.setStudentsText !== undefined);
+	// Wait for the Svelte component to expose setStudentsText
+	await page.waitForFunction(() => window.setStudentsText !== undefined);
 
-    // Directly set the Svelte state variable
-    await page.evaluate((data) => {
-        window.setStudentsText(data);
-    }, mockData);
+	// Directly set the Svelte state variable
+	await page.evaluate((data) => {
+		window.setStudentsText(data);
+	}, mockData);
 
-    const studentCount = mockData.trim().split('\n').length;
-    await expect
-        .poll(async () => {
-            return page.locator('td.student-checkbox input[type="checkbox"]').count();
-        })
-        .toBe(studentCount);
+	const studentCount = mockData.trim().split('\n').length;
+	await expect
+		.poll(async () => {
+			return page.locator('td.student-checkbox input[type="checkbox"]').count();
+		})
+		.toBe(studentCount);
 }
 
 //#region platform detection
@@ -250,44 +250,59 @@ test.describe('Student Inclusion/Exclusion', () => {
 		const browserName = context._browser.browserType().name();
 
 		if (browserName === 'webkit') {
-            // Direct DOM manipulation for WebKit
-            await page.evaluate(
-                ([index]) => {
-                    const checkboxes = document.querySelectorAll(
-                        'td.student-checkbox input[type="checkbox"]'
-                    );
-                    if (checkboxes[index]) {
-                        checkboxes[index].checked = false;
-                        checkboxes[index].dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                },
-                [randomIndex]
-            );
-        } else {
-            // Standard approach for other browsers
-            await checkboxes.nth(randomIndex).uncheck({ force: true });
-        }
-        // Explicitly dispatch change event after uncheck
-        await page.evaluate(([index]) => {
-            const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[index];
-            if (checkbox) {
-                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        }, [randomIndex]);
-        // Explicitly dispatch change event after uncheck
-        await page.evaluate(([index]) => {
-            const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[index];
-            if (checkbox) {
-                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        }, [randomIndex]);
+			// Direct DOM manipulation for WebKit
+			await page.evaluate(
+				([index]) => {
+					const checkboxes = document.querySelectorAll(
+						'td.student-checkbox input[type="checkbox"]'
+					);
+					if (checkboxes[index]) {
+						checkboxes[index].checked = false;
+						checkboxes[index].dispatchEvent(new Event('change', { bubbles: true }));
+					}
+				},
+				[randomIndex]
+			);
+		} else {
+			// Standard approach for other browsers
+			await checkboxes.nth(randomIndex).uncheck({ force: true });
+		}
 		// Explicitly dispatch change event after uncheck
-		await page.evaluate(([index]) => {
-			const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[index];
-			if (checkbox) {
-				checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-			}
-		}, [randomIndex]);
+		await page.evaluate(
+			([index]) => {
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
+					index
+				];
+				if (checkbox) {
+					checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+			},
+			[randomIndex]
+		);
+		// Explicitly dispatch change event after uncheck
+		await page.evaluate(
+			([index]) => {
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
+					index
+				];
+				if (checkbox) {
+					checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+			},
+			[randomIndex]
+		);
+		// Explicitly dispatch change event after uncheck
+		await page.evaluate(
+			([index]) => {
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
+					index
+				];
+				if (checkbox) {
+					checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+			},
+			[randomIndex]
+		);
 
 		// Verify the Slip is removed
 		await expect(page.locator(`text=(${studentIdValue})`)).toBeHidden();
@@ -326,7 +341,6 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Wait for table elements to be attached (not necessarily visible)
 		await checkboxes.first().waitFor({ state: 'attached' });
 
-		
 		const browserName = context._browser.browserType().name();
 
 		// Click master checkbox to uncheck all

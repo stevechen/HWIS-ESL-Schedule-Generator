@@ -433,7 +433,7 @@
 <!-- MARK: **** HTML **** -->
 <title>White slips</title>
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
-	<section id="controls" class="print:hidden top-13 z-10 fixed self-start py-2 w-[41em] font-sans">
+	<section id="controls" class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] font-sans">
 		<div id="assignment">
 			<div class="flex justify-between items-center">
 				<h3 class="mx-2 my-1 w-10/12">Assignment and class info</h3>
@@ -456,20 +456,20 @@
 					</button>
 				{/if}
 			</div>
-			<div class="flex flex-wrap justify-start items-center bg-black mb-4 p-2 border-2 rounded-lg">
+			<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-lg">
 				<!-- MARK: assignment type -->
-				<fieldset class="flex flex-row justify-start items-center mr-2 mb-2 w-full">
+				<fieldset class="flex flex-row justify-start items-center mr-2 mb-1 w-full">
 					<!-- inkwell icon -->
-					<svg class="mx-4 my-1 w-6 h-6 text-white" viewBox="0 0 64 64">
+					<svg class="mx-4 my-1 size-4 text-white" viewBox="0 0 64 64">
 						<use href="#icon-inkWell" />
 					</svg>
 
 					<div
-						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-2 p-1 rounded-full"
+						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-1 p-0.5 rounded-full"
 					>
 						{#each assignmentTypes as { code, english }}
 							<label
-								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-defaultt"
+								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-0 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-defaultt"
 								for={code}
 							>
 								<input
@@ -486,9 +486,9 @@
 
 				<!-- MARK: dates -->
 				<fieldset
-					class="flex flex-row justify-start items-start mb-2 py-1 pr-2 border-b border-b-gray-400 border-dotted w-full"
+					class="flex flex-row justify-start items-start mb-1 py-1 pr-2 border-b border-b-gray-400 border-dotted w-full"
 				>
-					<svg class="fill-white my-1 mr-4 ml-5 w-6 h-6" viewBox="0 0 612 612">
+					<svg class="fill-white my-1 mr-4 ml-5 size-4" viewBox="0 0 612 612">
 						<use href="#icon-calendar" />
 					</svg>
 					{#each DATE_FIELDS as { key, label }}
@@ -516,22 +516,22 @@
 				<!-- MARK: class-info -->
 				<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
 					<!-- student icon -->
-					<svg class="fill-white mx-4 my-1 w-6 h-6" viewBox="0 0 512 512">
+					<svg class="fill-white mx-4 my-1 size-5" viewBox="0 0 512 512">
 						<use href="#icon-student" />
 					</svg>
 					{#if grade}
 						<span class={[!students.length && 'text-red-500', 'text-white']}
-							>{students.length} Selected</span
+							>{students.length} selected</span
 						>
 					{:else}
+						<span class="mr-2 ml-1 text-red-500">0 students</span>
 						<!-- spin circle -->
 						<svg
-							class="inline-block w-6 h-6 text-red-500 origin-center animate-[spin_3s_linear_infinite]"
+							class="inline-block size-4 text-red-500 origin-center animate-[spin_3s_linear_infinite]"
 							viewBox="0 0 24 24"
 						>
 							<use href="#icon-spin" />
 						</svg>
-						<span class="mr-2 ml-1 text-red-500">0 students</span>
 					{/if}
 					<div class={[!grade && 'hidden', 'px-2']}>
 						<p
@@ -549,11 +549,11 @@
 
 					<!-- MARK: ESL-level -->
 					<div
-						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-2 p-1 rounded-full"
+						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-1 p-0.5 rounded-full"
 					>
 						{#each LEVEL_TYPE as { id, label, value }}
 							<label
-								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
+								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-0 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 								for={id}
 							>
 								<input
@@ -569,13 +569,13 @@
 
 					<!-- MARK: ESL-type -->
 					<div
-						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-2 p-1 rounded-full"
+						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-1 p-0.5 rounded-full"
 					>
 						{#each Object.entries(ClassType) as [type, value]}
 							<!-- only render out CLIL if class is not G9 -->
 							{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
 								<label
-									class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-1 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
+									class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-0 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
 									for={type}
 									><input
 										id={type}
@@ -609,7 +609,7 @@
 						id="student-list-input"
 						class={[
 							shouldHideTextarea && 'hidden',
-							'bg-white h-15 overflow-hidden min-w-15/16 rounded-md border p-2 placeholder:text-sm invalid:border-2  mx-5 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
+							'bg-white h-12 overflow-hidden min-w-15/16 rounded-md border px-2 py-0.5 placeholder:text-sm invalid:border-2  mx-5 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
 						]}
 						bind:value={studentsText}
 						placeholder="Paste students from spreadsheet with fields (order agnostic):
@@ -620,7 +620,7 @@
 				</fieldset>
 				<!-- MARK: student table -->
 				{#if studentsRaw.length > 0}
-					<table class="bg-white mx-6 mb-4 w-full text-sm border-collapse table-auto">
+					<table class="bg-white mx-6 mb-2 w-full text-sm border-collapse table-auto">
 						<thead class="bg-slate-100 font-semibold text-xs">
 							<tr>
 								<th class="border border-slate-300 border-solid">
@@ -707,7 +707,7 @@
 				{/if}
 
 				<!-- MARK: signature -->
-				<section class="*:self-center grid grid-cols-12 mx-5 my-1 w-full">
+				<section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 					<div
 						class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-0 *:border-dashed *:rounded-lg cursor-default"
 						ondragenter={handleDragEnter}
@@ -731,25 +731,23 @@
 									: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
 							]}
 						>
-							<p class="mt-2 ml-24 text-orange-500 text-sm text-center whitespace-pre">
-								{`Drop a jpg/png signature file
-	or`}
+							<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
+								{`Darg and drop a jpg/png signature file
+------------------ or ------------------`}
 							</p>
 							<button
 								id="browse"
 								class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
 								onclick={handleClick}
-								aria-label="browse image"
+								aria-label="browse image">Browse…</button
 							>
-								Browse…
-							</button>
-							<p class="mb-2 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
+							<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
 						</div>
 
 						<!-- Signature preview and remove button -->
 						<div
 							class={[
-								signatureImage && 'has-signature z-1 mt-0 border-2',
+								signatureImage && 'has-signature z-1 mt-0',
 								!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
 								'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
 							]}
@@ -757,11 +755,11 @@
 							<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
 							<button
 								id="remove-signature"
-								class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs m-4 p-1.5 rounded-lg w-12 h-12 hover:pointer"
+								class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
 								onclick={(event) => removeSignature(event)}
 								aria-label="remove-signature"
 							>
-								<svg class="w-8 h-8 text-white" viewBox="0 0 32 32">
+								<svg class="size-6 text-white" viewBox="0 0 32 32">
 									<use href="#icon-trash" />
 								</svg>
 							</button>
@@ -777,7 +775,7 @@
 					</div>
 
 					<!-- Print button -->
-					<div class="justify-self-end col-start-10 col-end-13 text-center">
+					<div class="justify-self-end col-start-10 col-end-13 my-0 text-center">
 						<p
 							class={[
 								printInvalid && 'text-red-400',
@@ -857,7 +855,7 @@
 				{/if}
 			</div>
 		{/if}
-		<h3 class="print:hidden mx-2 my-1">
+		<h3 class="print:hidden mx-2 my-0.5">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
 		</h3>
 		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]">
