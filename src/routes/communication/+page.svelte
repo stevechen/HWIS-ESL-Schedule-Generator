@@ -808,14 +808,23 @@
 		{#if savedRecords.length > 0}
 			<div class="print:hidden">
 				<button
-					class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 px-2 rounded text-sm mx-2 my-1"
-					onclick={() => showSavedRecords = !showSavedRecords}
+					class="flex items-center bg-gray-700 hover:bg-gray-600 mx-2 my-1 mb-2 px-2 py-1 rounded font-bold text-white text-sm"
+					onclick={() => (showSavedRecords = !showSavedRecords)}
 				>
+					<span
+						class="mr-1 text-xs transition-transform duration-200 transform"
+						class:rotate-90={showSavedRecords}
+					>
+						&#9658;
+					</span>
 					Saved Records ({savedRecords.length})
 				</button>
 				{#if showSavedRecords}
 					<div transition:slide>
-						<table id="records_table" class="border-1 border-slate-400 border-solid w-full records">
+						<table
+							id="records_table"
+							class="mb-2 border-1 border-slate-400 border-solid w-full records"
+						>
 							<tbody>
 								{#each savedRecords as recordName}
 									<tr
