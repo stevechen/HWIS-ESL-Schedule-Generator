@@ -272,7 +272,7 @@
 				</thead>
 				<tbody>
 					{#each outputTable.rows as row}
-						{@const isOff = row[0].trim() === ''}
+						{@const isOff = row[0].trim() === '' && row[2] === 'Off'}
 						{@const isExam = row[2].trim() === 'Exam'}
 						<tr class="border-b border-gray-600">
 							{#each row as cell, i}
