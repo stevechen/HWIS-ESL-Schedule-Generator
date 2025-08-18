@@ -435,7 +435,7 @@
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
 	<section
 		id="controls"
-		class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] font-sans max-h-[calc(100dvh-2.5rem)] overflow-y-auto"
+		class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
 	>
 		<div id="assignment">
 			<div class="flex justify-between items-center">
@@ -467,14 +467,9 @@
 						<use href="#icon-inkWell" />
 					</svg>
 
-					<div
-						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] my-1 p-0.5 rounded-full"
-					>
+					<div class="radio-bg">
 						{#each assignmentTypes as { code, english }}
-							<label
-								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-0 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-defaultt"
-								for={code}
-							>
+							<label class="radio-label" for={code}>
 								<input
 									id={code}
 									class="appearance-none"
@@ -551,14 +546,9 @@
 					</div>
 
 					<!-- MARK: ESL-level -->
-					<div
-						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-1 p-0.5 rounded-full"
-					>
+					<div class="radio-bg">
 						{#each LEVEL_TYPE as { id, label, value }}
-							<label
-								class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-0 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
-								for={id}
-							>
+							<label class="radio-label" for={id}>
 								<input
 									{id}
 									class="appearance-none"
@@ -571,15 +561,11 @@
 					</div>
 
 					<!-- MARK: ESL-type -->
-					<div
-						class="flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-1 p-0.5 rounded-full"
-					>
+					<div class="radio-bg">
 						{#each Object.entries(ClassType) as [type, value]}
 							<!-- only render out CLIL if class is not G9 -->
 							{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
-								<label
-									class="hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-0 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default"
-									for={type}
+								<label class="radio-label" for={type}
 									><input
 										id={type}
 										class="appearance-none"
@@ -892,7 +878,7 @@
 		</path>
 	</symbol>
 	<symbol id="icon-inkWell">
-		<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+		<g class="fill-none stroke-1 stroke-none" fill-rule="evenodd">
 			<g id="des-ink-well" fill="currentColor">
 				<path
 					d="M34.8606,40.8496 L32.9706,41.9836 C32.3726,42.3426 32.0006,42.9996 32.0006,43.6986 L32.0006,52.9996 C32.0006,53.5526 31.5526,53.9996 31.0006,53.9996 C30.4476,53.9996 30.0006,53.5526 30.0006,52.9996 L30.0006,43.6986 C30.0006,42.3006 30.7446,40.9876 31.9416,40.2686 L33.8316,39.1346 C34.3056,38.8506 34.9196,39.0046 35.2036,39.4776 C35.4876,39.9516 35.3346,40.5656 34.8606,40.8496 M54.1306,36.4476 L51.1056,34.9346 C50.4236,34.5936 50.0006,33.9086 50.0006,33.1456 L50.0006,27.9996 L51.0006,27.9996 C51.5526,27.9996 52.0006,27.5526 52.0006,26.9996 C52.0006,26.4476 51.5526,25.9996 51.0006,25.9996 L33.0006,25.9996 C32.4476,25.9996 32.0006,26.4476 32.0006,26.9996 C32.0006,27.5526 32.4476,27.9996 33.0006,27.9996 L34.0006,27.9996 L34.0006,33.1456 C34.0006,33.9086 33.5766,34.5936 32.8946,34.9346 L29.8696,36.4476 C27.4826,37.6416 26.0006,40.0396 26.0006,42.7076 L26.0006,55.9996 C26.0006,58.2056 27.7946,59.9996 30.0006,59.9996 L54.0006,59.9996 C56.2066,59.9996 58.0006,58.2056 58.0006,55.9996 L58.0006,42.7076 C58.0006,40.0396 56.5176,37.6416 54.1306,36.4476"
@@ -940,28 +926,26 @@
 	</symbol>
 	<symbol id="icon-spin">
 		<path
-			opacity="0.2"
+			class="opacity-20 fill-current"
 			fill-rule="evenodd"
 			clip-rule="evenodd"
 			d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-			fill="currentColor"
 		/>
 		<path
-			class="origin-center animate-[spin_3s_linear_infinite]"
+			class="fill-current origin-center animate-[spin_3s_linear_infinite]"
 			d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
-			fill="currentColor"
 		/>
 	</symbol>
 	<symbol id="icon-trash">
 		<path
-			fill="currentColor"
+			class="fill-current"
 			d="M15 4c-.522 0-1.06.185-1.438.563C13.185 4.94 13 5.478 13 6v1H7v2h1v16c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V9h1V7h-6V6c0-.522-.185-1.06-.563-1.438C20.06 4.186 19.523 4 19 4zm0 2h4v1h-4zm-5 3h14v16c0 .555-.445 1-1 1H11c-.555 0-1-.445-1-1zm2 3v11h2V12zm4 0v11h2V12zm4 0v11h2V12z"
 		/>
 	</symbol>
 </svg>
 
 <style>
-	@reference "../../app.css";
+	/* @reference "../../app.css"; */
 	/* region -------------- CSS -------------------- 
 	/* prevents x axis shifting when the scrollbar appears */
 	@media screen {
@@ -974,14 +958,6 @@
 		:global(body) {
 			/* For WebKit browsers */
 			overflow-y: overlay;
-		}
-
-		/* region .student          */
-		.student td input {
-			@apply box-border bg-transparent m-0 p-0 border-none w-full h-full;
-			&:focus {
-				@apply bg-[#eef];
-			}
 		}
 
 		#signature-upload {
