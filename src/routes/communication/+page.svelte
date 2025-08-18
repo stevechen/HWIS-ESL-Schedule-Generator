@@ -21,7 +21,7 @@
 
 	let studentsText = $state(store.studentsText);
 	// Make studentsRaw a derived state that reacts to studentsText changes
-	let studentsRaw = $derived.by(() => generateStudents(studentsText));
+	let studentsRaw: Array<Student> = $derived.by(() => generateStudents(studentsText));
 	let shouldHideTextarea = $state(store.shouldHideTextarea);
 	let UI_Grade = $state(store.UI_Grade);
 	let UI_Level = $state(store.UI_Level);
@@ -432,18 +432,18 @@
 
 <!-- MARK: **** HTML **** -->
 <title>White slips</title>
-<main class="flex flex-row items-start gap-2 mx-auto w-fit">
+<main class="mx-auto flex w-fit flex-row items-start gap-2">
 	<section
 		id="controls"
-		class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
+		class="fixed top-10 z-10 max-h-[calc(100dvh-2.5rem)] w-[41em] self-start overflow-y-auto pt-2 font-sans print:hidden"
 	>
 		<div id="assignment">
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<h3 class="mx-2 my-1 w-10/12">Assignment and class info</h3>
 				{#if studentsRaw.length > 0}
 					<button
 						id="clear_button"
-						class="bg-gray-500 hover:bg-gray-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
+						class="mx-1 rounded bg-gray-500 px-2 py-1 text-xs font-bold text-white hover:bg-gray-600"
 						onclick={() => clearForm()}
 					>
 						Clear
@@ -452,16 +452,16 @@
 				{#if isSaveable && isModified()}
 					<button
 						id="save_button"
-						class="bg-blue-500 hover:bg-blue-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
+						class="mx-1 rounded bg-blue-500 px-2 py-1 text-xs font-bold text-white hover:bg-blue-600"
 						onclick={() => saveRecord()}
 					>
 						Save
 					</button>
 				{/if}
 			</div>
-			<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-lg">
+			<div class="mb-0 flex flex-wrap items-center justify-start rounded-lg border-1 bg-black p-2">
 				<!-- MARK: assignment type -->
-				<fieldset class="flex flex-row justify-start items-center mr-2 mb-1 w-full">
+				<fieldset class="mr-2 mb-1 flex w-full flex-row items-center justify-start">
 					<!-- inkwell icon -->
 					<svg class="mx-4 my-1 size-4 text-white" viewBox="0 0 64 64">
 						<use href="#icon-inkWell" />
@@ -484,20 +484,20 @@
 
 				<!-- MARK: dates -->
 				<fieldset
-					class="flex flex-row justify-start items-start mb-1 py-1 pr-2 border-b border-b-gray-400 border-dotted w-full"
+					class="mb-1 flex w-full flex-row items-start justify-start border-b border-dotted border-b-gray-400 py-1 pr-2"
 				>
-					<svg class="fill-white my-1 mr-4 ml-5 size-4" viewBox="0 0 612 612">
+					<svg class="my-1 mr-4 ml-5 size-4 fill-white" viewBox="0 0 612 612">
 						<use href="#icon-calendar" />
 					</svg>
 					{#each DATE_FIELDS as { key, label }}
 						{@const invalid =
 							!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key])}
-						<label class="group px-2 text-white text-sm" for={key}>
+						<label class="group px-2 text-sm text-white" for={key}>
 							{label}
 							<input
 								class={[
 									invalid && 'border-2 border-red-400 text-red-400',
-									'mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 focus:border-2 focus:border-blue-800! focus:outline-hidden invalid:group-first-of-type:border-orange-400'
+									'mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 invalid:group-first-of-type:border-orange-400 focus:border-2 focus:border-blue-800! focus:outline-hidden'
 								]}
 								type="text"
 								name={key}
@@ -512,9 +512,9 @@
 				</fieldset>
 
 				<!-- MARK: class-info -->
-				<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
+				<fieldset class="class-info mb-2 flex w-full flex-row items-center justify-start pr-2">
 					<!-- student icon -->
-					<svg class="fill-white mx-4 my-1 size-5" viewBox="0 0 512 512">
+					<svg class="mx-4 my-1 size-5 fill-white" viewBox="0 0 512 512">
 						<use href="#icon-student" />
 					</svg>
 					{#if grade}
@@ -525,7 +525,7 @@
 						<span class="mr-2 ml-1 text-red-500">0 students</span>
 						<!-- spin circle -->
 						<svg
-							class="inline-block size-4 text-red-500 origin-center animate-[spin_3s_linear_infinite]"
+							class="inline-block size-4 origin-center animate-[spin_3s_linear_infinite] text-red-500"
 							viewBox="0 0 24 24"
 						>
 							<use href="#icon-spin" />
@@ -536,7 +536,7 @@
 							id="grade"
 							class={[
 								grade &&
-									'text-white bg-linear-to-b from-slate-700 to-slate-500 shadow-xs shadow-blue-800',
+									'bg-linear-to-b from-slate-700 to-slate-500 text-white shadow-xs shadow-blue-800',
 								'rounded-full px-2'
 							]}
 							transition:fade
@@ -583,7 +583,7 @@
 					<div>
 						<input
 							type="number"
-							class={`mx-1 appearance:textfield duration-400 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition ease-in invalid:rounded-sm  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+							class={`appearance:textfield mx-1 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition duration-400 ease-in invalid:rounded-sm  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
 							bind:value={UI_ClassNum}
 							placeholder="#?"
 							max="9"
@@ -598,7 +598,7 @@
 						id="student-list-input"
 						class={[
 							shouldHideTextarea && 'hidden',
-							'bg-white h-12 overflow-hidden min-w-15/16 rounded-md border px-2 py-0.5 placeholder:text-sm invalid:border-2  mx-5 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
+							'mx-5 h-12 min-w-15/16 overflow-hidden rounded-md border bg-white px-2 py-0.5 placeholder:text-sm  invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
 						]}
 						bind:value={studentsText}
 						placeholder="Paste students from spreadsheet with fields (order agnostic):
@@ -609,43 +609,43 @@
 				</fieldset>
 				<!-- MARK: student table -->
 				{#if studentsRaw.length > 0}
-					<table class="bg-white mx-6 mb-2 w-full text-sm border-collapse table-auto">
-						<thead class="bg-slate-100 font-semibold text-xs">
+					<table class="mx-6 mb-2 w-full table-auto border-collapse bg-white text-sm">
+						<thead class="bg-slate-100 text-xs font-semibold">
 							<tr>
-								<th class="border border-slate-300 border-solid">
+								<th class="border border-solid border-slate-300">
 									<input
 										id="master-checkbox"
 										type="checkbox"
-										class="m-1 w-4 h-4"
+										class="m-1 h-4 w-4"
 										bind:checked={isAllChecked.checked}
 										indeterminate={isAllChecked.indeterminate}
 										onchange={handleToggleAll}
 									/>
 								</th>
 								{#each ['ID', 'English Name', 'C. Name', 'C. Class', 'Status'] as header}
-									<th class="border border-slate-300 border-solid">{header}</th>
+									<th class="border border-solid border-slate-300">{header}</th>
 								{/each}
 							</tr>
 						</thead>
 						<tbody>
 							{#each studentsRaw as student}
 								<tr
-									class="**:focus:bg-blue-50 *:p-1 *:border *:border-gray-500**:focus:border border-slate-200 **:focus:border-blue-500 **:focus:outline-none **:text-center *:border-collapse student *:"
+									class="*:border-gray-500**:focus:border student *: border-slate-200 *:border-collapse *:border *:p-1 **:text-center **:focus:border-blue-500 **:focus:bg-blue-50 **:focus:outline-none"
 								>
-									<td class="table-cell text-align-center align-middle student-checkbox">
-										<div class="flex justify-center items-center">
+									<td class="text-align-center student-checkbox table-cell align-middle">
+										<div class="flex items-center justify-center">
 											<label for="checkbox-{student.id}">
 												<input
 													type="checkbox"
 													id="checkbox-{student.id}"
-													class="min-w-4 min-h-4"
+													class="min-h-4 min-w-4"
 													bind:checked={student.selected}
 													onchange={() => (studentsRaw = [...studentsRaw])}
 												/>
 											</label>
 										</div>
 									</td>
-									<td class="w-[4.5rem] student-id">
+									<td class="student-id w-[4.5rem]">
 										<input
 											class="text-center"
 											type="text"
@@ -653,14 +653,14 @@
 											oninput={() => (studentsRaw = [...studentsRaw])}
 										/>
 									</td>
-									<td class="w-auto english-name">
+									<td class="english-name w-auto">
 										<input
 											type="text-center"
 											bind:value={student.name.english}
 											oninput={() => (studentsRaw = [...studentsRaw])}
 										/>
 									</td>
-									<td class="w-20 chinese-name">
+									<td class="chinese-name w-20">
 										<input
 											class="text-center"
 											type="text"
@@ -668,7 +668,7 @@
 											oninput={() => (studentsRaw = [...studentsRaw])}
 										/>
 									</td>
-									<td class="w-14 chinese-class">
+									<td class="chinese-class w-14">
 										<input
 											class="text-center"
 											type="text"
@@ -696,9 +696,9 @@
 				{/if}
 
 				<!-- MARK: signature -->
-				<section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
+				<section class="mx-5 my-0 grid w-full grid-cols-12 *:self-center">
 					<div
-						class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-0 *:border-dashed *:rounded-lg cursor-default"
+						class="col-start-1 col-end-10 mr-0 flex cursor-default flex-wrap justify-self-start *:rounded-lg *:border-dashed"
 						ondragenter={handleDragEnter}
 						ondragover={handleDragOver}
 						ondrop={handleDrop}
@@ -720,17 +720,17 @@
 									: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
 							]}
 						>
-							<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
+							<p class="mt-0 ml-24 text-center text-sm whitespace-pre text-orange-500">
 								{`Darg and drop a jpg/png signature file
 ------------------ or ------------------`}
 							</p>
 							<button
 								id="browse"
-								class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
+								class="hover:pointer my-2 ml-24 animate-pulse rounded-lg bg-blue-400 px-4 py-1 text-white shadow-xs shadow-blue-800 hover:animate-none hover:bg-blue-500"
 								onclick={handleClick}
 								aria-label="browse image">Browse…</button
 							>
-							<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
+							<p class="mb-0 ml-24 text-sm text-slate-400">Max file size: {Limit.size}KB</p>
 						</div>
 
 						<!-- Signature preview and remove button -->
@@ -741,10 +741,10 @@
 								'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
 							]}
 						>
-							<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
+							<img class="signature-preview m-auto h-[14mm]" src={signatureImage} alt="Signature" />
 							<button
 								id="remove-signature"
-								class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
+								class="hover:pointer mr-4 size-9 rounded-lg bg-blue-400 p-1.5 shadow-xs shadow-blue-800 hover:bg-blue-500"
 								onclick={(event) => removeSignature(event)}
 								aria-label="remove-signature"
 							>
@@ -756,7 +756,7 @@
 
 						<input
 							id="signature-upload"
-							class="-m-px p-0 border-0 w-px h-px overflow-hidden absolue"
+							class="absolue -m-px h-px w-px overflow-hidden border-0 p-0"
 							type="file"
 							accept="image/*"
 							onchange={handleFileSelect}
@@ -764,12 +764,12 @@
 					</div>
 
 					<!-- Print button -->
-					<div class="justify-self-end col-start-10 col-end-13 my-0 text-center">
+					<div class="col-start-10 col-end-13 my-0 justify-self-end text-center">
 						<p
 							class={[
 								printInvalid && 'text-red-400',
 								printCaution && 'text-orange-400',
-								'text-blue-400 text-center text-sm'
+								'text-center text-sm text-blue-400'
 							]}
 						>
 							{printInvalid || printCaution ? 'Missing Info!' : `Single Sided  B5/JIS-B5`}
@@ -778,7 +778,7 @@
 							class={[
 								printCaution && 'bg-orange-500 shadow-orange-800 hover:bg-orange-600',
 								printInvalid && 'animate-none! cursor-default bg-red-500 shadow-red-800',
-								'print-slips animate-pulse rounded-lg bg-blue-500 my-2 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none'
+								'print-slips my-2 animate-pulse rounded-lg bg-blue-500 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none'
 							]}
 							title={printCaution || printInvalid ? 'Incomplete input' : ''}
 							onclick={() => window.print()}
@@ -791,15 +791,15 @@
 		</div>
 	</section>
 	<!-- MARK: Slips -->
-	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
+	<section id="slips" class="ml-[42em] box-border flex flex-col py-2 print:m-0 print:p-0">
 		{#if savedRecords.length > 0}
 			<div class="print:hidden">
 				<button
-					class="flex items-center bg-gray-700 hover:bg-gray-600 mx-2 my-1 mb-2 px-2 py-1 rounded font-bold text-white text-sm"
+					class="mx-2 my-1 mb-2 flex items-center rounded bg-gray-700 px-2 py-1 text-sm font-bold text-white hover:bg-gray-600"
 					onclick={() => (showSavedRecords = !showSavedRecords)}
 				>
 					<span
-						class="mr-1 text-xs transition-transform duration-200 transform"
+						class="mr-1 transform text-xs transition-transform duration-200"
 						class:rotate-90={showSavedRecords}
 					>
 						&#9658;
@@ -810,12 +810,12 @@
 					<div transition:slide>
 						<table
 							id="records_table"
-							class="mb-2 border-1 border-slate-400 border-solid w-full records"
+							class="records mb-2 w-full border-1 border-solid border-slate-400"
 						>
 							<tbody>
 								{#each savedRecords as recordName}
 									<tr
-										class="hover:bg-blue-200 border-1 border-slate-400 border-solid h-fit hover:cursor-pointer record"
+										class="record h-fit border-1 border-solid border-slate-400 hover:cursor-pointer hover:bg-blue-200"
 										onclick={() => loadRecord(recordName)}
 									>
 										<td class="pl-2">{recordName}</td>
@@ -829,7 +829,7 @@
 												}}
 											>
 												<svg
-													class="hover:bg-red-600 size-8 text-gray-400 hover:text-white"
+													class="size-8 text-gray-400 hover:bg-red-600 hover:text-white"
 													viewBox="0 0 32 32"
 												>
 													<use href="#icon-trash" />
@@ -844,12 +844,12 @@
 				{/if}
 			</div>
 		{/if}
-		<h3 class="print:hidden mx-2 my-0.5">
+		<h3 class="mx-2 my-0.5 print:hidden">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
 		</h3>
-		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]">
+		<div class="min-h-[calc(100dvh-6.5rem)] w-[182mm] rounded-lg bg-blue-100 px-2 py-1 print:p-0">
 			{#each students as student, i}
-				<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
+				<p class="mx-4 mt-2 block text-slate-500 print:hidden" transition:slide>
 					Slip #{i + 1}
 				</p>
 				<Slip {student} signatureSrc={signatureImage} {assignment} />
@@ -878,7 +878,7 @@
 		</path>
 	</symbol>
 	<symbol id="icon-inkWell">
-		<g class="fill-none stroke-1 stroke-none" fill-rule="evenodd">
+		<g class="fill-none stroke-none stroke-1" fill-rule="evenodd">
 			<g id="des-ink-well" fill="currentColor">
 				<path
 					d="M34.8606,40.8496 L32.9706,41.9836 C32.3726,42.3426 32.0006,42.9996 32.0006,43.6986 L32.0006,52.9996 C32.0006,53.5526 31.5526,53.9996 31.0006,53.9996 C30.4476,53.9996 30.0006,53.5526 30.0006,52.9996 L30.0006,43.6986 C30.0006,42.3006 30.7446,40.9876 31.9416,40.2686 L33.8316,39.1346 C34.3056,38.8506 34.9196,39.0046 35.2036,39.4776 C35.4876,39.9516 35.3346,40.5656 34.8606,40.8496 M54.1306,36.4476 L51.1056,34.9346 C50.4236,34.5936 50.0006,33.9086 50.0006,33.1456 L50.0006,27.9996 L51.0006,27.9996 C51.5526,27.9996 52.0006,27.5526 52.0006,26.9996 C52.0006,26.4476 51.5526,25.9996 51.0006,25.9996 L33.0006,25.9996 C32.4476,25.9996 32.0006,26.4476 32.0006,26.9996 C32.0006,27.5526 32.4476,27.9996 33.0006,27.9996 L34.0006,27.9996 L34.0006,33.1456 C34.0006,33.9086 33.5766,34.5936 32.8946,34.9346 L29.8696,36.4476 C27.4826,37.6416 26.0006,40.0396 26.0006,42.7076 L26.0006,55.9996 C26.0006,58.2056 27.7946,59.9996 30.0006,59.9996 L54.0006,59.9996 C56.2066,59.9996 58.0006,58.2056 58.0006,55.9996 L58.0006,42.7076 C58.0006,40.0396 56.5176,37.6416 54.1306,36.4476"
@@ -926,13 +926,13 @@
 	</symbol>
 	<symbol id="icon-spin">
 		<path
-			class="opacity-20 fill-current"
+			class="fill-current opacity-20"
 			fill-rule="evenodd"
 			clip-rule="evenodd"
 			d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
 		/>
 		<path
-			class="fill-current origin-center animate-[spin_3s_linear_infinite]"
+			class="origin-center animate-[spin_3s_linear_infinite] fill-current"
 			d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
 		/>
 	</symbol>

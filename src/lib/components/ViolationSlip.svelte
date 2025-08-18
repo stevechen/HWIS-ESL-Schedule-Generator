@@ -28,16 +28,13 @@
 </script>
 
 <div
-	class="slip relative block h-[calc((257mm)/3)] p-4 font-sans text-xs
-    *:box-border *:border-gray-500
-    print:nth-of-type-[3n+2]:border-y
-    print:nth-of-type-[3n+2]:border-dotted print:nth-of-type-[3n+4]:break-before-page"
+	class="slip relative block h-[calc((257mm)/3)] p-4 font-sans text-xs *:box-border *:border-gray-500 print:nth-of-type-[3n+2]:border-y print:nth-of-type-[3n+2]:border-dotted print:nth-of-type-[3n+4]:break-before-page"
 >
 	<h2 class="h-[12%] w-full text-center font-semibold">
 		Hong Wen High School Student Violation Slip<br />
 		弘文中學學生違規紀錄單
 	</h2>
-	<div class="flex h-[22%] items-center border text-sm *:px-3 *:leading-6 *:block">
+	<div class="flex h-[22%] items-center border text-sm *:block *:px-3 *:leading-6">
 		<div class="w-[40%] *:leading-6">
 			<h3 class="pr-1 text-xs text-gray-600">Student 學生:</h3>
 			<p class="student-info">
@@ -56,14 +53,14 @@
 
 	<div class="flex h-[22%] items-start border-x border-b">
 		<h3 class="px-3 py-2 text-xs text-gray-600">Violation <br /> 違規行為</h3>
-		<div class="px-3 py-2 *:text-center w-3/4">
+		<div class="w-3/4 px-3 py-2 *:text-center">
 			<p class="leading-6 *:font-semibold">{violation.english}</p>
 			<p class="leading-6 *:font-semibold">{violation.chinese}</p>
 		</div>
 	</div>
 
-	<div class="flex h-[22%] border-x *:border-gray-500 *:px-3 *:py-2 *:grow">
-		<h3 class="relative w-1/2 *:block border-r border-gray-500 pt-3">
+	<div class="flex h-[22%] border-x *:grow *:border-gray-500 *:px-3 *:py-2">
+		<h3 class="relative w-1/2 border-r border-gray-500 pt-3 *:block">
 			Teacher's signature<br />
 			ESL 老師簽名
 			{#if signatureSrc}
@@ -77,7 +74,7 @@
 
 		<h3 class="w-1/3 border-r border-gray-500">導師簽名</h3>
 		<h3 class="w-1/3 border-r border-gray-500">家長簽名</h3>
-		<h3 class="font-semibold w-1/3 self-center text-center underline">
+		<h3 class="w-1/3 self-center text-center font-semibold underline">
 			登記次數達三次者,<br />
 			於第四次開始記警告.
 		</h3>

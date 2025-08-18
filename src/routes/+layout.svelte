@@ -10,10 +10,10 @@
 	];
 </script>
 
-<nav class="print:hidden flex justify-center bg-slate-200 mt-1 mb-1">
+<nav class="mt-1 mb-1 flex justify-center bg-slate-200 print:hidden">
 	{#each NAV_ITEM as { url, title }}
 		<a
-			class="block aria-current:bg-white hover:bg-blue-800 mt-1 px-5 py-1 rounded-t-lg font-bold text-slate-500 aria-current:text-black hover:text-yellow-400 text-decoration-none aria-current:cursor-default hover:cursor-pointer"
+			class="text-decoration-none mt-1 block rounded-t-lg px-5 py-1 font-bold text-slate-500 hover:cursor-pointer hover:bg-blue-800 hover:text-yellow-400 aria-current:cursor-default aria-current:bg-white aria-current:text-black"
 			href={url}
 			aria-current={page.url.pathname === url}
 			>{title}
