@@ -19,7 +19,7 @@ export function getGradeForClassType(classType: ClassType): string {
 		[ClassTypeCode.CLIL]: 'G7/8',
 		[ClassTypeCode.Comm]: 'G7/8',
 		[ClassTypeCode.G9]: 'G9',
-		[ClassTypeCode.H]: 'H'
+		[ClassTypeCode.H]: 'Senior'
 	};
 	return gradeMap[classType];
 }

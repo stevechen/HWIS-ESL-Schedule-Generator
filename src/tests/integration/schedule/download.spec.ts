@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+// Helper function to get the expected schedule name
+import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
+import { getGradeForClassType, ClassType } from '$lib/config/classTypes'; // NEW IMPORT - ClassType added
 
 test('Download CSV Test', async ({ page }) => {
 	await page.goto('/');
@@ -29,14 +32,9 @@ test('Schedule title and download filename update dynamically', async ({ page })
 	await page.goto('/');
 
 	// Helper function to get the expected schedule name
-	const getExpectedScheduleName = (grade: string, classType: string) => {
-		const year = new Date().getFullYear();
-		const month = new Date().getMonth();
-		const schoolYear = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
-		const semester = month >= 7 || month === 0 ? '1' : '2';
-		const [year1, year2] = schoolYear.split('-');
-		const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
-		const semesterText = `S${semester}`;
+	const getExpectedScheduleName = (classType: string) => {
+		// Changed parameter from grade to classType
+		const grade = getGradeForClassType(classType as ClassType); // Get grade using the app's logic - CAST ADDED
 
 		let gradeText;
 		if (grade === 'G7/8') {
@@ -45,23 +43,28 @@ test('Schedule title and download filename update dynamically', async ({ page })
 			gradeText = grade;
 		}
 
+		const schoolYearAndSemesterPrefix = getSchoolYearAndSemesterPrefix();
+		const [year1, year2, semester] = schoolYearAndSemesterPrefix.split('-');
+		const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
+		const semesterText = `S${semester}`;
+
 		return `${shortYear} ${semesterText} ${gradeText} schedule`;
 	};
 
 	const classTypes = [
-		{ label: 'G7/8 CLIL', grade: 'G7/8', type: 'CLIL' },
-		{ label: 'G7/8 Comm', grade: 'G7/8', type: 'Comm' },
-		{ label: 'G9', grade: 'G9', type: 'G9' },
-		{ label: 'H10', grade: 'H', type: 'H' }
+		{ label: 'G7/8 CLIL', type: 'CLIL' }, // Removed grade property
+		{ label: 'G7/8 Comm', type: 'Comm' }, // Removed grade property
+		{ label: 'G9', type: 'G9' },
+		{ label: 'H10', type: 'H' } // Changed type from 'Comm' to 'H' to match ClassTypeCode.H
 	];
 
-	for (const { label, grade, type } of classTypes) {
+	for (const { label, type } of classTypes) { // Changed iteration to use 'type'
 		await page.getByText(label).click();
 
 		// Wait for the output to be generated after changing class type
 		await expect(page.locator('#csv-output')).not.toHaveText('Loading data...');
 
-		const expectedName = getExpectedScheduleName(grade, type);
+		const expectedName = getExpectedScheduleName(type); // Pass type to the helper function
 
 		// Check the h3 title
 		await expect(page.locator('#output h3')).toHaveText(expectedName);

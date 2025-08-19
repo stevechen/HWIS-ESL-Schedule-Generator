@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Class Type Interaction', () => {
-	test.beforeEach(async ({ page, context }) => {
-		await context.clearCookies();
-		await page.goto('/'); // Navigate to the app
-		await page.waitForLoadState('networkidle'); // Wait for the page to be fully loaded
-	});
+	// test.beforeEach(async ({ page, context }) => {
+	// 	await context.clearCookies();
+	// 	await page.goto('/'); // Navigate to the app
+	// 	await page.waitForLoadState('networkidle'); // Wait for the page to be fully loaded
+	// });
 
 	test('should update the schedule when the class type is changed', async ({ page }) => {
+		await page.goto('/'); // Navigate to the app
+		await page.waitForLoadState('networkidle'); // Wait for the page to be fully loaded
 		const clilLabel = page.locator('label[for="CLIL"]');
 		const commLabel = page.locator('label[for="Comm"]');
 		const outputTable = page.locator('#output_table');
