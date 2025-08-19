@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 // Helper function to get the expected schedule name
 import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
-import { getGradeForClassType, ClassType } from '$lib/config/classTypes'; // NEW IMPORT - ClassType added
+import { getGradeForClassType, type ClassType } from '$lib/config/classTypes'; // NEW IMPORT - ClassType added
 
 test('Download CSV Test', async ({ page }) => {
 	await page.goto('/');
