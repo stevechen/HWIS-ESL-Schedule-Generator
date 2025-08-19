@@ -1,34 +1,33 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Class Type Interaction', () => {
+	test.beforeEach(async ({ page, context }) => {
+		await context.clearCookies();
+		await page.goto('/'); // Navigate to the app
+		await page.waitForLoadState('networkidle'); // Wait for the page to be fully loaded
+	});
+
 	test('should update the schedule when the class type is changed', async ({ page }) => {
-		page.on('console', (msg) => {
-			console.log(`Browser console: ${msg.text()}`);
-		});
-		await page.goto('/');
+		const clilLabel = page.locator('label[for="CLIL"]');
+		const commLabel = page.locator('label[for="Comm"]');
+		const outputTable = page.locator('#output_table');
+		const outputTitle = page.locator('#output h3');
 
-		// 1. Wait for the page to be fully loaded
-		await page.locator('#output_table').getByText('Loading data...').waitFor({ state: 'hidden' });
+		// 1. Initial state check
+		await expect(clilLabel).toBeChecked();
+		await expect(outputTitle).toContainText(/CLIL schedule$/);
 
-		// 2. Initial state check
-		await expect(page.getByLabel('G7/8 CLIL')).toBeChecked();
-		await expect(page.locator('#output h3')).toContainText(/CLIL schedule$/);
+		// 2. Change class type to "G7/8 Comm"
+		await commLabel.click();
 
-		// 3. Change class type to "G7/8 Comm"
-		await page.locator('label[for="Comm"]').click();
-		await page.waitForLoadState('domcontentloaded');
+		// 3. Wait for the output title to change to "Comm schedule"
+		await page.waitForSelector('#output h3:has-text("Comm schedule")');
 
 		// 4. Assert that the schedule has updated
-		await expect(page.locator('label[for="Comm"]')).toBeChecked();
-		await page.waitForFunction(
-			(selector) => document.querySelector(selector)?.textContent?.endsWith('Comm schedule'),
-			'#output h3',
-			{ timeout: 15000 }
-		);
+		await expect(commLabel).toBeChecked();
 
 		// 5. Check that the table content has changed.
-		// 5. Check that the table content has changed.
-		await expect(page.locator('#output_table')).toContainText('Passport Check');
-		await expect(page.locator('#output_table')).toContainText('Oral Exam');
+		await expect(outputTable).toContainText('Passport Check');
+		await expect(outputTable).toContainText('Oral Exam');
 	});
 });
