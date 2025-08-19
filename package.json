@@ -16,7 +16,7 @@
 		"test:unit": "vitest",
 		"test:e2e": "playwright test && playwright test --browser=webkit",
 		"test:ui": "playwright test --ui",
-		"test-and-push": "echo 'Tailscale connect…' && tailscale up && echo 'Running tests...' && vitest --run && playwright test --browser=chromium && playwright test --browser=webkit && echo 'Pushing to git...' && git push origin master && echo 'Tailscale disconnect…' && tailscale down"
+		 "test-and-push": "echo 'Tailscale connect…' && tailscale up --exit-node=100.86.31.118 --accept-routes --exit-node-allow-lan-access && echo 'Running tests...' && vitest --run && playwright test --browser=chromium && playwright test --browser=webkit && echo 'Pushing to git...' && git push origin master && echo 'Resetting Tailscale configuration...' && tailscale up --reset && echo 'Tailscale connected without exit node.' && tailscale up"
 	},
 	"devDependencies": {
 		"@eslint-community/eslint-utils": "^4.7.0",
