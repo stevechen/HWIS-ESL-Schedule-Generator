@@ -67,28 +67,25 @@ test.describe('Copy to clipboard feature', () => {
 		page,
 		browserName
 	}) => {
-		if (browserName === 'webkit') {
-			// Skipping test on WebKit as it does not support clipboard access in Playwright
-			return;
-		}
 		await page.goto('/');
 		const copyButton = page.locator('#copy_button');
 		await expect(page.locator('#csv-output')).not.toHaveText('Loading data...');
 
 		await copyButton.click({ modifiers: ['Alt'] });
 
-		const clipboardContent = await page.evaluate(async () => {
-			const clipboardItems = await navigator.clipboard.read();
-			for (const item of clipboardItems) {
-				if (item.types.includes('text/html')) {
-					const blob = await item.getType('text/html');
-					return await blob.text();
+		if (browserName !== 'webkit') {
+			const clipboardContent = await page.evaluate(async () => {
+				const clipboardItems = await navigator.clipboard.read();
+				for (const item of clipboardItems) {
+					if (item.types.includes('text/html')) {
+						const blob = await item.getType('text/html');
+						return await blob.text();
+					}
 				}
-			}
-			return '';
-		});
-
-		expect(clipboardContent).toMatch(/^<table/);
+				return '';
+			});
+			expect(clipboardContent).toMatch(/^<table/);
+		}
 
 		const toast = page.locator('.toast-message');
 		await expect(toast).toBeVisible();
