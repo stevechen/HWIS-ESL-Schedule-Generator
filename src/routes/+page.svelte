@@ -101,23 +101,44 @@
 	let showToast = $state(false);
 	let toastType = $state('success'); // 'success' or 'error'
 
-	async function copyOutputToClipboard() {
-		if (typeof output === 'string') {
-			try {
-				await navigator.clipboard.writeText(output);
-				toastMessage = 'Copied!';
-				toastType = 'success';
-			} catch (err) {
-				console.error('Failed to copy:', err);
-				toastMessage = 'Failed!';
-				toastType = 'error';
-			} finally {
-				showToast = true;
-				setTimeout(() => {
-					showToast = false;
-					toastMessage = '';
-				}, 1000);
+	async function copyOutputToClipboard(event: MouseEvent) {
+		const isAltKey = event.altKey;
+
+		try {
+			if (isAltKey) {
+				const tableElement = document.getElementById('output_table');
+				if (tableElement) {
+					const range = document.createRange();
+					range.selectNode(tableElement);
+					window.getSelection()?.removeAllRanges(); // Clear previous selection
+					window.getSelection()?.addRange(range); // Select the table
+					document.execCommand('copy'); // Copy the selection
+					window.getSelection()?.removeAllRanges(); // Deselect
+
+					toastMessage = 'Copied with formatting!';
+					toastType = 'success';
+				} else {
+					throw new Error('Output table not found');
+				}
+			} else {
+				if (typeof output === 'string') {
+					await navigator.clipboard.writeText(output);
+					toastMessage = 'Copied!';
+					toastType = 'success';
+				} else {
+					throw new Error('Output is not a string');
+				}
 			}
+		} catch (err) {
+			console.error('Failed to copy:', err);
+			toastMessage = 'Failed!';
+			toastType = 'error';
+		} finally {
+			showToast = true;
+			setTimeout(() => {
+				showToast = false;
+				toastMessage = '';
+			}, 1000);
 		}
 	}
 
@@ -157,14 +178,14 @@
 <!-- MARK: HTML -->
 <title>Schedule</title>
 <main
-	class="mx-auto flex min-h-[calc(100vh-2.3em)] w-fit flex-row items-start gap-2 pb-4 font-sans text-sm"
+	class="flex flex-row items-start gap-2 mx-auto pb-4 w-fit min-h-[calc(100vh-2.3em)] font-sans text-sm"
 >
 	<!-- MARK: **** Controls **** -->
-	<section id="input" class="fixed top-13 z-10 mt-2 flex flex-col">
+	<section id="input" class="top-13 z-10 fixed flex flex-col mt-2">
 		<h3>Class</h3>
 		<div
 			id="options"
-			class="flex flex-col rounded-lg border border-dotted border-gray-500 bg-black px-2 py-1 pt-0"
+			class="flex flex-col bg-black px-2 py-1 pt-0 border border-gray-500 border-dotted rounded-lg"
 		>
 			<div id="types" class="radio-bg">
 				<!-- MARK: ****  Type **** -->
@@ -184,28 +205,28 @@
 			<h3 class="text-gray-300">Events</h3>
 			<textarea
 				rows="30"
-				class="h-full min-w-[27.5em] flex-1 overflow-hidden border border-dotted border-gray-500 font-mono text-xs text-gray-300 grayscale-50"
+				class="flex-1 grayscale-50 border border-gray-500 border-dotted min-w-[27.5em] h-full overflow-hidden font-mono text-gray-300 text-xs"
 				bind:value={eventsText}
 				readonly
 			></textarea>
 		</div>
 	</section>
 	<!-- MARK: **** Output **** -->
-	<section id="output" class="ml-87 flex flex-col">
+	<section id="output" class="flex flex-col ml-87">
 		<div class="relative flex items-center gap-2">
 			<h3>{scheduleName}</h3>
 			<div class="relative ml-auto">
 				<button
 					id="download_button"
 					type="button"
-					class="download-btn rounded p-1 hover:bg-gray-200 focus:outline-none"
+					class="hover:bg-gray-200 p-1 rounded focus:outline-none download-btn"
 					title="Download as CSV"
 					onclick={() => downloadCsv()}
 				>
 					<!-- Download SVG icon -->
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="size-5 fill-none stroke-current"
+						class="fill-none stroke-current size-5"
 						viewBox="0 0 24 24"
 					>
 						<path
@@ -220,18 +241,18 @@
 				<button
 					id="copy_button"
 					type="button"
-					class="copy-btn rounded p-1 hover:bg-gray-200 focus:outline-none"
+					class="hover:bg-gray-200 p-1 rounded focus:outline-none copy-btn"
 					title="Copy to clipboard (for spreadsheet programs)"
-					onclick={() => copyOutputToClipboard()}
+					onclick={copyOutputToClipboard}
 				>
 					<!-- Simple clipboard SVG icon -->
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="size-5 fill-none stroke-current"
+						class="fill-none stroke-current size-5"
 						viewBox="0 0 24 24"
 					>
-						<rect class="size-4 fill-white stroke-gray-800 stroke-2" x="6" y="6" rx="2" />
-						<rect class="size-4 fill-white stroke-gray-800 stroke-2" x="3" y="3" rx="2" />
+						<rect class="fill-white stroke-2 stroke-gray-800 size-4" x="6" y="6" rx="2" />
+						<rect class="fill-white stroke-2 stroke-gray-800 size-4" x="3" y="3" rx="2" />
 					</svg>
 				</button>
 				{#if showToast}
@@ -242,12 +263,12 @@
 					>
 						{#if toastType === 'success'}
 							<svg
-								class="checkmark m-auto block size-5 origin-center stroke-white stroke-2"
+								class="block stroke-2 stroke-white m-auto size-5 origin-center checkmark"
 								xmlns="http://www.w3.org/2000/svg"
 								viewBox="0 0 52 52"
 							>
 								<path
-									class="checkmark__check fill-none"
+									class="fill-none checkmark__check"
 									d="M14.1 27.2l7.1 7.2 16.7-16.8"
 									stroke-dasharray="48"
 									stroke-dashoffset="48"
@@ -261,12 +282,12 @@
 			</div>
 		</div>
 		<!-- MARK: * Output table * 	 -->
-		<div class="min-w-96 flex-1 overflow-auto border border-gray-400 font-mono text-xs">
-			<table id="output_table" class="w-full min-w-2xl border-separate border-spacing-0 text-left">
+		<div class="flex-1 border border-gray-400 min-w-96 overflow-auto font-mono text-xs">
+			<table id="output_table" class="w-full min-w-2xl text-left border-separate border-spacing-0">
 				<thead>
 					<tr class="bg-blue-700 text-white">
 						{#each outputTable.header as header_item}
-							<th class="border-r border-l border-blue-600 border-t-gray-200 p-2">{header_item}</th>
+							<th class="p-2 border-t-gray-200 border-r border-blue-600 border-l">{header_item}</th>
 						{/each}
 					</tr>
 				</thead>
@@ -274,7 +295,7 @@
 					{#each outputTable.rows as row}
 						{@const isOff = row[0].trim() === '' && row[2] === 'Off'}
 						{@const isExam = row[2].trim() === 'Exam'}
-						<tr class="border-b border-gray-600">
+						<tr class="border-gray-600 border-b">
 							{#each row as cell, i}
 								<td
 									class={[
