@@ -3,7 +3,15 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const config = {
 	kit: {
-		adapter: vercel()
+		adapter: vercel(),
+			experimental: {
+			remoteFunctions: true
+		}
+	},
+	compilerOptions: {
+		experimental: {
+			async: true
+		}
 	},
 	preprocess: [vitePreprocess()]
 };
