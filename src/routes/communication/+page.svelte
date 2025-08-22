@@ -973,6 +973,14 @@
 			overflow-y: overlay;
 		}
 
+		/* region .student          */
+		.student td input {
+			@apply box-border size-full border-none bg-transparent;
+			&:focus {
+				@apply bg-[#eef];
+			}
+		}
+
 		#signature-upload {
 			clip: rect(0, 0, 0, 0);
 		}
