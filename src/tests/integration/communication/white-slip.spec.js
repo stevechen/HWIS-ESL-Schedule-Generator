@@ -7,26 +7,26 @@ import { fileURLToPath } from 'url';
 
 const BASE_URL = 'http://localhost:5173';
 
-const MOCK_STUDENT_DATA = `1234567	張三	San Chang	J101
-7654321	李四	Si Li	J102`;
+const MOCK_STUDENT_DATA = `1234567\t張三\tSan Chang\tJ101
+7654321\t李四\tSi Li\tJ102`;
 
-const MOCK_STUDENT_DATA_G9 = `1234567	張三	San Chang	J301
-7654321	李四	Si Li	J302`;
+const MOCK_STUDENT_DATA_G9 = `1234567\t張三\tSan Chang\tJ301
+7654321\t李四\tSi Li\tJ302`;
 
-const MOCK_STUDENT_DATA_G9_FULL = `1100396	Tina Yang	楊凱鈞	J306
-1100274	Ed Chen	陳秉鋒	J304
-1100159	Jerry Wang	王俊捷	J305
-1100028	Gina Lin	林妤庭	J308
-1100229	Tim Qiu	邱皇錞	J306
-1100232	Alan Ko	柯宇宸	J306
-1100027	Cindy Lin	林佑蓁	J306
-1100122	Kelly Liu	劉奕瑄	J305
-1100112	Una Zou	鄒勻芊	J308
-1100161	Nico Wang	王奕斌	J304
-1100039	Iris Lin	林昱辰	J306
-1100278	Andy Chen	陳奕嘉	J306
-1100216	Baron Lin	林柏丞	J308
-1100318	Jeffrey Huang	黃竑睿	J304`;
+const MOCK_STUDENT_DATA_G9_FULL = `1100396\tTina Yang\t楊凱鈞\tJ306
+1100274\tEd Chen\t陳秉鋒\tJ304
+1100159\tJerry Wang\t王俊捷\tJ305
+1100028\tGina Lin\t林妤庭\tJ308
+1100229\tTim Qiu\t邱皇錞\tJ306
+1100232\tAlan Ko\t柯宇宸\tJ306
+1100027\tCindy Lin\t林佑蓁\tJ306
+1100122\tKelly Liu\t劉奕瑄\tJ305
+1100112\tUna Zou\t鄒勻芊\tJ308
+1100161\tNico Wang\t王奕斌\tJ304
+1100039\tIris Lin\t林昱辰\tJ306
+1100278\tAndy Chen\t陳奕嘉\tJ306
+1100216\tBaron Lin\t林柏丞\tJ308
+1100318\tJeffrey Huang\t黃竑睿\tJ304`;
 
 //#region before test
 test.beforeEach(async ({ page }) => {
@@ -143,7 +143,7 @@ test.describe('Assignment Handling', () => {
 });
 
 test.describe('Student Data Handling', () => {
-	test('should pre-populate due/late dates and display students in the table', async ({
+	test('should pre-populate due/late dates and display students in the table', async ({ 
 		page,
 		context
 	}) => {
@@ -224,6 +224,26 @@ test.describe('Date Handling', () => {
 		const lateDateOnSlip = await page.textContent('p.late');
 		expect(lateDateOnSlip).toContain(lateDate);
 	});
+
+	test('Print button should be disabled when assigned date is missing', async ({ 
+		page,
+		context
+	}) => {
+		await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+		const printButton = page.locator('.print-slips');
+
+		// Clear the assigned date
+		await page.fill('#assigned', '');
+
+		// Now the button should have the red class
+		await expect(printButton).toHaveClass(/bg-red-500/);
+
+		// Fill the assigned date again
+		await page.fill('#assigned', '1/1');
+
+		// The red class should be gone
+		await expect(printButton).not.toHaveClass(/bg-red-500/);
+	});
 });
 
 test.describe('Student Inclusion/Exclusion', () => {
@@ -270,7 +290,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Explicitly dispatch change event after uncheck
 		await page.evaluate(
 			([index]) => {
-				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[ 
 					index
 				];
 				if (checkbox) {
@@ -282,7 +302,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Explicitly dispatch change event after uncheck
 		await page.evaluate(
 			([index]) => {
-				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[ 
 					index
 				];
 				if (checkbox) {
@@ -294,7 +314,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Explicitly dispatch change event after uncheck
 		await page.evaluate(
 			([index]) => {
-				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[ 
 					index
 				];
 				if (checkbox) {
@@ -329,7 +349,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		await expect(page.locator(`text=(${studentIdValue})`)).toBeVisible();
 	});
 
-	test('should check/uncheck all with the master-checkbox and master-checkbox should have an indeterminate state ', async ({
+	test('should check/uncheck all with the master-checkbox and master-checkbox should have an indeterminate state ', async ({ 
 		page,
 		context
 	}) => {
