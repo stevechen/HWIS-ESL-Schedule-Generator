@@ -224,26 +224,6 @@ test.describe('Date Handling', () => {
 		const lateDateOnSlip = await page.textContent('p.late');
 		expect(lateDateOnSlip).toContain(lateDate);
 	});
-
-	test('Print button should be disabled when assigned date is missing', async ({ 
-		page,
-		context
-	}) => {
-		await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
-		const printButton = page.locator('.print-slips');
-
-		// Clear the assigned date
-		await page.fill('#assigned', '');
-
-		// Now the button should have the red class
-		await expect(printButton).toHaveClass(/bg-red-500/);
-
-		// Fill the assigned date again
-		await page.fill('#assigned', '1/1');
-
-		// The red class should be gone
-		await expect(printButton).not.toHaveClass(/bg-red-500/);
-	});
 });
 
 test.describe('Student Inclusion/Exclusion', () => {

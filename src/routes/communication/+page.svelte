@@ -697,7 +697,7 @@
 				<!-- MARK: signature -->
 				<section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 					<div
-						class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-0 *:border-dashed *:rounded-lg cursor-default"
+						class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
 						ondragenter={handleDragEnter}
 						ondragover={handleDragOver}
 						ondrop={handleDrop}
@@ -975,7 +975,7 @@
 
 		/* region .student          */
 		.student td input {
-			@apply box-border size-full border-none bg-transparent;
+			@apply box-border bg-transparent border-none size-full;
 			&:focus {
 				@apply bg-[#eef];
 			}
