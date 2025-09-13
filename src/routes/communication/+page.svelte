@@ -188,7 +188,6 @@
 	let savedRecords = $state<string[]>([]);
 	let isSaveable = $derived(UI_ClassNum && students.length > 0);
 	let lastLoadedRecord = $state<any>(null);
-	let showSavedRecords = $state(false);
 
 	const isModified = $derived(() => {
 		if (!lastLoadedRecord) {
@@ -218,6 +217,11 @@
 				.map((key) => key.substring(5))
 				.sort()
 				.reverse();
+
+			// Auto-load the most recent record if available and no data is currently loaded
+			if (savedRecords.length > 0 && !studentsText.trim()) {
+				loadRecord(savedRecords[0]);
+			}
 		}
 	});
 
@@ -629,7 +633,7 @@
 						<tbody>
 							{#each studentsRaw as student}
 								<tr
-									class="**:focus:bg-blue-50 *:p-1 *:border *:border-gray-500**:focus:border border-slate-200 **:focus:border-blue-500 **:focus:outline-none **:text-center *:border-collapse student *:"
+									class="[&>td>input]:box-border [&>td>input:focus]:bg-blue-50 [&>td>input]:bg-transparent [&>td]:p-1 [&>td]:border border-slate-200 [&>td]:border-gray-500 [&>td>input]:border-none [&>td>input]:size-full [&>td]:text-center [&>td]:border-collapse"
 								>
 									<td class="table-cell text-align-center align-middle student-checkbox">
 										<div class="flex justify-center items-center">
@@ -755,7 +759,7 @@
 
 						<input
 							id="signature-upload"
-							class="-m-px p-0 border-0 w-px h-px overflow-hidden absolue"
+							class="absolute -m-px p-0 border-0 w-px h-px overflow-hidden [clip:rect(0,0,0,0)]"
 							type="file"
 							accept="image/*"
 							onchange={handleFileSelect}
@@ -789,73 +793,56 @@
 			</div>
 		</div>
 	</section>
-	<!-- MARK: Slips -->
+
 	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
 		{#if savedRecords.length > 0}
 			<div class="print:hidden">
-				<button
-					class="flex items-center bg-gray-700 hover:bg-gray-600 mx-2 my-1 mb-2 px-2 py-1 rounded font-bold text-white text-sm"
-					onclick={() => (showSavedRecords = !showSavedRecords)}
+				<!-- MARK: saved records -->
+				<details
+					class="group bg-white mt-0.5 mb-2 border border-gray-300 rounded-sm open:outline open:outline-1 open:outline-blue-600 overflow-hidden text-gray-800"
 				>
-					<span
-						class="mr-1 text-xs transition-transform duration-200 transform"
-						class:rotate-90={showSavedRecords}
+					<summary
+						class="relative bg-gray-200 hover:bg-gray-100 group-open:hover:bg-blue-500 group-open:bg-blue-500 px-3 py-2 rounded-t-sm text-gray-700 hover:text-gray-600 group-open:hover:text-white group-open:text-white cursor-pointer group-open:outline group-open:outline-1 group-open:outline-blue-600 transition-all duration-200 ease-in-out"
 					>
-						&#9658;
-					</span>
-					Saved Records ({savedRecords.length})
-				</button>
-				{#if showSavedRecords}
-					<div transition:slide>
-						<table
-							id="records_table"
-							class="mb-2 border-1 border-slate-400 border-solid w-full records"
-						>
-							<tbody>
-								{#each savedRecords as recordName}
-									<tr
-										class="hover:bg-blue-200 border-1 border-slate-400 border-solid h-fit hover:cursor-pointer record"
-										onclick={() => loadRecord(recordName)}
-									>
-										<td class="pl-2">{recordName}</td>
-										<td class="size-8">
-											<button
-												class="table-cell align-middle"
-												aria-label="Delete record"
-												onclick={(e) => {
-													e.stopPropagation();
-													deleteRecord(recordName);
-												}}
-											>
-												<svg
-													class="hover:bg-red-600 size-8 text-gray-400 hover:text-white"
-													viewBox="0 0 32 32"
-												>
-													<use href="#icon-trash" />
-												</svg>
-											</button>
-										</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
+						Saved Records ({savedRecords.length})
+					</summary>
+					<div
+						id="records_list"
+						class="mx-2 overflow-hidden transition-all duration-300 ease-in-out group-open:opacity-100 opacity-0 group-open:max-h-screen max-h-0"
+					>
+						{#each savedRecords as recordName}
+							<div
+								class="record flex justify-between items-center hover:bg-blue-200 mb-1 p-0.5 hover:cursor-pointer"
+								role="button"
+								tabindex="0"
+								onclick={() => loadRecord(recordName)}
+								onkeydown={(e) => {
+									if (e.key === 'Enter' || e.key === ' ') {
+										e.preventDefault();
+										loadRecord(recordName);
+									}
+								}}
+							>
+								<span class="flex-1">{recordName}</span>
+								<button
+									class="hover:bg-red-600 ml-2 p-1 rounded"
+									aria-label="Delete record"
+									onclick={(e) => {
+										e.stopPropagation();
+										deleteRecord(recordName);
+									}}
+								>
+									<svg class="size-6 text-gray-400 hover:text-white" viewBox="0 0 32 32">
+										<use href="#icon-trash" />
+									</svg>
+								</button>
+							</div>
+						{/each}
 					</div>
-				{/if}
-				<h3 class="print:hidden mx-2 my-0.5">
-					Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
-				</h3>
-				<div
-					class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]"
-				>
-					{#each students as student, i}
-						<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
-							Slip #{i + 1}
-						</p>
-						<Slip {student} signatureSrc={signatureImage} {assignment} />
-					{/each}
-				</div>
+				</details>
 			</div>
 		{/if}
+		<!-- MARK: slip preview -->
 		<h3 class="print:hidden mx-2 my-0.5">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
 		</h3>
@@ -870,7 +857,7 @@
 	</section>
 </main>
 
-<!-- svg icons -->
+<!-- MARK: svg icons -->
 <svg class="hidden" xmlns="http://www.w3.org/2000/svg" xml:space="preserve">
 	<symbol id="icon-student">
 		<path
@@ -958,48 +945,27 @@
 </svg>
 
 <style>
-	/* @reference "../../app.css"; */
-	/* region -------------- CSS -------------------- 
-	/* prevents x axis shifting when the scrollbar appears */
+	/* Global styles that can't be converted to Tailwind */
 	@media screen {
 		:global(html),
 		:global(body) {
-			overflow-y: scroll; /* Apply only for screen viewing */
-			scrollbar-width: thin; /* For Firefox */
+			overflow-y: scroll;
+			scrollbar-width: thin;
 		}
-
 		:global(body) {
-			/* For WebKit browsers */
 			overflow-y: overlay;
-		}
-
-		/* region .student          */
-		.student td input {
-			@apply box-border bg-transparent border-none size-full;
-			&:focus {
-				@apply bg-[#eef];
-			}
-		}
-
-		#signature-upload {
-			clip: rect(0, 0, 0, 0);
 		}
 	}
 
-	/* #region @media print */
 	@media print {
 		@page {
 			margin: 0;
 			padding: 0;
 		}
-	}
-
-	@media print {
-		/* fix tailwindcss print: variant not working in dev mode on Safari problem */
+		/* Safari print fix */
 		.print\:m-0 {
 			margin: 0;
 		}
-
 		.print\:p-0 {
 			padding: 0;
 		}
