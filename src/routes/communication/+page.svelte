@@ -806,39 +806,35 @@
 					>
 						Saved Records ({savedRecords.length})
 					</summary>
-					<div
+					<ul
 						id="records_list"
-						class="mx-2 overflow-hidden transition-all duration-300 ease-in-out group-open:opacity-100 opacity-0 group-open:max-h-screen max-h-0"
+						class="mx-2 overflow-hidden transition-all duration-300 ease-in-out group-open:opacity-100 opacity-0 group-open:max-h-screen max-h-0 list-none"
 					>
 						{#each savedRecords as recordName}
-							<div
-								class="record flex justify-between items-center hover:bg-blue-200 mb-1 p-0.5 hover:cursor-pointer"
-								role="button"
-								tabindex="0"
-								onclick={() => loadRecord(recordName)}
-								onkeydown={(e) => {
-									if (e.key === 'Enter' || e.key === ' ') {
-										e.preventDefault();
-										loadRecord(recordName);
-									}
-								}}
-							>
-								<span class="flex-1">{recordName}</span>
-								<button
-									class="hover:bg-red-600 ml-2 p-1 rounded"
-									aria-label="Delete record"
-									onclick={(e) => {
-										e.stopPropagation();
-										deleteRecord(recordName);
-									}}
-								>
-									<svg class="size-6 text-gray-400 hover:text-white" viewBox="0 0 32 32">
-										<use href="#icon-trash" />
-									</svg>
-								</button>
-							</div>
+							<li class="record mb-1">
+								<div class="flex justify-between items-center hover:bg-blue-200 p-0.5">
+									<button
+										class="flex-1 text-left p-0 bg-transparent border-none cursor-pointer"
+										onclick={() => loadRecord(recordName)}
+									>
+										{recordName}
+									</button>
+									<button
+										class="hover:bg-red-600 ml-2 p-1 rounded flex-shrink-0"
+										aria-label="Delete record"
+										onclick={(e) => {
+											e.stopPropagation();
+											deleteRecord(recordName);
+										}}
+									>
+										<svg class="size-6 text-gray-400 hover:text-white" viewBox="0 0 32 32">
+											<use href="#icon-trash" />
+										</svg>
+									</button>
+								</div>
+							</li>
 						{/each}
-					</div>
+					</ul>
 				</details>
 			</div>
 		{/if}
