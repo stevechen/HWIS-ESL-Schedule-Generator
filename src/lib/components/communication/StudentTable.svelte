@@ -6,17 +6,35 @@
 		studentsText: string;
 		studentsRaw: Student[];
 		shouldHideTextarea: boolean;
-		isAllChecked: { checked: boolean; indeterminate: boolean };
-		onToggleAll: () => void;
 	}
 
 	let {
 		studentsText = $bindable(),
 		studentsRaw = $bindable(),
-		shouldHideTextarea,
-		isAllChecked,
-		onToggleAll
+		shouldHideTextarea
 	}: Props = $props();
+
+	// Master checkbox logic - moved from main component
+	let isAllChecked = $derived(
+		(() => {
+			let allChecked = studentsRaw.every((student) => student.selected);
+			let anyChecked = studentsRaw.some((student) => student.selected);
+			return {
+				checked: allChecked,
+				indeterminate: !allChecked && anyChecked
+			};
+		})()
+	);
+
+	function handleToggleAll() {
+		const isAllChecked = studentsRaw.every((student) => student.selected);
+		const newCheckedState = !isAllChecked;
+
+		studentsRaw = studentsRaw.map((student) => ({
+			...student,
+			selected: newCheckedState
+		}));
+	}
 
 	function handleStudentChange() {
 		studentsRaw = [...studentsRaw];
@@ -51,7 +69,7 @@
 						class="m-1 size-4"
 						bind:checked={isAllChecked.checked}
 						indeterminate={isAllChecked.indeterminate}
-						onchange={onToggleAll}
+						onchange={handleToggleAll}
 					/>
 				</th>
 				{#each ['ID', 'English Name', 'C. Name', 'C. Class', 'Status'] as header}
@@ -109,10 +127,7 @@
 						/>
 					</td>
 					<td class="w-auto text-center">
-						<select
-							bind:value={student.status}
-							onchange={handleStudentChange}
-						>
+						<select bind:value={student.status} onchange={handleStudentChange}>
 							<option value={StatusTypeCode.NOT_SUBMITTED}>
 								{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
 							</option>

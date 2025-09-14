@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte'; // Add onMount
+	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { slide } from 'svelte/transition';
 	import {
@@ -12,13 +12,7 @@
 		CommunicationStore
 	} from '$lib/stores/communication';
 	import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
-	import { processSignatureFile } from '$lib/communication/signatureValidator';
-	import {
-		validatePrintReadiness,
-		getPrintButtonStyle,
-		getPrintStatusMessage,
-		getPrintButtonText
-	} from '$lib/communication/printValidator';
+
 	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
 	import SavedRecords from '$lib/components/communication/SavedRecords.svelte';
@@ -30,7 +24,7 @@
 	const store = new CommunicationStore();
 
 	let studentsText = $state(store.studentsText);
-	// Make studentsRaw a derived state that reacts to studentsText changes
+	// Parse students immediately
 	let studentsRaw: Array<Student> = $derived.by(() => parseStudentsFromText(studentsText));
 	let shouldHideTextarea = $state(store.shouldHideTextarea);
 	let UI_Grade = $state(store.UI_Grade);
@@ -42,18 +36,12 @@
 	let UI_Dates = $state(store.UI_Dates);
 	let signatureImage = $state(store.signatureImage);
 
-	// New onMount block to load from local storage - PLACED HERE
+	// Development helper
 	onMount(() => {
-		if (browser) {
-			const savedSignature = localStorage.getItem('signatureImage');
-			if (savedSignature) {
-				signatureImage = savedSignature;
-			}
-			if (import.meta.env.DEV) {
-				(window as any).setStudentsText = (value: string) => {
-					studentsText = value;
-				};
-			}
+		if (browser && import.meta.env.DEV) {
+			(window as any).setStudentsText = (value: string) => {
+				studentsText = value;
+			};
 		}
 	});
 
@@ -85,28 +73,6 @@
 			return studentsSelected;
 		})()
 	);
-
-	//#region Master checkbox -----------------------------------------------------------
-	let isAllChecked = $derived(
-		(() => {
-			let allChecked = studentsRaw.every((student) => student.selected);
-			let anyChecked = studentsRaw.some((student) => student.selected);
-			return {
-				checked: allChecked,
-				indeterminate: !allChecked && anyChecked
-			};
-		})()
-	);
-
-	function handleToggleAll() {
-		const isAllChecked = studentsRaw.every((student) => student.selected);
-		const newCheckedState = !isAllChecked;
-
-		studentsRaw = studentsRaw.map((student) => ({
-			...student,
-			selected: newCheckedState
-		}));
-	}
 
 	//#region ESL class ---------------------------------------------------------------
 	const grade = $derived(determineGradeFromText(studentsText));
@@ -169,18 +135,6 @@
 		recordManager.updateState(currentRecord);
 	});
 
-	onMount(() => {
-		if (browser) {
-			// Auto-load the most recent record if available and no data is currently loaded
-			if (!studentsText.trim()) {
-				const result = recordManager.autoLoadMostRecent();
-				if (result.success && result.record) {
-					loadRecordData(result.record);
-				}
-			}
-		}
-	});
-
 	function loadRecordData(record: CommunicationRecord) {
 		studentsText = record.studentsText;
 		UI_Grade = record.UI_Grade;
@@ -208,108 +162,6 @@
 		Object.assign(UI_Dates, newStore.UI_Dates);
 		recordManager.clearLoadedRecord();
 	}
-
-	// #region Signature -------------------------------------------
-	let dragCounter = $state(0);
-	const isDraggingOver = $derived(dragCounter > 0);
-
-	async function validateAndSetImage(file: File): Promise<void> {
-		const result = await processSignatureFile(file);
-
-		if (!result.success) {
-			alert(result.error);
-			return;
-		}
-
-		if (result.dataURL) {
-			signatureImage = result.dataURL;
-			localStorage.setItem('signatureImage', result.dataURL);
-		}
-	}
-
-	async function handleFileSelect(event: Event) {
-		const inputField = event.target as HTMLInputElement | null;
-		if (!inputField) return; // Null check
-
-		const file = inputField.files?.[0];
-		if (file) await validateAndSetImage(file);
-	}
-
-	function handleDragEnter(event: DragEvent) {
-		event.preventDefault();
-		dragCounter++;
-	}
-
-	function handleDragOver(event: DragEvent) {
-		event.preventDefault(); // This is necessary to allow a drop.
-	}
-
-	function handleDragLeave(event: DragEvent) {
-		event.preventDefault();
-		dragCounter--;
-	}
-
-	async function handleDrop(event: DragEvent) {
-		event.preventDefault();
-		dragCounter = 0;
-		const dataTransfer = event.dataTransfer;
-		if (dataTransfer) {
-			const file = dataTransfer.files[0]; // Get the dropped file
-			await validateAndSetImage(file); // Call the function to validate and set the image
-		}
-	}
-
-	function removeSignature(event: MouseEvent) {
-		event.stopPropagation(); // This stops the click event from bubbling up to parent elements
-		signatureImage = ''; // Clear the signature image
-		localStorage.removeItem('signatureImage'); // Remove from local storage
-		// Reset the file input value so the same file can be uploaded again
-		const input = document.getElementById('signature-upload') as HTMLInputElement | null;
-		if (input) input.value = '';
-	}
-
-	// A11y functions
-	function handleClick() {
-		const element = document.getElementById('signature-upload');
-		if (element) {
-			element.click();
-		}
-	}
-
-	function handleKeyUp(event: KeyboardEvent) {
-		// Trigger click on 'Enter' or 'Space' keyup
-		if (event.key === 'Enter' || event.key === ' ') {
-			handleClick();
-		}
-	}
-
-	//#region Print button -------------------------------------------
-	const printValidation = $derived(
-		validatePrintReadiness({
-			classNum: UI_ClassNum,
-			studentsRaw,
-			isAllChecked,
-			assignmentDates: {
-				assigned: assignment.assigned,
-				due: assignment.due,
-				late: assignment.late
-			},
-			grade,
-			signatureImage
-		})
-	);
-
-	const printButtonStyle = $derived(getPrintButtonStyle(printValidation));
-	const printStatusMessage = $derived(getPrintStatusMessage(printValidation, students.length));
-	const printButtonText = $derived(getPrintButtonText(students.length));
-
-	onDestroy(() => {
-		// If the image URL is still set, revoke it before the component is destroyed
-		const currentFileURL = signatureImage;
-		if (currentFileURL && currentFileURL.startsWith('blob:')) {
-			URL.revokeObjectURL(currentFileURL);
-		}
-	});
 </script>
 
 <!-- MARK: **** HTML **** -->
@@ -336,33 +188,22 @@
 		/>
 
 		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-lg">
-			<StudentTable
-				bind:studentsText
-				bind:studentsRaw
-				{shouldHideTextarea}
-				{isAllChecked}
-				onToggleAll={handleToggleAll}
-			/>
+			<StudentTable bind:studentsText bind:studentsRaw {shouldHideTextarea} />
 
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
-				<SignatureUpload
-					bind:signatureImage
-					{isDraggingOver}
-					onFileSelect={handleFileSelect}
-					onDragEnter={handleDragEnter}
-					onDragOver={handleDragOver}
-					onDragLeave={handleDragLeave}
-					onDrop={handleDrop}
-					onRemoveSignature={removeSignature}
-					onBrowseClick={handleClick}
-					onKeyUp={handleKeyUp}
-				/>
+				<SignatureUpload bind:signatureImage />
 
 				<PrintButton
-					{printStatusMessage}
-					{printButtonStyle}
-					{printButtonText}
-					{printValidation}
+					classNum={UI_ClassNum}
+					{studentsRaw}
+					selectedStudentsCount={students.length}
+					assignmentDates={{
+						assigned: assignment.assigned,
+						due: assignment.due,
+						late: assignment.late
+					}}
+					{grade}
+					{signatureImage}
 					onPrint={() => window.print()}
 				/>
 			</div>

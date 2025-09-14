@@ -1,43 +1,116 @@
 <script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { Limit } from '$lib/stores/communication';
+	import { processSignatureFile } from '$lib/communication/signatureValidator';
 
 	// Props
 	interface Props {
 		signatureImage: string;
-		isDraggingOver: boolean;
-		onFileSelect: (event: Event) => void;
-		onDragEnter: (event: DragEvent) => void;
-		onDragOver: (event: DragEvent) => void;
-		onDragLeave: (event: DragEvent) => void;
-		onDrop: (event: DragEvent) => void;
-		onRemoveSignature: (event: MouseEvent) => void;
-		onBrowseClick: () => void;
-		onKeyUp: (event: KeyboardEvent) => void;
 	}
 
 	let {
-		signatureImage = $bindable(),
-		isDraggingOver,
-		onFileSelect,
-		onDragEnter,
-		onDragOver,
-		onDragLeave,
-		onDrop,
-		onRemoveSignature,
-		onBrowseClick,
-		onKeyUp
+		signatureImage = $bindable()
 	}: Props = $props();
+
+	let dragCounter = $state(0);
+	const isDraggingOver = $derived(dragCounter > 0);
+
+	// Load signature from localStorage on mount
+	onMount(() => {
+		if (browser) {
+			const savedSignature = localStorage.getItem('signatureImage');
+			if (savedSignature) {
+				signatureImage = savedSignature;
+			}
+		}
+	});
+
+	// Clean up blob URLs on destroy
+	onDestroy(() => {
+		if (signatureImage && signatureImage.startsWith('blob:')) {
+			URL.revokeObjectURL(signatureImage);
+		}
+	});
+
+	async function validateAndSetImage(file: File): Promise<void> {
+		const result = await processSignatureFile(file);
+
+		if (!result.success) {
+			alert(result.error);
+			return;
+		}
+
+		if (result.dataURL) {
+			signatureImage = result.dataURL;
+			localStorage.setItem('signatureImage', result.dataURL);
+		}
+	}
+
+	async function handleFileSelect(event: Event) {
+		const inputField = event.target as HTMLInputElement | null;
+		if (!inputField) return;
+
+		const file = inputField.files?.[0];
+		if (file) await validateAndSetImage(file);
+	}
+
+	function handleDragEnter(event: DragEvent) {
+		event.preventDefault();
+		dragCounter++;
+	}
+
+	function handleDragOver(event: DragEvent) {
+		event.preventDefault();
+	}
+
+	function handleDragLeave(event: DragEvent) {
+		event.preventDefault();
+		dragCounter--;
+	}
+
+	async function handleDrop(event: DragEvent) {
+		event.preventDefault();
+		dragCounter = 0;
+		const dataTransfer = event.dataTransfer;
+		if (dataTransfer) {
+			const file = dataTransfer.files[0];
+			await validateAndSetImage(file);
+		}
+	}
+
+	function removeSignature(event: MouseEvent) {
+		event.stopPropagation();
+		signatureImage = '';
+		localStorage.removeItem('signatureImage');
+		// Reset the file input value so the same file can be uploaded again
+		const input = document.getElementById('signature-upload') as HTMLInputElement | null;
+		if (input) input.value = '';
+	}
+
+	function handleBrowseClick() {
+		const element = document.getElementById('signature-upload');
+		if (element) {
+			element.click();
+		}
+	}
+
+	function handleKeyUp(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			handleBrowseClick();
+		}
+	}
 </script>
 
 <!-- MARK: signature -->
 <section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 	<div
 		class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
-		ondragenter={onDragEnter}
-		ondragover={onDragOver}
-		ondrop={onDrop}
-		ondragleave={onDragLeave}
-		onkeyup={onKeyUp}
+		ondragenter={handleDragEnter}
+		ondragover={handleDragOver}
+		ondrop={handleDrop}
+		ondragleave={handleDragLeave}
+		onkeyup={handleKeyUp}
 		aria-label="Drag & drop signature file"
 		tabindex="0"
 		role="button"
@@ -61,7 +134,7 @@
 			<button
 				id="browse"
 				class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
-				onclick={onBrowseClick}
+				onclick={handleBrowseClick}
 				aria-label="browse image">Browse…</button
 			>
 			<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
@@ -79,7 +152,7 @@
 			<button
 				id="remove-signature"
 				class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
-				onclick={onRemoveSignature}
+				onclick={removeSignature}
 				aria-label="remove-signature"
 			>
 				<svg class="size-6 text-white" viewBox="0 0 32 32">
@@ -93,7 +166,7 @@
 			class="absolute -m-px p-0 border-0 w-px h-px overflow-hidden [clip:rect(0,0,0,0)]"
 			type="file"
 			accept="image/*"
-			onchange={onFileSelect}
+			onchange={handleFileSelect}
 		/>
 	</div>
 </section>

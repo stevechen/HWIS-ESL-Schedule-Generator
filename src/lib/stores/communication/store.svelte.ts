@@ -1,5 +1,6 @@
 import { AssignmentCode, ClassType, type Student } from './types';
 import { LEVEL_TYPE } from './constants';
+import { parseStudentsFromText } from '../../communication/studentParser';
 
 /**
  * Communication Store - Manages state for the communication slip feature
@@ -8,8 +9,8 @@ import { LEVEL_TYPE } from './constants';
 export class CommunicationStore {
 	// Student data
 	studentsText: string = $state('');
-	studentsRaw: Student[] = $state([]);
-	shouldHideTextarea: boolean = $state(false);
+	studentsRaw: Student[] = $derived.by(() => parseStudentsFromText(this.studentsText));
+	shouldHideTextarea: boolean = $derived(this.studentsRaw.length > 0);
 
 	// Class information
 	UI_Grade: string = $state('');
