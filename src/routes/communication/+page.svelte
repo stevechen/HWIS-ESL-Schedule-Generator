@@ -18,6 +18,21 @@
 	} from '$lib/stores/communicationStore.svelte';
 	import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
 	import { processSignatureFile } from '$lib/communication/signatureValidator';
+	import {
+		validatePrintReadiness,
+		getPrintButtonStyle,
+		getPrintStatusMessage,
+		getPrintButtonText
+	} from '$lib/communication/printValidator';
+	import {
+		saveRecord,
+		loadRecord,
+		deleteRecord,
+		getSavedRecordNames,
+		recordMatches,
+		getMostRecentRecordName,
+		type CommunicationRecord
+	} from '$lib/communication/recordManager';
 
 	const store = new CommunicationStore();
 
@@ -138,14 +153,10 @@
 	// #region Save Record -------------------------------------------
 	let savedRecords = $state<string[]>([]);
 	let isSaveable = $derived(UI_ClassNum && students.length > 0);
-	let lastLoadedRecord = $state<any>(null);
+	let lastLoadedRecord = $state<CommunicationRecord | null>(null);
 
-	const isModified = $derived(() => {
-		if (!lastLoadedRecord) {
-			return true; // New record, always saveable
-		}
-
-		const currentSettings = {
+	const currentRecord = $derived.by(
+		(): CommunicationRecord => ({
 			studentsText,
 			UI_Grade,
 			UI_Level,
@@ -154,95 +165,62 @@
 			UI_Assignment,
 			UI_Dates,
 			studentsRaw
-		};
+		})
+	);
 
-		// Deep comparison is hard. JSON.stringify is a good-enough heuristic.
-		return JSON.stringify(currentSettings) !== JSON.stringify(lastLoadedRecord);
+	const isModified = $derived(() => {
+		if (!lastLoadedRecord) {
+			return true; // New record, always saveable
+		}
+		return !recordMatches(currentRecord, lastLoadedRecord);
 	});
 
 	onMount(() => {
 		if (browser) {
-			const keys = Object.keys(localStorage);
-			const recordKeys = keys.filter((key) => key.startsWith('comm_'));
-			savedRecords = recordKeys
-				.map((key) => key.substring(5))
-				.sort()
-				.reverse();
+			savedRecords = getSavedRecordNames();
 
 			// Auto-load the most recent record if available and no data is currently loaded
-			if (savedRecords.length > 0 && !studentsText.trim()) {
-				loadRecord(savedRecords[0]);
+			const mostRecentRecord = getMostRecentRecordName();
+			if (mostRecentRecord && !studentsText.trim()) {
+				handleLoadRecord(mostRecentRecord);
 			}
 		}
 	});
 
-	function saveRecord() {
-		let datePart = UI_Dates.due;
-		if (isValidMonthAndDay(UI_Dates.due)) {
-			const [month, day] = UI_Dates.due.split('/');
-			const year = new Date().getFullYear();
-			datePart = `${year}/${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
-		}
-		const baseRecordName = capitalizeWords(
-			`${datePart}-${UI_Grade} ${UI_Level} ${UI_ClassType} ${UI_ClassNum}-${UI_Assignment}-${
-				studentsRaw.filter((student) => student.selected).length
-			} students`
-		);
-		if (baseRecordName) {
-			let recordName = baseRecordName;
-			let counter = 1;
-			// If a record with this name already exists, append a counter to make it unique.
-			while (localStorage.getItem(`comm_${recordName}`)) {
-				recordName = `${baseRecordName} (${counter})`;
-				counter++;
-			}
-
-			const settings = {
-				studentsText,
-				UI_Grade,
-				UI_Level,
-				UI_ClassType,
-				UI_ClassNum,
-				UI_Assignment,
-				UI_Dates,
-				studentsRaw
-			};
-			localStorage.setItem(`comm_${recordName}`, JSON.stringify(settings));
+	function handleSaveRecord() {
+		try {
+			const recordName = saveRecord(currentRecord);
 			if (!savedRecords.includes(recordName)) {
 				savedRecords = [...savedRecords, recordName].sort().reverse();
 			}
-			lastLoadedRecord = JSON.parse(JSON.stringify(settings));
+			lastLoadedRecord = JSON.parse(JSON.stringify(currentRecord));
+		} catch (error) {
+			console.error('Failed to save record:', error);
+			alert('Failed to save record. Please try again.');
 		}
 	}
 
-	function capitalizeWords(str: string) {
-		return str.replace(/\b\w/g, (char) => char.toUpperCase());
-	}
-
-	function loadRecord(recordName: string) {
-		const settingsText = localStorage.getItem(`comm_${recordName}`);
-		if (settingsText) {
-			const settings = JSON.parse(settingsText);
-			lastLoadedRecord = settings;
-			studentsText = settings.studentsText;
-			UI_Grade = settings.UI_Grade;
-			UI_Level = settings.UI_Level;
-			UI_ClassType = settings.UI_ClassType;
-			UI_ClassNum = settings.UI_ClassNum;
-			UI_Assignment = settings.UI_Assignment;
-			Object.assign(UI_Dates, settings.UI_Dates);
-			studentsRaw = JSON.parse(JSON.stringify(settings.studentsRaw));
+	function handleLoadRecord(recordName: string) {
+		const record = loadRecord(recordName);
+		if (record) {
+			lastLoadedRecord = record;
+			studentsText = record.studentsText;
+			UI_Grade = record.UI_Grade;
+			UI_Level = record.UI_Level;
+			UI_ClassType = record.UI_ClassType;
+			UI_ClassNum = record.UI_ClassNum;
+			UI_Assignment = record.UI_Assignment;
+			Object.assign(UI_Dates, record.UI_Dates);
+			studentsRaw = JSON.parse(JSON.stringify(record.studentsRaw));
 		}
 	}
 
-	function deleteRecord(recordName: string) {
-		const settingsText = localStorage.getItem(`comm_${recordName}`);
-		if (settingsText && lastLoadedRecord) {
-			if (settingsText === JSON.stringify(lastLoadedRecord)) {
-				lastLoadedRecord = null;
-			}
+	function handleDeleteRecord(recordName: string) {
+		// Check if we're deleting the currently loaded record
+		if (lastLoadedRecord && recordMatches(currentRecord, lastLoadedRecord)) {
+			lastLoadedRecord = null;
 		}
-		localStorage.removeItem(`comm_${recordName}`);
+		deleteRecord(recordName);
 		savedRecords = savedRecords.filter((r) => r !== recordName);
 	}
 
@@ -326,8 +304,6 @@
 		}
 	}
 
-	let student;
-
 	function handleKeyUp(event: KeyboardEvent) {
 		// Trigger click on 'Enter' or 'Space' keyup
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -336,17 +312,24 @@
 	}
 
 	//#region Print button -------------------------------------------
-	let printInvalid = $derived(
-		!UI_ClassNum ||
-			(!isAllChecked.indeterminate && !isAllChecked.checked) ||
-			!studentsRaw.length ||
-			!isValidMonthAndDay(assignment.assigned) ||
-			!isValidMonthAndDay(assignment.due) ||
-			!isValidMonthAndDay(assignment.late) ||
-			!grade
+	const printValidation = $derived(
+		validatePrintReadiness({
+			classNum: UI_ClassNum,
+			studentsRaw,
+			isAllChecked,
+			assignmentDates: {
+				assigned: assignment.assigned,
+				due: assignment.due,
+				late: assignment.late
+			},
+			grade,
+			signatureImage
+		})
 	);
 
-	let printCaution = $derived(!printInvalid && !signatureImage);
+	const printButtonStyle = $derived(getPrintButtonStyle(printValidation));
+	const printStatusMessage = $derived(getPrintStatusMessage(printValidation, students.length));
+	const printButtonText = $derived(getPrintButtonText(students.length));
 
 	onDestroy(() => {
 		// If the image URL is still set, revoke it before the component is destroyed
@@ -380,7 +363,7 @@
 					<button
 						id="save_button"
 						class="bg-blue-500 hover:bg-blue-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
-						onclick={() => saveRecord()}
+						onclick={() => handleSaveRecord()}
 					>
 						Save
 					</button>
@@ -694,23 +677,19 @@
 					<div class="justify-self-end col-start-10 col-end-13 my-0 text-center">
 						<p
 							class={[
-								printInvalid && 'text-red-400',
-								printCaution && 'text-orange-400',
+								printValidation.isInvalid && 'text-red-400',
+								printValidation.hasCaution && 'text-orange-400',
 								'text-center text-sm text-blue-400'
 							]}
 						>
-							{printInvalid || printCaution ? 'Missing Info!' : `Single Sided  B5/JIS-B5`}
+							{printStatusMessage}
 						</p>
 						<button
-							class={[
-								printCaution && 'bg-orange-500 shadow-orange-800 hover:bg-orange-600',
-								printInvalid && 'animate-none! cursor-default bg-red-500 shadow-red-800',
-								'print-slips my-2 animate-pulse rounded-lg bg-blue-500 px-4 py-1 text-white shadow-sm shadow-blue-800 hover:animate-none'
-							]}
-							title={printCaution || printInvalid ? 'Incomplete input' : ''}
+							class={printButtonStyle.className}
+							title={printButtonStyle.title}
 							onclick={() => window.print()}
 						>
-							Print {students.length} Slip{students.length == 1 ? '' : 's'}
+							{printButtonText}
 						</button>
 					</div>
 				</section>
@@ -739,7 +718,7 @@
 								<div class="flex justify-between items-center hover:bg-blue-200 pl-2">
 									<button
 										class="flex-1 bg-transparent border-none text-left cursor-pointer"
-										onclick={() => loadRecord(recordName)}
+										onclick={() => handleLoadRecord(recordName)}
 									>
 										{recordName}
 									</button>
@@ -748,7 +727,7 @@
 										aria-label="Delete record"
 										onclick={(e) => {
 											e.stopPropagation();
-											deleteRecord(recordName);
+											handleDeleteRecord(recordName);
 										}}
 									>
 										<svg class="size-6 text-gray-400 hover:text-white" viewBox="0 0 32 32">
