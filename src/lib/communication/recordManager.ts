@@ -1,5 +1,5 @@
 import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
-import type { Student, Level, AssignmentCode } from '$lib/stores/communicationStore.svelte.ts';
+import type { Student, Level, AssignmentCode } from '$lib/stores/communicationStore.svelte';
 
 export interface CommunicationRecord {
 	studentsText: string;

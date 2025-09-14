@@ -33,6 +33,7 @@
 		getMostRecentRecordName,
 		type CommunicationRecord
 	} from '$lib/communication/recordManager';
+	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
 
 	const store = new CommunicationStore();
 
@@ -46,7 +47,7 @@
 	let UI_ClassNum = $state(store.UI_ClassNum);
 	const assignmentRaw = $state(store.assignmentRaw);
 	let UI_Assignment = $state(store.UI_Assignment);
-	const UI_Dates = $state(store.UI_Dates);
+	let UI_Dates = $state(store.UI_Dates);
 	let signatureImage = $state(store.signatureImage);
 
 	// New onMount block to load from local storage - PLACED HERE
@@ -70,9 +71,14 @@
 
 	//#region Student table ---------------------------------------------------------------
 
+	// Type for students with transformed status for display
+	type DisplayStudent = Omit<Student, 'status'> & {
+		status: { english: string; chinese: string };
+	};
+
 	const students = $derived(
 		(() => {
-			const studentsSelected = studentsRaw
+			const studentsSelected: DisplayStudent[] = studentsRaw
 				.filter((student) => student.selected) // filter out unselected
 				.map(({ status, ...rest }) => {
 					// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
@@ -152,7 +158,7 @@
 	});
 	// #region Save Record -------------------------------------------
 	let savedRecords = $state<string[]>([]);
-	let isSaveable = $derived(UI_ClassNum && students.length > 0);
+	let isSaveable = $derived(!!UI_ClassNum && students.length > 0);
 	let lastLoadedRecord = $state<CommunicationRecord | null>(null);
 
 	const currentRecord = $derived.by(
@@ -168,7 +174,7 @@
 		})
 	);
 
-	const isModified = $derived(() => {
+	const isModified = $derived.by(() => {
 		if (!lastLoadedRecord) {
 			return true; // New record, always saveable
 		}
@@ -347,353 +353,215 @@
 		id="controls"
 		class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
 	>
-		<div id="assignment">
-			<div class="flex justify-between items-center">
-				<h3 class="mx-2 my-1 w-10/12">Assignment and class info</h3>
-				{#if studentsRaw.length > 0}
-					<button
-						id="clear_button"
-						class="bg-gray-500 hover:bg-gray-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
-						onclick={() => clearForm()}
-					>
-						Clear
-					</button>
-				{/if}
-				{#if isSaveable && isModified()}
-					<button
-						id="save_button"
-						class="bg-blue-500 hover:bg-blue-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
-						onclick={() => handleSaveRecord()}
-					>
-						Save
-					</button>
-				{/if}
-			</div>
-			<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-lg">
-				<!-- MARK: assignment type -->
-				<fieldset class="flex flex-row justify-start items-center mr-2 mb-1 w-full">
-					<!-- inkwell icon -->
-					<svg class="mx-4 my-1 size-4 text-white" viewBox="0 0 64 64">
-						<use href="#icon-inkWell" />
-					</svg>
+		<AssignmentForm
+			{assignmentTypes}
+			bind:UI_Assignment
+			bind:UI_Dates
+			{grade}
+			{students}
+			{UI_Grade}
+			bind:UI_Level
+			bind:UI_ClassType
+			bind:UI_ClassNum
+			{studentsRaw}
+			{isSaveable}
+			{isModified}
+			onClearForm={clearForm}
+			onSaveRecord={handleSaveRecord}
+		/>
 
-					<div class="radio-bg">
-						{#each assignmentTypes as { code, english }}
-							<label class="radio-label" for={code}>
-								<input
-									id={code}
-									class="appearance-none"
-									type="radio"
-									bind:group={UI_Assignment}
-									value={code}
-								/>{english}</label
-							>
-						{/each}
-					</div>
-				</fieldset>
-
-				<!-- MARK: dates -->
-				<fieldset
-					class="flex flex-row justify-start items-start mb-1 py-1 pr-2 border-b border-b-gray-400 border-dotted w-full"
-				>
-					<svg class="fill-white my-1 mr-4 ml-5 size-4" viewBox="0 0 612 612">
-						<use href="#icon-calendar" />
-					</svg>
-					{#each DATE_FIELDS as { key, label }}
-						{@const invalid =
-							!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key])}
-						<label class="group px-2 text-white text-sm" for={key}>
-							{label}
-							<input
-								class={[
-									invalid && 'border-2 border-red-400 text-red-400',
-									'mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 invalid:group-first-of-type:border-orange-400 focus:border-2 focus:border-blue-800! focus:outline-hidden'
-								]}
-								type="text"
-								name={key}
-								id={key}
-								bind:value={UI_Dates[key as keyof typeof UI_Dates]}
-								maxlength="5"
-								placeholder={'Required'}
-								required
-							/>
-						</label>
-					{/each}
-				</fieldset>
-
-				<!-- MARK: class-info -->
-				<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
-					<!-- student icon -->
-					<svg class="fill-white mx-4 my-1 size-5" viewBox="0 0 512 512">
-						<use href="#icon-student" />
-					</svg>
-					{#if grade}
-						<span class={[!students.length && 'text-red-500', 'text-white']}
-							>{students.length} selected</span
-						>
-					{:else}
-						<span class="mr-2 ml-1 text-red-500">0 students</span>
-						<!-- spin circle -->
-						<svg
-							class="inline-block size-4 text-red-500 origin-center animate-[spin_3s_linear_infinite]"
-							viewBox="0 0 24 24"
-						>
-							<use href="#icon-spin" />
-						</svg>
-					{/if}
-					<div class={[!grade && 'hidden', 'px-2']}>
-						<p
-							id="grade"
-							class={[
-								grade &&
-									'bg-linear-to-b from-slate-700 to-slate-500 text-white shadow-xs shadow-blue-800',
-								'rounded-full px-2'
-							]}
-							transition:fade
-						>
-							{grade}
-						</p>
-					</div>
-
-					<!-- MARK: ESL-level -->
-					<div class="radio-bg">
-						{#each LEVEL_TYPE as { id, label, value }}
-							<label class="radio-label" for={id}>
-								<input
-									{id}
-									class="appearance-none"
-									type="radio"
-									bind:group={UI_Level}
-									{value}
-								/>{label}
-							</label>
-						{/each}
-					</div>
-
-					<!-- MARK: ESL-type -->
-					<div class="radio-bg">
-						{#each Object.entries(ClassType) as [type, value]}
-							<!-- only render out CLIL if class is not G9 -->
-							{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
-								<label class="radio-label" for={type}
-									><input
-										id={type}
-										class="appearance-none"
-										type="radio"
-										bind:group={UI_ClassType}
-										{value}
-										aria-label={value}
-									/>{value}</label
-								>
-							{/if}
-						{/each}
-					</div>
-
-					<!-- MARK: class-number -->
-					<div>
-						<input
-							type="number"
-							class={`appearance:textfield mx-1 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition duration-400 ease-in invalid:rounded-sm  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
-							bind:value={UI_ClassNum}
-							placeholder="#?"
-							max="9"
-							min="1"
-							required
-						/>
-					</div>
-				</fieldset>
-				<!-- MARK: students -->
-				<fieldset class="w-full">
-					<textarea
-						id="student-list-input"
-						class={[
-							shouldHideTextarea && 'hidden',
-							'mx-5 h-12 min-w-15/16 overflow-hidden rounded-md border bg-white px-2 py-0.5 placeholder:text-sm  invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
-						]}
-						bind:value={studentsText}
-						placeholder="Paste students from spreadsheet with fields (order agnostic):
+		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-lg">
+			<!-- MARK: students -->
+			<fieldset class="w-full">
+				<textarea
+					id="student-list-input"
+					class={[
+						shouldHideTextarea && 'hidden',
+						'mx-5 h-12 min-w-15/16 overflow-hidden rounded-md border bg-white px-2 py-0.5 placeholder:text-sm  invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
+					]}
+					bind:value={studentsText}
+					placeholder="Paste students from spreadsheet with fields (order agnostic):
 [ID, Chinese Name, English Name, Chinese Class]"
-						required
-					>
-					</textarea>
-				</fieldset>
-				<!-- MARK: student table -->
-				{#if studentsRaw.length > 0}
-					<table class="bg-white mx-6 mb-2 w-full text-sm border-collapse table-auto">
-						<thead class="bg-slate-100 font-semibold text-xs">
-							<tr>
-								<th class="border border-slate-300 border-solid">
-									<input
-										id="master-checkbox"
-										type="checkbox"
-										class="m-1 size-4"
-										bind:checked={isAllChecked.checked}
-										indeterminate={isAllChecked.indeterminate}
-										onchange={handleToggleAll}
-									/>
-								</th>
-								{#each ['ID', 'English Name', 'C. Name', 'C. Class', 'Status'] as header}
-									<th class="border border-slate-300 border-solid">{header}</th>
-								{/each}
-							</tr>
-						</thead>
-						<tbody>
-							{#each studentsRaw as student}
-								<tr
-									class="[&>td>input]:box-border [&>td>input:focus]:bg-blue-50 [&>td>input]:bg-transparent [&>td]:p-1 [&>td]:border border-slate-200 [&>td]:border-gray-500 [&>td>input]:border-none [&>td>input]:size-full [&>td]:text-center [&>td]:border-collapse"
-								>
-									<td class="table-cell text-align-center align-middle student-checkbox">
-										<div class="flex justify-center items-center">
-											<label for="checkbox-{student.id}">
-												<input
-													type="checkbox"
-													id="checkbox-{student.id}"
-													class="min-w-4 min-h-4"
-													bind:checked={student.selected}
-													onchange={() => (studentsRaw = [...studentsRaw])}
-												/>
-											</label>
-										</div>
-									</td>
-									<td class="w-[4.5rem] student-id">
-										<input
-											class="text-center"
-											type="text"
-											bind:value={student.id}
-											oninput={() => (studentsRaw = [...studentsRaw])}
-										/>
-									</td>
-									<td class="w-auto english-name">
-										<input
-											type="text-center"
-											bind:value={student.name.english}
-											oninput={() => (studentsRaw = [...studentsRaw])}
-										/>
-									</td>
-									<td class="w-20 chinese-name">
-										<input
-											class="text-center"
-											type="text"
-											bind:value={student.name.chinese}
-											oninput={() => (studentsRaw = [...studentsRaw])}
-										/>
-									</td>
-									<td class="w-14 chinese-class">
-										<input
-											class="text-center"
-											type="text"
-											bind:value={student.cClass}
-											oninput={() => (studentsRaw = [...studentsRaw])}
-										/>
-									</td>
-									<td class="w-auto text-center">
-										<select
-											bind:value={student.status}
-											onchange={() => (studentsRaw = [...studentsRaw])}
-										>
-											<option value={StatusTypeCode.NOT_SUBMITTED}>
-												{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
-											</option>
-											<option value={StatusTypeCode.NOT_COMPLETED}>
-												{STATUS_TYPE[StatusTypeCode.NOT_COMPLETED].text.english}
-											</option>
-										</select>
-									</td>
-								</tr>
+					required
+				>
+				</textarea>
+			</fieldset>
+			<!-- MARK: student table -->
+			{#if studentsRaw.length > 0}
+				<table class="bg-white mx-6 mb-2 w-full text-sm border-collapse table-auto">
+					<thead class="bg-slate-100 font-semibold text-xs">
+						<tr>
+							<th class="border border-slate-300 border-solid">
+								<input
+									id="master-checkbox"
+									type="checkbox"
+									class="m-1 size-4"
+									bind:checked={isAllChecked.checked}
+									indeterminate={isAllChecked.indeterminate}
+									onchange={handleToggleAll}
+								/>
+							</th>
+							{#each ['ID', 'English Name', 'C. Name', 'C. Class', 'Status'] as header}
+								<th class="border border-slate-300 border-solid">{header}</th>
 							{/each}
-						</tbody>
-					</table>
-				{/if}
+						</tr>
+					</thead>
+					<tbody>
+						{#each studentsRaw as student}
+							<tr
+								class="[&>td>input]:box-border [&>td>input:focus]:bg-blue-50 [&>td>input]:bg-transparent [&>td]:p-1 [&>td]:border border-slate-200 [&>td]:border-gray-500 [&>td>input]:border-none [&>td>input]:size-full [&>td]:text-center [&>td]:border-collapse"
+							>
+								<td class="table-cell text-align-center align-middle student-checkbox">
+									<div class="flex justify-center items-center">
+										<label for="checkbox-{student.id}">
+											<input
+												type="checkbox"
+												id="checkbox-{student.id}"
+												class="min-w-4 min-h-4"
+												bind:checked={student.selected}
+												onchange={() => (studentsRaw = [...studentsRaw])}
+											/>
+										</label>
+									</div>
+								</td>
+								<td class="w-[4.5rem] student-id">
+									<input
+										class="text-center"
+										type="text"
+										bind:value={student.id}
+										oninput={() => (studentsRaw = [...studentsRaw])}
+									/>
+								</td>
+								<td class="w-auto english-name">
+									<input
+										type="text-center"
+										bind:value={student.name.english}
+										oninput={() => (studentsRaw = [...studentsRaw])}
+									/>
+								</td>
+								<td class="w-20 chinese-name">
+									<input
+										class="text-center"
+										type="text"
+										bind:value={student.name.chinese}
+										oninput={() => (studentsRaw = [...studentsRaw])}
+									/>
+								</td>
+								<td class="w-14 chinese-class">
+									<input
+										class="text-center"
+										type="text"
+										bind:value={student.cClass}
+										oninput={() => (studentsRaw = [...studentsRaw])}
+									/>
+								</td>
+								<td class="w-auto text-center">
+									<select
+										bind:value={student.status}
+										onchange={() => (studentsRaw = [...studentsRaw])}
+									>
+										<option value={StatusTypeCode.NOT_SUBMITTED}>
+											{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
+										</option>
+										<option value={StatusTypeCode.NOT_COMPLETED}>
+											{STATUS_TYPE[StatusTypeCode.NOT_COMPLETED].text.english}
+										</option>
+									</select>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			{/if}
 
-				<!-- MARK: signature -->
-				<section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
+			<!-- MARK: signature -->
+			<section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
+				<div
+					class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
+					ondragenter={handleDragEnter}
+					ondragover={handleDragOver}
+					ondrop={handleDrop}
+					ondragleave={handleDragLeave}
+					onkeyup={handleKeyUp}
+					aria-label="Drag & drop signature file"
+					tabindex="0"
+					role="button"
+				>
+					<!-- Signature drop box -->
 					<div
-						class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
-						ondragenter={handleDragEnter}
-						ondragover={handleDragOver}
-						ondrop={handleDrop}
-						ondragleave={handleDragLeave}
-						onkeyup={handleKeyUp}
-						aria-label="Drag & drop signature file"
-						tabindex="0"
-						role="button"
+						id="signature-drop-zone"
+						class={[
+							signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+							!signatureImage && 'z-1 mt-0',
+							'w-full border-2 bg-no-repeat text-center transition-all duration-450',
+							isDraggingOver
+								? 'border-orange-400 bg-orange-100'
+								: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
+						]}
 					>
-						<!-- Signature drop box -->
-						<div
-							id="signature-drop-zone"
-							class={[
-								signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
-								!signatureImage && 'z-1 mt-0',
-								'w-full border-2 bg-no-repeat text-center transition-all duration-450',
-								isDraggingOver
-									? 'border-orange-400 bg-orange-100'
-									: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
-							]}
-						>
-							<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
-								{`Darg and drop a jpg/png signature file
+						<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
+							{`Darg and drop a jpg/png signature file
 ------------------ or ------------------`}
-							</p>
-							<button
-								id="browse"
-								class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
-								onclick={handleClick}
-								aria-label="browse image">Browse…</button
-							>
-							<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
-						</div>
-
-						<!-- Signature preview and remove button -->
-						<div
-							class={[
-								signatureImage && 'has-signature z-1 mt-0',
-								!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
-								'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
-							]}
-						>
-							<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
-							<button
-								id="remove-signature"
-								class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
-								onclick={(event) => removeSignature(event)}
-								aria-label="remove-signature"
-							>
-								<svg class="size-6 text-white" viewBox="0 0 32 32">
-									<use href="#icon-trash" />
-								</svg>
-							</button>
-						</div>
-
-						<input
-							id="signature-upload"
-							class="absolute -m-px p-0 border-0 w-px h-px overflow-hidden [clip:rect(0,0,0,0)]"
-							type="file"
-							accept="image/*"
-							onchange={handleFileSelect}
-						/>
-					</div>
-
-					<!-- Print button -->
-					<div class="justify-self-end col-start-10 col-end-13 my-0 text-center">
-						<p
-							class={[
-								printValidation.isInvalid && 'text-red-400',
-								printValidation.hasCaution && 'text-orange-400',
-								'text-center text-sm text-blue-400'
-							]}
-						>
-							{printStatusMessage}
 						</p>
 						<button
-							class={printButtonStyle.className}
-							title={printButtonStyle.title}
-							onclick={() => window.print()}
+							id="browse"
+							class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
+							onclick={handleClick}
+							aria-label="browse image">Browse…</button
 						>
-							{printButtonText}
+						<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
+					</div>
+
+					<!-- Signature preview and remove button -->
+					<div
+						class={[
+							signatureImage && 'has-signature z-1 mt-0',
+							!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+							'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
+						]}
+					>
+						<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
+						<button
+							id="remove-signature"
+							class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
+							onclick={(event) => removeSignature(event)}
+							aria-label="remove-signature"
+						>
+							<svg class="size-6 text-white" viewBox="0 0 32 32">
+								<use href="#icon-trash" />
+							</svg>
 						</button>
 					</div>
-				</section>
-			</div>
+
+					<input
+						id="signature-upload"
+						class="absolute -m-px p-0 border-0 w-px h-px overflow-hidden [clip:rect(0,0,0,0)]"
+						type="file"
+						accept="image/*"
+						onchange={handleFileSelect}
+					/>
+				</div>
+
+				<!-- Print button -->
+				<div class="justify-self-end col-start-10 col-end-13 my-0 text-center">
+					<p
+						class={[
+							printValidation.isInvalid && 'text-red-400',
+							printValidation.hasCaution && 'text-orange-400',
+							'text-center text-sm text-blue-400'
+						]}
+					>
+						{printStatusMessage}
+					</p>
+					<button
+						class={printButtonStyle.className}
+						title={printButtonStyle.title}
+						onclick={() => window.print()}
+					>
+						{printButtonText}
+					</button>
+				</div>
+			</section>
 		</div>
 	</section>
 
