@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte'; // Add onMount
 	import { browser } from '$app/environment';
-	import Slip from '$lib/components/communication/Slip.svelte';
 	import { slide } from 'svelte/transition';
 	import {
 		type Student,
@@ -9,8 +8,9 @@
 		STATUS_TYPE,
 		COMM_ASSIGNMENT_TYPES,
 		ClassType,
+		Level,
 		CommunicationStore
-	} from '$lib/stores/communicationStore.svelte';
+	} from '$lib/stores/communication';
 	import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
 	import { processSignatureFile } from '$lib/communication/signatureValidator';
 	import {
@@ -33,6 +33,7 @@
 	import StudentTable from '$lib/components/communication/StudentTable.svelte';
 	import SignatureUpload from '$lib/components/communication/SignatureUpload.svelte';
 	import PrintButton from '$lib/components/communication/PrintButton.svelte';
+	import Slip from '$lib/components/communication/Slip.svelte';
 
 	const store = new CommunicationStore();
 
@@ -131,10 +132,10 @@
 
 	const assignmentTypes = $derived(
 		UI_Grade === 'G9'
-			? G9_ASSIGNMENT_TYPES
+			? [...G9_ASSIGNMENT_TYPES]
 			: UI_ClassType === ClassType.CLIL
-				? CLIL_ASSIGNMENT_TYPES
-				: COMM_ASSIGNMENT_TYPES
+				? [...CLIL_ASSIGNMENT_TYPES]
+				: [...COMM_ASSIGNMENT_TYPES]
 	);
 
 	let assignment = $derived(
@@ -211,10 +212,10 @@
 			lastLoadedRecord = record;
 			studentsText = record.studentsText;
 			UI_Grade = record.UI_Grade;
-			UI_Level = record.UI_Level;
+			UI_Level = record.UI_Level as Level;
 			UI_ClassType = record.UI_ClassType;
 			UI_ClassNum = record.UI_ClassNum;
-			UI_Assignment = record.UI_Assignment;
+			UI_Assignment = record.UI_Assignment as AssignmentCode;
 			Object.assign(UI_Dates, record.UI_Dates);
 			studentsRaw = JSON.parse(JSON.stringify(record.studentsRaw));
 		}
@@ -234,10 +235,10 @@
 		studentsText = newStore.studentsText;
 		studentsRaw = newStore.studentsRaw;
 		UI_Grade = newStore.UI_Grade;
-		UI_Level = newStore.UI_Level;
+		UI_Level = newStore.UI_Level as Level;
 		UI_ClassType = newStore.UI_ClassType;
 		UI_ClassNum = newStore.UI_ClassNum;
-		UI_Assignment = newStore.UI_Assignment;
+		UI_Assignment = newStore.UI_Assignment as AssignmentCode;
 		Object.assign(UI_Dates, newStore.UI_Dates);
 		lastLoadedRecord = null;
 	}

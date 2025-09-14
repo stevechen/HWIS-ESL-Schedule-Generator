@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { StatusTypeCode, STATUS_TYPE, type Student } from '$lib/stores/communicationStore.svelte';
+	import { StatusTypeCode, STATUS_TYPE, type Student } from '$lib/stores/communication';
 
 	// Props
 	interface Props {

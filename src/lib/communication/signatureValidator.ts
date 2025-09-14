@@ -1,4 +1,4 @@
-import { Limit } from '$lib/stores/communicationStore.svelte';
+import { Limit } from '$lib/stores/communication';
 
 export interface ValidationResult {
 	isValid: boolean;

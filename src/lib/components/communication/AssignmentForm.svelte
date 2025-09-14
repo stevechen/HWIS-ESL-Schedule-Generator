@@ -3,12 +3,13 @@
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import {
 		type Student,
+		type AssignmentType,
 		AssignmentCode,
 		LEVEL_TYPE,
 		ClassType,
 		DATE_FIELDS,
 		Level
-	} from '$lib/stores/communicationStore.svelte';
+	} from '$lib/stores/communication';
 
 	// Type for students with transformed status for display
 	type DisplayStudent = Omit<Student, 'status'> & {
@@ -17,7 +18,7 @@
 
 	// Props
 	interface Props {
-		assignmentTypes: Array<{ code: AssignmentCode; english: string; chinese: string }>;
+		assignmentTypes: AssignmentType[];
 		UI_Assignment: AssignmentCode;
 		UI_Dates: { [key: string]: string };
 		grade: string | null;

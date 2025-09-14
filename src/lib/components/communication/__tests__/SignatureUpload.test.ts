@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Limit } from '../../../stores/communicationStore.svelte';
+import { Limit } from '../../../stores/communication';
 
 const mockProps = {
 	signatureImage: '',

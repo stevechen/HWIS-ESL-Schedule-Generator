@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { AssignmentCode, Level, ClassType, COMM_ASSIGNMENT_TYPES, type Student } from '../../../stores/communicationStore.svelte';
+import { AssignmentCode, Level, ClassType, COMM_ASSIGNMENT_TYPES, type Student, type AssignmentType } from '../../../stores/communication';
 
 // Type for students with transformed status for display
 type DisplayStudent = Omit<Student, 'status'> & {

@@ -1,4 +1,4 @@
-import { StatusTypeCode, type Student } from '$lib/stores/communicationStore.svelte';
+import { StatusTypeCode, type Student } from '$lib/stores/communication';
 
 /**
  * Parses tab-separated student data from spreadsheet paste

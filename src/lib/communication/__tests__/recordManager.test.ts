@@ -9,7 +9,7 @@ import {
 	generateRecordName,
 	type CommunicationRecord 
 } from '../recordManager';
-import { Level, AssignmentCode } from '../../stores/communicationStore.svelte';
+import { Level, AssignmentCode } from '../../stores/communication';
 
 // Mock localStorage
 const localStorageMock = {
