@@ -16,12 +16,14 @@
 		Limit,
 		CommunicationStore
 	} from '$lib/stores/communicationStore.svelte';
+	import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
+	import { processSignatureFile } from '$lib/communication/signatureValidator';
 
 	const store = new CommunicationStore();
 
 	let studentsText = $state(store.studentsText);
 	// Make studentsRaw a derived state that reacts to studentsText changes
-	let studentsRaw: Array<Student> = $derived.by(() => generateStudents(studentsText));
+	let studentsRaw: Array<Student> = $derived.by(() => parseStudentsFromText(studentsText));
 	let shouldHideTextarea = $state(store.shouldHideTextarea);
 	let UI_Grade = $state(store.UI_Grade);
 	let UI_Level = $state(store.UI_Level);
@@ -52,43 +54,6 @@
 	});
 
 	//#region Student table ---------------------------------------------------------------
-	function generateStudents(data: string) {
-		const ID_REGEX = /^\d{7}$/;
-		const CLASS_REGEX = /^[JH]\d{3}$/;
-		const CHINESE_REGEX = /[\u4e00-\u9fa5]/;
-		const ENGLISH_REGEX = /^[a-zA-Z]{2,}(\s[a-zA-Z]+){1,5}$/; //allow 5 groups of two or more alphabetical characters
-		const LINES = data
-			.split('\n')
-			.map((line) => line.trim())
-			.filter((line) => line !== '');
-
-		if (LINES.length === 0) return [];
-
-		return LINES.map((row) => {
-			const student = {
-				id: '',
-				name: { english: '', chinese: '' },
-				cClass: '',
-				status: StatusTypeCode.NOT_SUBMITTED,
-				selected: true
-			};
-
-			const FIELDS = row.split('\t');
-
-			for (const FIELD of FIELDS) {
-				if (ID_REGEX.test(FIELD)) {
-					student.id = FIELD;
-				} else if (CLASS_REGEX.test(FIELD)) {
-					student.cClass = FIELD;
-				} else if (CHINESE_REGEX.test(FIELD)) {
-					student.name.chinese = FIELD;
-				} else if (ENGLISH_REGEX.test(FIELD)) {
-					student.name.english = FIELD;
-				}
-			}
-			return student;
-		}).sort((a, b) => a.name.english.localeCompare(b.name.english));
-	}
 
 	const students = $derived(
 		(() => {
@@ -139,20 +104,6 @@
 		if (UI_ClassType === ClassType.CLIL) UI_Assignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
 		assignmentRaw.esl = className;
 	});
-
-	//determine grade from the pasted text. Uses Chinese class number
-	function determineGradeFromText(pastedText: string) {
-		const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
-		if (gradeMatch) {
-			//only matches the first record since the reset should be in the same grade
-			const matchCode = Number(gradeMatch[0].charAt(1));
-			//should be J1xx to J3xx
-			if (matchCode >= 1 && matchCode <= 3) {
-				return `G${matchCode + 6}`;
-			}
-		}
-		return null; //out or range
-	}
 
 	const G9_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isG9);
 
@@ -312,53 +263,26 @@
 	let dragCounter = $state(0);
 	const isDraggingOver = $derived(dragCounter > 0);
 
-	function validateAndSetImage(file: File): boolean {
-		// Check if the file type is JPEG or PNG
-		if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
-			alert('Only JPG and PNG formats are allowed.');
-			return false;
+	async function validateAndSetImage(file: File): Promise<void> {
+		const result = await processSignatureFile(file);
+
+		if (!result.success) {
+			alert(result.error);
+			return;
 		}
 
-		// Check if the file size is less than 200KB
-		if (file.size > Limit.size * 1024) {
-			alert(`File size must be under ${Limit.size}KB.`);
-			return false;
+		if (result.dataURL) {
+			signatureImage = result.dataURL;
+			localStorage.setItem('signatureImage', result.dataURL);
 		}
-
-		const fileURL = URL.createObjectURL(file);
-		const img = new Image();
-
-		img.onload = () => {
-			// Check if the image height is greater than 160px
-			if (img.height <= Limit.height) {
-				alert(`Image height must be greater than ${Limit.height}px.`);
-				return;
-			}
-			// Set the image URL if all checks pass
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				if (reader.result) {
-					signatureImage = reader.result as string;
-					localStorage.setItem('signatureImage', reader.result as string);
-				}
-			};
-			reader.readAsDataURL(file);
-		};
-
-		img.onerror = () => {
-			alert('Failed to load the image.');
-		};
-
-		img.src = fileURL;
-		return true;
 	}
 
-	function handleFileSelect(event: Event) {
+	async function handleFileSelect(event: Event) {
 		const inputField = event.target as HTMLInputElement | null;
 		if (!inputField) return; // Null check
 
 		const file = inputField.files?.[0];
-		if (file) validateAndSetImage(file);
+		if (file) await validateAndSetImage(file);
 	}
 
 	function handleDragEnter(event: DragEvent) {
@@ -375,13 +299,13 @@
 		dragCounter--;
 	}
 
-	function handleDrop(event: DragEvent) {
+	async function handleDrop(event: DragEvent) {
 		event.preventDefault();
 		dragCounter = 0;
 		const dataTransfer = event.dataTransfer;
 		if (dataTransfer) {
 			const file = dataTransfer.files[0]; // Get the dropped file
-			validateAndSetImage(file); // Call the function to validate and set the image
+			await validateAndSetImage(file); // Call the function to validate and set the image
 		}
 	}
 
