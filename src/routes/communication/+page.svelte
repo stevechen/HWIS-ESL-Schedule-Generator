@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte'; // Add onMount
 	import { browser } from '$app/environment';
-	import Slip from '$lib/components/Slip.svelte';
+	import Slip from '$lib/components/communication/Slip.svelte';
 	import { slide } from 'svelte/transition';
 	import {
 		type Student,
 		AssignmentCode,
-		StatusTypeCode,
 		STATUS_TYPE,
 		COMM_ASSIGNMENT_TYPES,
 		ClassType,
-		Limit,
 		CommunicationStore
 	} from '$lib/stores/communicationStore.svelte';
 	import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
@@ -33,6 +31,8 @@
 	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
 	import SavedRecords from '$lib/components/communication/SavedRecords.svelte';
 	import StudentTable from '$lib/components/communication/StudentTable.svelte';
+	import SignatureUpload from '$lib/components/communication/SignatureUpload.svelte';
+	import PrintButton from '$lib/components/communication/PrintButton.svelte';
 
 	const store = new CommunicationStore();
 
@@ -229,8 +229,6 @@
 		savedRecords = savedRecords.filter((r) => r !== recordName);
 	}
 
-
-
 	function clearForm() {
 		const newStore = new CommunicationStore();
 		studentsText = newStore.studentsText;
@@ -380,94 +378,28 @@
 				onToggleAll={handleToggleAll}
 			/>
 
-			<!-- MARK: signature -->
-			<section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
-				<div
-					class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
-					ondragenter={handleDragEnter}
-					ondragover={handleDragOver}
-					ondrop={handleDrop}
-					ondragleave={handleDragLeave}
-					onkeyup={handleKeyUp}
-					aria-label="Drag & drop signature file"
-					tabindex="0"
-					role="button"
-				>
-					<!-- Signature drop box -->
-					<div
-						id="signature-drop-zone"
-						class={[
-							signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
-							!signatureImage && 'z-1 mt-0',
-							'w-full border-2 bg-no-repeat text-center transition-all duration-450',
-							isDraggingOver
-								? 'border-orange-400 bg-orange-100'
-								: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
-						]}
-					>
-						<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
-							{`Darg and drop a jpg/png signature file
------------------- or ------------------`}
-						</p>
-						<button
-							id="browse"
-							class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
-							onclick={handleClick}
-							aria-label="browse image">Browse…</button
-						>
-						<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
-					</div>
+			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
+				<SignatureUpload
+					bind:signatureImage
+					{isDraggingOver}
+					onFileSelect={handleFileSelect}
+					onDragEnter={handleDragEnter}
+					onDragOver={handleDragOver}
+					onDragLeave={handleDragLeave}
+					onDrop={handleDrop}
+					onRemoveSignature={removeSignature}
+					onBrowseClick={handleClick}
+					onKeyUp={handleKeyUp}
+				/>
 
-					<!-- Signature preview and remove button -->
-					<div
-						class={[
-							signatureImage && 'has-signature z-1 mt-0',
-							!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
-							'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
-						]}
-					>
-						<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
-						<button
-							id="remove-signature"
-							class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
-							onclick={(event) => removeSignature(event)}
-							aria-label="remove-signature"
-						>
-							<svg class="size-6 text-white" viewBox="0 0 32 32">
-								<use href="#icon-trash" />
-							</svg>
-						</button>
-					</div>
-
-					<input
-						id="signature-upload"
-						class="absolute -m-px p-0 border-0 w-px h-px overflow-hidden [clip:rect(0,0,0,0)]"
-						type="file"
-						accept="image/*"
-						onchange={handleFileSelect}
-					/>
-				</div>
-
-				<!-- Print button -->
-				<div class="justify-self-end col-start-10 col-end-13 my-0 text-center">
-					<p
-						class={[
-							printValidation.isInvalid && 'text-red-400',
-							printValidation.hasCaution && 'text-orange-400',
-							'text-center text-sm text-blue-400'
-						]}
-					>
-						{printStatusMessage}
-					</p>
-					<button
-						class={printButtonStyle.className}
-						title={printButtonStyle.title}
-						onclick={() => window.print()}
-					>
-						{printButtonText}
-					</button>
-				</div>
-			</section>
+				<PrintButton
+					{printStatusMessage}
+					{printButtonStyle}
+					{printButtonText}
+					{printValidation}
+					onPrint={() => window.print()}
+				/>
+			</div>
 		</div>
 	</section>
 
