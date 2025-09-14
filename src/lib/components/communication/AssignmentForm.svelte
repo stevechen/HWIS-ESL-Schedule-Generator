@@ -10,6 +10,7 @@
 		DATE_FIELDS,
 		Level
 	} from '$lib/stores/communication';
+	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 
 	// Type for students with transformed status for display
 	type DisplayStudent = Omit<Student, 'status'> & {
@@ -28,10 +29,9 @@
 		UI_ClassType: string;
 		UI_ClassNum: string;
 		studentsRaw: Array<Student>;
-		isSaveable: boolean;
-		isModified: boolean;
+		recordManager: RecordManager;
+		currentRecord: CommunicationRecord;
 		onClearForm: () => void;
-		onSaveRecord: () => void;
 	}
 
 	let {
@@ -45,11 +45,17 @@
 		UI_ClassType = $bindable(),
 		UI_ClassNum = $bindable(),
 		studentsRaw,
-		isSaveable,
-		isModified,
-		onClearForm,
-		onSaveRecord
+		recordManager,
+		currentRecord,
+		onClearForm
 	}: Props = $props();
+
+	function handleSaveRecord() {
+		const result = recordManager.save(currentRecord);
+		if (!result.success) {
+			alert(result.error || 'Failed to save record. Please try again.');
+		}
+	}
 </script>
 
 <div id="assignment">
@@ -64,11 +70,11 @@
 				Clear
 			</button>
 		{/if}
-		{#if isSaveable && isModified}
+		{#if recordManager.isSaveable && recordManager.isModified}
 			<button
 				id="save_button"
 				class="bg-blue-500 hover:bg-blue-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
-				onclick={onSaveRecord}
+				onclick={handleSaveRecord}
 			>
 				Save
 			</button>

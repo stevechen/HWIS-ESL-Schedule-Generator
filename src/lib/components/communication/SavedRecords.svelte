@@ -1,19 +1,35 @@
 <script lang="ts">
+	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
+
 	// Props
 	interface Props {
-		savedRecords: string[];
-		onLoadRecord: (recordName: string) => void;
-		onDeleteRecord: (recordName: string) => void;
+		recordManager: RecordManager;
+		onLoadRecord: (record: CommunicationRecord) => void;
 	}
 
 	let {
-		savedRecords,
-		onLoadRecord,
-		onDeleteRecord
+		recordManager,
+		onLoadRecord
 	}: Props = $props();
+
+	function handleLoadRecord(recordName: string) {
+		const result = recordManager.load(recordName);
+		if (result.success && result.record) {
+			onLoadRecord(result.record);
+		} else {
+			alert(result.error || 'Failed to load record.');
+		}
+	}
+
+	function handleDeleteRecord(recordName: string) {
+		const result = recordManager.delete(recordName);
+		if (!result.success) {
+			alert(result.error || 'Failed to delete record.');
+		}
+	}
 </script>
 
-{#if savedRecords.length > 0}
+{#if recordManager.savedRecords.length > 0}
 	<div class="print:hidden">
 		<!-- MARK: saved records -->
 		<details
@@ -22,18 +38,18 @@
 			<summary
 				class="relative bg-gray-200 hover:bg-gray-100 group-open:bg-blue-500 group-open:hover:bg-blue-500 px-3 py-2 rounded-t-sm group-open:outline group-open:outline-blue-600 text-gray-700 hover:text-gray-600 group-open:hover:text-white group-open:text-white transition-all duration-200 ease-in-out cursor-pointer"
 			>
-				Saved Records ({savedRecords.length})
+				Saved Records ({recordManager.savedRecords.length})
 			</summary>
 			<ul
 				id="records_list"
 				class="opacity-0 group-open:opacity-100 mx-0 max-h-0 group-open:max-h-screen overflow-hidden transition-all duration-300 ease-in-out list-none"
 			>
-				{#each savedRecords as recordName}
+				{#each recordManager.savedRecords as recordName}
 					<li class="record">
 						<div class="flex justify-between items-center hover:bg-blue-200 pl-2">
 							<button
 								class="flex-1 bg-transparent border-none text-left cursor-pointer"
-								onclick={() => onLoadRecord(recordName)}
+								onclick={() => handleLoadRecord(recordName)}
 							>
 								{recordName}
 							</button>
@@ -42,7 +58,7 @@
 								aria-label="Delete record"
 								onclick={(e) => {
 									e.stopPropagation();
-									onDeleteRecord(recordName);
+									handleDeleteRecord(recordName);
 								}}
 							>
 								<svg class="size-6 text-gray-400 hover:text-white" viewBox="0 0 32 32">

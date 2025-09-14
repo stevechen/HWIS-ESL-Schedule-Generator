@@ -19,15 +19,7 @@
 		getPrintStatusMessage,
 		getPrintButtonText
 	} from '$lib/communication/printValidator';
-	import {
-		saveRecord,
-		loadRecord,
-		deleteRecord,
-		getSavedRecordNames,
-		recordMatches,
-		getMostRecentRecordName,
-		type CommunicationRecord
-	} from '$lib/communication/recordManager';
+	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
 	import SavedRecords from '$lib/components/communication/SavedRecords.svelte';
 	import StudentTable from '$lib/components/communication/StudentTable.svelte';
@@ -157,9 +149,7 @@
 		assignmentRaw.late = UI_Dates.late;
 	});
 	// #region Save Record -------------------------------------------
-	let savedRecords = $state<string[]>([]);
-	let isSaveable = $derived(!!UI_ClassNum && students.length > 0);
-	let lastLoadedRecord = $state<CommunicationRecord | null>(null);
+	const recordManager = new RecordManager();
 
 	const currentRecord = $derived.by(
 		(): CommunicationRecord => ({
@@ -174,60 +164,36 @@
 		})
 	);
 
-	const isModified = $derived.by(() => {
-		if (!lastLoadedRecord) {
-			return true; // New record, always saveable
-		}
-		return !recordMatches(currentRecord, lastLoadedRecord);
+	// Update record manager state when current record changes
+	$effect(() => {
+		recordManager.updateState(currentRecord);
 	});
 
 	onMount(() => {
 		if (browser) {
-			savedRecords = getSavedRecordNames();
-
 			// Auto-load the most recent record if available and no data is currently loaded
-			const mostRecentRecord = getMostRecentRecordName();
-			if (mostRecentRecord && !studentsText.trim()) {
-				handleLoadRecord(mostRecentRecord);
+			if (!studentsText.trim()) {
+				const result = recordManager.autoLoadMostRecent();
+				if (result.success && result.record) {
+					loadRecordData(result.record);
+				}
 			}
 		}
 	});
 
-	function handleSaveRecord() {
-		try {
-			const recordName = saveRecord(currentRecord);
-			if (!savedRecords.includes(recordName)) {
-				savedRecords = [...savedRecords, recordName].sort().reverse();
-			}
-			lastLoadedRecord = JSON.parse(JSON.stringify(currentRecord));
-		} catch (error) {
-			console.error('Failed to save record:', error);
-			alert('Failed to save record. Please try again.');
-		}
+	function loadRecordData(record: CommunicationRecord) {
+		studentsText = record.studentsText;
+		UI_Grade = record.UI_Grade;
+		UI_Level = record.UI_Level as Level;
+		UI_ClassType = record.UI_ClassType;
+		UI_ClassNum = record.UI_ClassNum;
+		UI_Assignment = record.UI_Assignment as AssignmentCode;
+		Object.assign(UI_Dates, record.UI_Dates);
+		studentsRaw = JSON.parse(JSON.stringify(record.studentsRaw));
 	}
 
-	function handleLoadRecord(recordName: string) {
-		const record = loadRecord(recordName);
-		if (record) {
-			lastLoadedRecord = record;
-			studentsText = record.studentsText;
-			UI_Grade = record.UI_Grade;
-			UI_Level = record.UI_Level as Level;
-			UI_ClassType = record.UI_ClassType;
-			UI_ClassNum = record.UI_ClassNum;
-			UI_Assignment = record.UI_Assignment as AssignmentCode;
-			Object.assign(UI_Dates, record.UI_Dates);
-			studentsRaw = JSON.parse(JSON.stringify(record.studentsRaw));
-		}
-	}
-
-	function handleDeleteRecord(recordName: string) {
-		// Check if we're deleting the currently loaded record
-		if (lastLoadedRecord && recordMatches(currentRecord, lastLoadedRecord)) {
-			lastLoadedRecord = null;
-		}
-		deleteRecord(recordName);
-		savedRecords = savedRecords.filter((r) => r !== recordName);
+	function handleLoadRecord(record: CommunicationRecord) {
+		loadRecordData(record);
 	}
 
 	function clearForm() {
@@ -240,7 +206,7 @@
 		UI_ClassNum = newStore.UI_ClassNum;
 		UI_Assignment = newStore.UI_Assignment as AssignmentCode;
 		Object.assign(UI_Dates, newStore.UI_Dates);
-		lastLoadedRecord = null;
+		recordManager.clearLoadedRecord();
 	}
 
 	// #region Signature -------------------------------------------
@@ -364,10 +330,9 @@
 			bind:UI_ClassType
 			bind:UI_ClassNum
 			{studentsRaw}
-			{isSaveable}
-			{isModified}
+			{recordManager}
+			{currentRecord}
 			onClearForm={clearForm}
-			onSaveRecord={handleSaveRecord}
 		/>
 
 		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-lg">
@@ -405,11 +370,7 @@
 	</section>
 
 	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
-		<SavedRecords
-			{savedRecords}
-			onLoadRecord={handleLoadRecord}
-			onDeleteRecord={handleDeleteRecord}
-		/>
+		<SavedRecords {recordManager} onLoadRecord={handleLoadRecord} />
 		<!-- MARK: slip preview -->
 		<h3 class="print:hidden mx-2 my-0.5">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
