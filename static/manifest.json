@@ -1,0 +1,22 @@
+{
+  "name": "HWIS Class Scheduler",
+  "short_name": "HWIS Scheduler",
+  "description": "Class scheduling and communication system for HWIS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e398d",
+  "icons": [
+    {
+      "src": "Logo Solo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ]
+}
