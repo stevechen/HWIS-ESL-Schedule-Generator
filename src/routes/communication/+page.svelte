@@ -1,18 +1,15 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte'; // Add onMount
 	import { browser } from '$app/environment';
-	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 	import Slip from '$lib/components/Slip.svelte';
-	import { fade, slide } from 'svelte/transition';
+	import { slide } from 'svelte/transition';
 	import {
 		type Student,
 		AssignmentCode,
 		StatusTypeCode,
 		STATUS_TYPE,
 		COMM_ASSIGNMENT_TYPES,
-		LEVEL_TYPE,
 		ClassType,
-		DATE_FIELDS,
 		Limit,
 		CommunicationStore
 	} from '$lib/stores/communicationStore.svelte';
@@ -34,6 +31,7 @@
 		type CommunicationRecord
 	} from '$lib/communication/recordManager';
 	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
+	import SavedRecords from '$lib/components/communication/SavedRecords.svelte';
 
 	const store = new CommunicationStore();
 
@@ -566,49 +564,11 @@
 	</section>
 
 	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
-		{#if savedRecords.length > 0}
-			<div class="print:hidden">
-				<!-- MARK: saved records -->
-				<details
-					class="group bg-white mt-0.5 mb-2 border border-gray-300 rounded-sm open:outline open:outline-blue-600 overflow-hidden text-gray-800"
-				>
-					<summary
-						class="relative bg-gray-200 hover:bg-gray-100 group-open:bg-blue-500 group-open:hover:bg-blue-500 px-3 py-2 rounded-t-sm group-open:outline group-open:outline-blue-600 text-gray-700 hover:text-gray-600 group-open:hover:text-white group-open:text-white transition-all duration-200 ease-in-out cursor-pointer"
-					>
-						Saved Records ({savedRecords.length})
-					</summary>
-					<ul
-						id="records_list"
-						class="opacity-0 group-open:opacity-100 mx-0 max-h-0 group-open:max-h-screen overflow-hidden transition-all duration-300 ease-in-out list-none"
-					>
-						{#each savedRecords as recordName}
-							<li class="record">
-								<div class="flex justify-between items-center hover:bg-blue-200 pl-2">
-									<button
-										class="flex-1 bg-transparent border-none text-left cursor-pointer"
-										onclick={() => handleLoadRecord(recordName)}
-									>
-										{recordName}
-									</button>
-									<button
-										class="flex-shrink-0 hover:bg-red-600 ml-2 p-1 rounded"
-										aria-label="Delete record"
-										onclick={(e) => {
-											e.stopPropagation();
-											handleDeleteRecord(recordName);
-										}}
-									>
-										<svg class="size-6 text-gray-400 hover:text-white" viewBox="0 0 32 32">
-											<use href="#icon-trash" />
-										</svg>
-									</button>
-								</div>
-							</li>
-						{/each}
-					</ul>
-				</details>
-			</div>
-		{/if}
+		<SavedRecords
+			{savedRecords}
+			onLoadRecord={handleLoadRecord}
+			onDeleteRecord={handleDeleteRecord}
+		/>
 		<!-- MARK: slip preview -->
 		<h3 class="print:hidden mx-2 my-0.5">
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
