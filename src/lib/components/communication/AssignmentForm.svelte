@@ -164,13 +164,7 @@
 			<div class="radio-bg">
 				{#each LEVEL_TYPE as { id, label, value }}
 					<label class="radio-label" for={id}>
-						<input
-							{id}
-							class="appearance-none"
-							type="radio"
-							bind:group={UI_Level}
-							{value}
-						/>{label}
+						<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />{label}
 					</label>
 				{/each}
 			</div>
@@ -198,7 +192,7 @@
 			<div>
 				<input
 					type="number"
-					class={`appearance:textfield mx-1 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition duration-400 ease-in invalid:rounded-sm  invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+					class="mx-1 h-6 w-8 rounded-full bg-linear-to-b from-slate-700 to-slate-500 text-center text-white shadow-xs shadow-blue-800 transition duration-400 ease-in invalid:rounded-sm invalid:border-2 invalid:border-red-400 invalid:bg-none invalid:text-red-400 invalid:shadow-none focus:border-blue-800 focus:outline-hidden"
 					bind:value={UI_ClassNum}
 					placeholder="#?"
 					max="9"

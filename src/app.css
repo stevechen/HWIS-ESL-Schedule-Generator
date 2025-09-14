@@ -32,3 +32,14 @@
 .radio-label {
 	@apply hover:bg-blue-400 has-checked:bg-linear-to-b has-checked:from-slate-700 has-checked:to-slate-500 has-checked:shadow-blue-800 has-checked:shadow-xs hover:shadow-green-300 px-2 py-0 rounded-full text-gray-500 has-checked:text-white hover:text-slate-100 transition has-checked:animate-pulse duration-500 ease-in cursor-pointer has-checked:cursor-default;
 }
+
+/* Hide number input spinners across all browsers */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input[type="number"] {
+	-moz-appearance: textfield;
+}
