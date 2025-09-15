@@ -332,12 +332,27 @@
 			margin: 0;
 			padding: 0;
 		}
+
+		/* Mozilla print fix for Slip layout, this breaks Chrome…… */
+		@-moz-document url-prefix() {
+			main {
+				display: block;
+			}
+		}
+
 		/* Safari print fix */
 		.print\:m-0 {
 			margin: 0;
 		}
 		.print\:p-0 {
 			padding: 0;
+		}
+		/* Safari print fox for Slip layout, this breaks Chrome…*/
+		@supports (hanging-punctuation: first) and (font: -apple-system-body) and
+			(-webkit-appearance: none) {
+			main {
+				display: block;
+			}
 		}
 	}
 </style>
