@@ -41,7 +41,7 @@ export const ClassType = {
 
 // File upload limits
 export enum Limit {
-	size = 200,
+	size = 1024,
 	height = 160
 }
 
