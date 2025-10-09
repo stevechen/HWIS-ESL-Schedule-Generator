@@ -6,7 +6,7 @@
 		type Student,
 		AssignmentCode,
 		STATUS_TYPE,
-		COMM_ASSIGNMENT_TYPES,
+		ASSIGNMENT_TYPES,
 		ClassType,
 		Level,
 		CommunicationStore
@@ -84,9 +84,11 @@
 		assignmentRaw.esl = className;
 	});
 
-	const G9_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isG9);
+	const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.g9);
 
-	const CLIL_ASSIGNMENT_TYPES = COMM_ASSIGNMENT_TYPES.filter((type) => type.isCLIL);
+	const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
+
+	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
 
 	const assignmentTypes = $derived(
 		UI_Grade === 'G9'

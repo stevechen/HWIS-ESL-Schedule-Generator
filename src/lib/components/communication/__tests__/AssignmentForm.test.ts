@@ -1,5 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { AssignmentCode, Level, ClassType, COMM_ASSIGNMENT_TYPES, type Student, type AssignmentType } from '../../../stores/communication';
+import {
+	AssignmentCode,
+	Level,
+	ClassType,
+	ASSIGNMENT_TYPES,
+	type Student,
+	type AssignmentType
+} from '../../../stores/communication';
 
 // Type for students with transformed status for display
 type DisplayStudent = Omit<Student, 'status'> & {
@@ -7,7 +14,7 @@ type DisplayStudent = Omit<Student, 'status'> & {
 };
 
 const mockProps = {
-	assignmentTypes: COMM_ASSIGNMENT_TYPES,
+	assignmentTypes: ASSIGNMENT_TYPES,
 	UI_Assignment: AssignmentCode.passport,
 	UI_Dates: {
 		assigned: '1/15',
@@ -30,7 +37,7 @@ const mockProps = {
 describe('AssignmentForm', () => {
 	it('should have correct prop types', () => {
 		// Test that the props interface is correctly typed
-		expect(mockProps.assignmentTypes).toEqual(COMM_ASSIGNMENT_TYPES);
+		expect(mockProps.assignmentTypes).toEqual(ASSIGNMENT_TYPES);
 		expect(mockProps.UI_Assignment).toBe(AssignmentCode.passport);
 		expect(mockProps.UI_Level).toBe(Level.Basic);
 		expect(mockProps.UI_ClassType).toBe(ClassType.COMM);
@@ -38,12 +45,12 @@ describe('AssignmentForm', () => {
 
 	it('should handle assignment types correctly', () => {
 		// Test assignment type filtering logic
-		const g9Types = COMM_ASSIGNMENT_TYPES.filter((type) => type.isG9);
-		const clilTypes = COMM_ASSIGNMENT_TYPES.filter((type) => type.isCLIL);
+		const g9Types = ASSIGNMENT_TYPES.filter((type) => type.g9);
+		const clilTypes = ASSIGNMENT_TYPES.filter((type) => type.clil);
 
 		expect(g9Types.length).toBeGreaterThan(0);
 		expect(clilTypes.length).toBeGreaterThan(0);
-		expect(COMM_ASSIGNMENT_TYPES.length).toBeGreaterThan(g9Types.length);
+		expect(ASSIGNMENT_TYPES.length).toBeGreaterThan(g9Types.length);
 	});
 
 	it('should validate date format requirements', () => {

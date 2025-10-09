@@ -16,7 +16,8 @@ export enum AssignmentCode {
 	passport = 'passport',
 	recording = 'recording',
 	exam = 'exam',
-	speech = 'speech'
+	speech = 'speech',
+	worksheet = 'worksheet'
 }
 
 export enum Level {
@@ -50,6 +51,7 @@ export interface AssignmentType {
 	code: AssignmentCode;
 	english: string;
 	chinese: string;
-	isG9?: boolean;
-	isCLIL?: boolean;
+	comm?: boolean;
+	g9?: boolean;
+	clil?: boolean;
 }
