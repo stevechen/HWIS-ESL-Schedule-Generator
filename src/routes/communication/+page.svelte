@@ -340,14 +340,14 @@
 			}
 		}
 
-		/* Safari print fix */
+		/* Safari print bug fix (not respecting hidden in print). Safari in Tahoe has it fixed.*/
 		.print\:m-0 {
 			margin: 0;
 		}
 		.print\:p-0 {
 			padding: 0;
 		}
-		/* Safari print fox for Slip layout, this breaks Chrome…*/
+		/* Safari print fox for Slip layout. . Safari in Tahoe has it fixed. This breaks Chrome…*/
 		@supports (hanging-punctuation: first) and (font: -apple-system-body) and
 			(-webkit-appearance: none) {
 			main {
