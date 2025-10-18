@@ -9,9 +9,7 @@
 		signatureImage: string;
 	}
 
-	let {
-		signatureImage = $bindable()
-	}: Props = $props();
+	let { signatureImage = $bindable() }: Props = $props();
 
 	let dragCounter = $state(0);
 	const isDraggingOver = $derived(dragCounter > 0);
@@ -103,7 +101,6 @@
 </script>
 
 <!-- MARK: signature -->
-<section class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 	<div
 		class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
 		ondragenter={handleDragEnter}
@@ -128,8 +125,8 @@
 			]}
 		>
 			<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
-				{`Darg and drop a jpg/png signature file
------------------- or ------------------`}
+				{`   Drag and drop a jpg/png signature file
+	------------------- or -------------------`}
 			</p>
 			<button
 				id="browse"
@@ -169,4 +166,3 @@
 			onchange={handleFileSelect}
 		/>
 	</div>
-</section>
