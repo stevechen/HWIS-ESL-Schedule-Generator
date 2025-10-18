@@ -83,12 +83,12 @@ test('1. Saving a New Record', async ({ page }) => {
 	expect(savedData).not.toBeNull();
 	const parsedData = JSON.parse(savedData!);
 	expect(parsedData.studentsText).toBe(sampleStudentsText);
-	expect(parsedData.UI_Assignment).toBe('workbook');
-	expect(parsedData.UI_Dates.due).toBe('08/15');
-	expect(parsedData.UI_Dates.late).toBe('08/16');
-	expect(parsedData.UI_Level).toBe('Basic');
-	expect(parsedData.UI_ClassType).toBe('CLIL');
-	expect(parsedData.UI_ClassNum).toBe(1);
+	expect(parsedData.assignment).toBe('workbook');
+	expect(parsedData.dates.due).toBe('08/15');
+	expect(parsedData.dates.late).toBe('08/16');
+	expect(parsedData.level).toBe('Basic');
+	expect(parsedData.classType).toBe('CLIL');
+	expect(parsedData.classNum).toBe(1);
 
 	// Verify save button disappears after saving
 	await expect(page.locator('#save_button')).not.toBeVisible();
@@ -101,12 +101,12 @@ test('2. Loading a Saved Record', async ({ page }) => {
 	const recordKey = `comm_${recordName}`;
 	const savedSettings = {
 		studentsText: '9876543\t王五\tWang Wu\tJ203',
-		UI_Grade: 'G8',
-		UI_Level: 'Advanced', // Capitalized to match component's expected value
-		UI_ClassType: 'CLIL', // Capitalized to match component's expected value
-		UI_Assignment: 'workbook', // Lowercase to match AssignmentCode enum
-		UI_ClassNum: 5,
-		UI_Dates: { assigned: '08/10', due: '08/20', late: '08/21' },
+		grade: 'G8',
+		level: 'Advanced', // Capitalized to match component's expected value
+		classType: 'CLIL', // Capitalized to match component's expected value
+		assignment: 'workbook', // Lowercase to match AssignmentCode enum
+		classNum: 5,
+		dates: { assigned: '08/10', due: '08/20', late: '08/21' },
 		studentsRaw: [
 			{
 				id: '9876543',
@@ -138,11 +138,9 @@ test('2. Loading a Saved Record', async ({ page }) => {
 
 	// Verify loaded state
 	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
-	await expect(page.locator('input[name="due"]')).toHaveValue(savedSettings.UI_Dates.due);
-	await expect(page.locator('input[name="late"]')).toHaveValue(savedSettings.UI_Dates.late);
-	await expect(page.locator('input[placeholder="#?"]')).toHaveValue(
-		String(savedSettings.UI_ClassNum)
-	);
+	await expect(page.locator('input[name="due"]')).toHaveValue(savedSettings.dates.due);
+	await expect(page.locator('input[name="late"]')).toHaveValue(savedSettings.dates.late);
+	await expect(page.locator('input[placeholder="#?"]')).toHaveValue(String(savedSettings.classNum));
 	await expect(page.locator('label:has-text("Workbook") input')).toBeChecked();
 	// Add explicit wait for the Advanced input to be visible
 	// await expect(page.locator('label[for="adv"] input')).toBeVisible();
@@ -160,12 +158,12 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	const recordKey = `comm_${recordName}`;
 	const savedSettings = {
 		studentsText: '1111111\t小明\tMing Liu\tJ304',
-		UI_Grade: 'G9',
-		UI_Level: 'intermediate',
-		UI_ClassType: 'CLIL',
-		UI_Assignment: 'quiz',
-		UI_ClassNum: 2,
-		UI_Dates: { assigned: '08/01', due: '08/02', late: '08/03' },
+		grade: 'G9',
+		level: 'intermediate',
+		classType: 'CLIL',
+		assignment: 'quiz',
+		classNum: 2,
+		dates: { assigned: '08/01', due: '08/02', late: '08/03' },
 		studentsRaw: [
 			{
 				id: '1111111',

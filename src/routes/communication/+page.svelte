@@ -27,13 +27,15 @@
 	// Parse students immediately
 	let studentsRaw: Array<Student> = $derived.by(() => parseStudentsFromText(studentsText));
 	let shouldHideTextarea = $state(store.shouldHideTextarea);
-	let UI_Grade = $state(store.UI_Grade);
-	let UI_Level = $state(store.UI_Level);
-	let UI_ClassType = $state(store.UI_ClassType);
-	let UI_ClassNum = $state(store.UI_ClassNum);
+	const ui = $state({
+		grade: store.grade,
+		level: store.level,
+		classType: store.classType,
+		classNum: store.classNum,
+		assignment: store.assignment,
+		dates: store.dates
+	});
 	const assignmentRaw = $state(store.assignmentRaw);
-	let UI_Assignment = $state(store.UI_Assignment);
-	let UI_Dates = $state(store.UI_Dates);
 	let signatureImage = $state(store.signatureImage);
 
 	// Development helper
@@ -76,11 +78,11 @@
 
 	//#region ESL class ---------------------------------------------------------------
 	const grade = $derived(determineGradeFromText(studentsText));
-	let className = $derived([UI_Grade, UI_Level, UI_ClassNum, UI_ClassType].join(' '));
+	let className = $derived([ui.grade, ui.level, ui.classNum, ui.classType].join(' '));
 
 	$effect(() => {
-		UI_Grade = grade || '';
-		if (UI_ClassType === ClassType.CLIL) UI_Assignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
+		ui.grade = grade || '';
+		if (ui.classType === ClassType.CLIL) ui.assignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
 		assignmentRaw.esl = className;
 	});
 
@@ -91,16 +93,16 @@
 	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
 
 	const assignmentTypes = $derived(
-		UI_Grade === 'G9'
+		ui.grade === 'G9'
 			? [...G9_ASSIGNMENT_TYPES]
-			: UI_ClassType === ClassType.CLIL
+			: ui.classType === ClassType.CLIL
 				? [...CLIL_ASSIGNMENT_TYPES]
 				: [...COMM_ASSIGNMENT_TYPES]
 	);
 
 	let assignment = $derived(
 		(() => {
-			const assignmentTypeText = assignmentTypes.find((type) => type.code === UI_Assignment);
+			const assignmentTypeText = assignmentTypes.find((type) => type.code === ui.assignment);
 			return {
 				...assignmentRaw,
 				type: {
@@ -112,9 +114,9 @@
 	);
 
 	$effect(() => {
-		assignmentRaw.assigned = UI_Dates.assigned;
-		assignmentRaw.due = UI_Dates.due;
-		assignmentRaw.late = UI_Dates.late;
+		assignmentRaw.assigned = ui.dates.assigned;
+		assignmentRaw.due = ui.dates.due;
+		assignmentRaw.late = ui.dates.late;
 	});
 	// #region Save Record -------------------------------------------
 	const recordManager = new RecordManager();
@@ -122,12 +124,12 @@
 	const currentRecord = $derived.by(
 		(): CommunicationRecord => ({
 			studentsText,
-			UI_Grade,
-			UI_Level,
-			UI_ClassType,
-			UI_ClassNum,
-			UI_Assignment,
-			UI_Dates,
+			grade: ui.grade,
+			level: ui.level,
+			classType: ui.classType,
+			classNum: ui.classNum,
+			assignment: ui.assignment,
+			dates: ui.dates,
 			studentsRaw
 		})
 	);
@@ -139,12 +141,12 @@
 
 	function loadRecordData(record: CommunicationRecord) {
 		studentsText = record.studentsText;
-		UI_Grade = record.UI_Grade;
-		UI_Level = record.UI_Level as Level;
-		UI_ClassType = record.UI_ClassType;
-		UI_ClassNum = record.UI_ClassNum;
-		UI_Assignment = record.UI_Assignment as AssignmentCode;
-		Object.assign(UI_Dates, record.UI_Dates);
+		ui.grade = record.grade;
+		ui.level = record.level as Level;
+		ui.classType = record.classType;
+		ui.classNum = record.classNum;
+		ui.assignment = record.assignment as AssignmentCode;
+		ui.dates = record.dates;
 		studentsRaw = JSON.parse(JSON.stringify(record.studentsRaw));
 	}
 
@@ -156,12 +158,12 @@
 		const newStore = new CommunicationStore();
 		studentsText = newStore.studentsText;
 		studentsRaw = newStore.studentsRaw;
-		UI_Grade = newStore.UI_Grade;
-		UI_Level = newStore.UI_Level as Level;
-		UI_ClassType = newStore.UI_ClassType;
-		UI_ClassNum = newStore.UI_ClassNum;
-		UI_Assignment = newStore.UI_Assignment as AssignmentCode;
-		Object.assign(UI_Dates, newStore.UI_Dates);
+		ui.grade = newStore.grade;
+		ui.level = newStore.level as Level;
+		ui.classType = newStore.classType;
+		ui.classNum = newStore.classNum;
+		ui.assignment = newStore.assignment as AssignmentCode;
+		ui.dates = newStore.dates;
 		recordManager.clearLoadedRecord();
 	}
 </script>
@@ -175,14 +177,14 @@
 	>
 		<AssignmentForm
 			{assignmentTypes}
-			bind:UI_Assignment
-			bind:UI_Dates
+			bind:UI_Assignment={ui.assignment}
+			bind:UI_Dates={ui.dates}
 			{grade}
 			{students}
-			{UI_Grade}
-			bind:UI_Level
-			bind:UI_ClassType
-			bind:UI_ClassNum
+			UI_Grade={ui.grade}
+			bind:UI_Level={ui.level}
+			bind:UI_ClassType={ui.classType}
+			bind:UI_ClassNum={ui.classNum}
 			{studentsRaw}
 			{recordManager}
 			{currentRecord}
@@ -196,7 +198,7 @@
 				<SignatureUpload bind:signatureImage />
 
 				<PrintButton
-					classNum={UI_ClassNum}
+					classNum={ui.classNum}
 					{studentsRaw}
 					selectedStudentsCount={students.length}
 					assignmentDates={{

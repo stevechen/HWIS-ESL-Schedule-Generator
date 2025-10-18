@@ -3,12 +3,12 @@ import type { Student, Level, AssignmentCode } from '$lib/stores/communication';
 
 export interface CommunicationRecord {
 	studentsText: string;
-	UI_Grade: string;
-	UI_Level: Level;
-	UI_ClassType: string;
-	UI_ClassNum: string;
-	UI_Assignment: AssignmentCode;
-	UI_Dates: { [key: string]: string };
+	grade: string;
+	level: Level;
+	classType: string;
+	classNum: string;
+	assignment: AssignmentCode;
+	dates: { [key: string]: string };
 	studentsRaw: Student[];
 }
 
@@ -53,9 +53,9 @@ export class RecordManager {
 	 * Updates the saveable and modified state based on current record
 	 */
 	updateState(currentRecord: CommunicationRecord) {
-		this.state.isSaveable = !!currentRecord.UI_ClassNum && 
-			currentRecord.studentsRaw.filter(s => s.selected).length > 0;
-		
+		this.state.isSaveable =
+			!!currentRecord.classNum && currentRecord.studentsRaw.filter((s) => s.selected).length > 0;
+
 		if (!this.state.lastLoadedRecord) {
 			this.state.isModified = true;
 		} else {
@@ -76,20 +76,20 @@ export class RecordManager {
 	save(record: CommunicationRecord): { success: boolean; recordName?: string; error?: string } {
 		try {
 			const recordName = saveRecord(record);
-			
+
 			if (!this.state.savedRecords.includes(recordName)) {
 				this.state.savedRecords = [...this.state.savedRecords, recordName].sort().reverse();
 			}
-			
+
 			this.state.lastLoadedRecord = JSON.parse(JSON.stringify(record));
 			this.state.isModified = false;
-			
+
 			return { success: true, recordName };
 		} catch (error) {
 			console.error('Failed to save record:', error);
-			return { 
-				success: false, 
-				error: error instanceof Error ? error.message : 'Failed to save record' 
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to save record'
 			};
 		}
 	}
@@ -99,13 +99,13 @@ export class RecordManager {
 	 */
 	load(recordName: string): { success: boolean; record?: CommunicationRecord; error?: string } {
 		const record = loadRecord(recordName);
-		
+
 		if (record) {
 			this.state.lastLoadedRecord = record;
 			this.state.isModified = false;
 			return { success: true, record };
 		}
-		
+
 		return { success: false, error: 'Record not found or corrupted' };
 	}
 
@@ -122,16 +122,16 @@ export class RecordManager {
 					this.state.isModified = true;
 				}
 			}
-			
+
 			deleteRecord(recordName);
-			this.state.savedRecords = this.state.savedRecords.filter(r => r !== recordName);
-			
+			this.state.savedRecords = this.state.savedRecords.filter((r) => r !== recordName);
+
 			return { success: true };
 		} catch (error) {
 			console.error('Failed to delete record:', error);
-			return { 
-				success: false, 
-				error: error instanceof Error ? error.message : 'Failed to delete record' 
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to delete record'
 			};
 		}
 	}
@@ -141,14 +141,14 @@ export class RecordManager {
 	 */
 	autoLoadMostRecent(): { success: boolean; record?: CommunicationRecord; recordName?: string } {
 		const mostRecentRecord = getMostRecentRecordName();
-		
+
 		if (mostRecentRecord) {
 			const result = this.load(mostRecentRecord);
 			if (result.success) {
 				return { ...result, recordName: mostRecentRecord };
 			}
 		}
-		
+
 		return { success: false };
 	}
 
@@ -174,17 +174,17 @@ function capitalizeWords(str: string): string {
  * Generates a unique record name based on the current form state
  */
 export function generateRecordName(record: CommunicationRecord): string {
-	let datePart = record.UI_Dates.due;
-	if (isValidMonthAndDay(record.UI_Dates.due)) {
-		const [month, day] = record.UI_Dates.due.split('/');
+	let datePart = record.dates.due;
+	if (isValidMonthAndDay(record.dates.due)) {
+		const [month, day] = record.dates.due.split('/');
 		const year = new Date().getFullYear();
 		datePart = `${year}/${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
 	}
 
 	const selectedStudentCount = record.studentsRaw.filter((student) => student.selected).length;
-	
+
 	const baseRecordName = capitalizeWords(
-		`${datePart}-${record.UI_Grade} ${record.UI_Level} ${record.UI_ClassType} ${record.UI_ClassNum}-${record.UI_Assignment}-${selectedStudentCount} students`
+		`${datePart}-${record.grade} ${record.level} ${record.classType} ${record.classNum}-${record.assignment}-${selectedStudentCount} students`
 	);
 
 	// Make the name unique by appending a counter if needed
@@ -203,12 +203,12 @@ export function generateRecordName(record: CommunicationRecord): string {
  */
 export function saveRecord(record: CommunicationRecord): string {
 	const recordName = generateRecordName(record);
-	
+
 	if (recordName) {
 		localStorage.setItem(`${RECORD_PREFIX}${recordName}`, JSON.stringify(record));
 		return recordName;
 	}
-	
+
 	throw new Error('Failed to generate record name');
 }
 

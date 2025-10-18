@@ -13,10 +13,10 @@ export class CommunicationStore {
 	shouldHideTextarea: boolean = $derived(this.studentsRaw.length > 0);
 
 	// Class information
-	UI_Grade: string = $state('');
-	UI_Level = $state(LEVEL_TYPE[2].value); // Default to Basic
-	UI_ClassType: string = $state(ClassType.COMM);
-	UI_ClassNum: string = $state('');
+	grade: string = $state('');
+	level = $state(LEVEL_TYPE[2].value); // Default to Basic
+	classType: string = $state(ClassType.COMM);
+	classNum: string = $state('');
 
 	// Assignment information
 	assignmentRaw = $state({
@@ -26,10 +26,10 @@ export class CommunicationStore {
 		due: '',
 		late: ''
 	});
-	UI_Assignment: AssignmentCode = $state(AssignmentCode.passport);
+	assignment: AssignmentCode = $state(AssignmentCode.passport);
 
 	// Date fields
-	UI_Dates: { [key: string]: string } = $state({
+	dates: { [key: string]: string } = $state({
 		assigned: '',
 		due: '',
 		late: ''
@@ -50,9 +50,9 @@ export class CommunicationStore {
 		const dueDate = `${today.getMonth() + 1}/${today.getDate()}`;
 		const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 		const lateDate = `${sevenDaysLater.getMonth() + 1}/${sevenDaysLater.getDate()}`;
-		
-		this.UI_Dates.due = dueDate;
-		this.UI_Dates.late = lateDate;
+
+		this.dates.due = dueDate;
+		this.dates.late = lateDate;
 	}
 
 	/**
@@ -62,11 +62,11 @@ export class CommunicationStore {
 		this.studentsText = '';
 		this.studentsRaw = [];
 		this.shouldHideTextarea = false;
-		this.UI_Grade = '';
-		this.UI_Level = LEVEL_TYPE[2].value;
-		this.UI_ClassType = ClassType.COMM;
-		this.UI_ClassNum = '';
-		this.UI_Assignment = AssignmentCode.passport;
+		this.grade = '';
+		this.level = LEVEL_TYPE[2].value;
+		this.classType = ClassType.COMM;
+		this.classNum = '';
+		this.assignment = AssignmentCode.passport;
 		this.assignmentRaw = {
 			esl: '',
 			type: '',
@@ -74,7 +74,7 @@ export class CommunicationStore {
 			due: '',
 			late: ''
 		};
-		this.UI_Dates = {
+		this.dates = {
 			assigned: '',
 			due: '',
 			late: ''
