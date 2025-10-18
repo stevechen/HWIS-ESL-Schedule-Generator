@@ -125,16 +125,16 @@
 		]}
 	>
 		<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
-			{`   Drag and drop a jpg/png signature file
+			{`    Drag and drop a jpg/png signature file
 	------------------- or -------------------`}
 		</p>
 		<button
 			id="browse"
-			class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
+			class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-28 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
 			onclick={handleBrowseClick}
 			aria-label="browse image">Browse…</button
 		>
-		<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
+		<p class="mb-0 ml-28 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
 	</div>
 
 	<!-- Signature preview and remove button -->
