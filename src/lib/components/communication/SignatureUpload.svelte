@@ -101,68 +101,68 @@
 </script>
 
 <!-- MARK: signature -->
+<div
+	class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
+	ondragenter={handleDragEnter}
+	ondragover={handleDragOver}
+	ondrop={handleDrop}
+	ondragleave={handleDragLeave}
+	onkeyup={handleKeyUp}
+	aria-label="Drag & drop signature file"
+	tabindex="0"
+	role="button"
+>
+	<!-- Signature drop box -->
 	<div
-		class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
-		ondragenter={handleDragEnter}
-		ondragover={handleDragOver}
-		ondrop={handleDrop}
-		ondragleave={handleDragLeave}
-		onkeyup={handleKeyUp}
-		aria-label="Drag & drop signature file"
-		tabindex="0"
-		role="button"
+		id="signature-drop-zone"
+		class={[
+			signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+			!signatureImage && 'z-1 mt-0',
+			'w-full border-2 bg-no-repeat text-center transition-all duration-450',
+			isDraggingOver
+				? 'border-orange-400 bg-orange-100'
+				: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
+		]}
 	>
-		<!-- Signature drop box -->
-		<div
-			id="signature-drop-zone"
-			class={[
-				signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
-				!signatureImage && 'z-1 mt-0',
-				'w-full border-2 bg-no-repeat text-center transition-all duration-450',
-				isDraggingOver
-					? 'border-orange-400 bg-orange-100'
-					: "border-orange-300 bg-slate-50 bg-[url('/static/icon-image.svg')]"
-			]}
-		>
-			<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
-				{`   Drag and drop a jpg/png signature file
+		<p class="mt-0 ml-24 text-orange-500 text-sm text-center whitespace-pre">
+			{`   Drag and drop a jpg/png signature file
 	------------------- or -------------------`}
-			</p>
-			<button
-				id="browse"
-				class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
-				onclick={handleBrowseClick}
-				aria-label="browse image">Browse…</button
-			>
-			<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
-		</div>
-
-		<!-- Signature preview and remove button -->
-		<div
-			class={[
-				signatureImage && 'has-signature z-1 mt-0',
-				!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
-				'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
-			]}
+		</p>
+		<button
+			id="browse"
+			class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-24 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
+			onclick={handleBrowseClick}
+			aria-label="browse image">Browse…</button
 		>
-			<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
-			<button
-				id="remove-signature"
-				class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
-				onclick={removeSignature}
-				aria-label="remove-signature"
-			>
-				<svg class="size-6 text-white" viewBox="0 0 32 32">
-					<use href="#icon-trash" />
-				</svg>
-			</button>
-		</div>
-
-		<input
-			id="signature-upload"
-			class="absolute -m-px p-0 border-0 w-px h-px overflow-hidden [clip:rect(0,0,0,0)]"
-			type="file"
-			accept="image/*"
-			onchange={handleFileSelect}
-		/>
+		<p class="mb-0 ml-24 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
 	</div>
+
+	<!-- Signature preview and remove button -->
+	<div
+		class={[
+			signatureImage && 'has-signature z-1 mt-0',
+			!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+			'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
+		]}
+	>
+		<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
+		<button
+			id="remove-signature"
+			class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
+			onclick={removeSignature}
+			aria-label="remove-signature"
+		>
+			<svg class="size-6 text-white" viewBox="0 0 32 32">
+				<use href="#icon-trash" />
+			</svg>
+		</button>
+	</div>
+
+	<input
+		id="signature-upload"
+		class="absolute -m-px p-0 border-0 w-px h-px overflow-hidden [clip:rect(0,0,0,0)]"
+		type="file"
+		accept="image/*"
+		onchange={handleFileSelect}
+	/>
+</div>
