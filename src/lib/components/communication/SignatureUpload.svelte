@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
-	import { Limit } from '$lib/stores/communication';
 	import { processSignatureFile } from '$lib/communication/signatureValidator';
 
 	// Props
@@ -134,7 +133,6 @@
 			onclick={handleBrowseClick}
 			aria-label="browse image">Browse…</button
 		>
-		<p class="mb-0 ml-28 text-slate-400 text-sm">Max file size: {Limit.size}KB</p>
 	</div>
 
 	<!-- Signature preview and remove button -->

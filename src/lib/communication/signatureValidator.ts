@@ -13,28 +13,22 @@ export interface SignatureValidationOptions {
 
 /**
  * Validates image file for signature upload
- * Checks file type, size, and dimensions
+ * Checks file type and dimensions
  */
-export function validateSignatureFile(file: File, options?: Partial<SignatureValidationOptions>): ValidationResult {
+export function validateSignatureFile(
+	file: File,
+	options?: Partial<SignatureValidationOptions>
+): ValidationResult {
 	const config = {
-		maxSizeKB: options?.maxSizeKB ?? Limit.size,
 		minHeight: options?.minHeight ?? Limit.height,
 		allowedTypes: options?.allowedTypes ?? ['image/jpeg', 'image/png']
 	};
 
 	// Check file type
-	if (!config.allowedTypes.some(type => file.type.match(type))) {
+	if (!config.allowedTypes.some((type) => file.type.match(type))) {
 		return {
 			isValid: false,
 			error: 'Only JPG and PNG formats are allowed.'
-		};
-	}
-
-	// Check file size
-	if (file.size > config.maxSizeKB * 1024) {
-		return {
-			isValid: false,
-			error: `File size must be under ${config.maxSizeKB}KB.`
 		};
 	}
 
@@ -45,14 +39,17 @@ export function validateSignatureFile(file: File, options?: Partial<SignatureVal
  * Validates image dimensions asynchronously
  * Returns a promise that resolves with validation result
  */
-export function validateImageDimensions(file: File, minHeight: number = Limit.height): Promise<ValidationResult> {
+export function validateImageDimensions(
+	file: File,
+	minHeight: number = Limit.height
+): Promise<ValidationResult> {
 	return new Promise((resolve) => {
 		const fileURL = URL.createObjectURL(file);
 		const img = new Image();
 
 		img.onload = () => {
 			URL.revokeObjectURL(fileURL); // Clean up
-			
+
 			if (img.height <= minHeight) {
 				resolve({
 					isValid: false,
@@ -82,7 +79,7 @@ export function validateImageDimensions(file: File, minHeight: number = Limit.he
 export function fileToDataURL(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
-		
+
 		reader.onloadend = () => {
 			if (reader.result) {
 				resolve(reader.result as string);
@@ -90,11 +87,11 @@ export function fileToDataURL(file: File): Promise<string> {
 				reject(new Error('Failed to read file'));
 			}
 		};
-		
+
 		reader.onerror = () => {
 			reject(new Error('Error reading file'));
 		};
-		
+
 		reader.readAsDataURL(file);
 	});
 }
@@ -103,7 +100,10 @@ export function fileToDataURL(file: File): Promise<string> {
  * Complete signature validation and processing
  * Validates file, dimensions, and converts to data URL
  */
-export async function processSignatureFile(file: File, options?: Partial<SignatureValidationOptions>): Promise<{
+export async function processSignatureFile(
+	file: File,
+	options?: Partial<SignatureValidationOptions>
+): Promise<{
 	success: boolean;
 	dataURL?: string;
 	error?: string;
