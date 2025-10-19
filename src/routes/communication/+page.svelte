@@ -185,7 +185,9 @@
 			onClearForm={clearForm}
 		/>
 
-		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1">
+		<div
+			class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-gray-600 border-y-1 border-dashed"
+		>
 			<StudentTable
 				bind:studentsText
 				bind:studentsRaw
@@ -198,7 +200,7 @@
 				bind:UI_ClassNum={ui.classNum}
 			/>
 		</div>
-		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-b-lg">
+		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 rounded-b-lg">
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 				<SignatureUpload bind:signatureImage />
 

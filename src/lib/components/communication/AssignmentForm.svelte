@@ -38,10 +38,8 @@
 </script>
 
 <div id="assignment">
-	<div
-		class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 pb-0 border-1 rounded-t-lg"
-	>
-		<div class="flex items-center border-gray-600 border-b-1 w-full">
+	<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 pb-0 rounded-t-lg">
+		<div class="flex items-center border-gray-500 border-b-1 w-full">
 			<h3 class="mx-2 my-1 pr-10 text-white">Assignment</h3>
 			<div class="ml-auto">
 				{#if studentsRaw.length > 0}
