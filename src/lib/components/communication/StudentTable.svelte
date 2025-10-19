@@ -1,17 +1,42 @@
 <script lang="ts">
-	import { StatusTypeCode, STATUS_TYPE, type Student } from '$lib/stores/communication';
+	import { fade } from 'svelte/transition';
+	import {
+		StatusTypeCode,
+		STATUS_TYPE,
+		type Student,
+		LEVEL_TYPE,
+		ClassType,
+		Level
+	} from '$lib/stores/communication';
+
+	// Type for students with transformed status for display
+	type DisplayStudent = Omit<Student, 'status'> & {
+		status: { english: string; chinese: string };
+	};
 
 	// Props
 	interface Props {
 		studentsText: string;
 		studentsRaw: Student[];
 		shouldHideTextarea: boolean;
+		grade: string | null;
+		students: Array<DisplayStudent>;
+		UI_Grade: string;
+		UI_Level: Level;
+		UI_ClassType: string;
+		UI_ClassNum: string;
 	}
 
 	let {
 		studentsText = $bindable(),
 		studentsRaw = $bindable(),
-		shouldHideTextarea
+		shouldHideTextarea,
+		grade,
+		students,
+		UI_Grade,
+		UI_Level = $bindable(),
+		UI_ClassType = $bindable(),
+		UI_ClassNum = $bindable()
 	}: Props = $props();
 
 	// Master checkbox logic - moved from main component
@@ -40,6 +65,81 @@
 		studentsRaw = [...studentsRaw];
 	}
 </script>
+
+<!-- MARK: class-info -->
+<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
+	<!-- student icon -->
+	<svg class="fill-white mx-4 my-1 size-5" viewBox="0 0 512 512">
+		<use href="#icon-student" />
+	</svg>
+	{#if grade}
+		<span class={[!students.length && 'text-red-500', 'text-white']}
+			>{students.length} selected</span
+		>
+	{:else}
+		<span class="mr-2 ml-1 text-red-500">0 students</span>
+		<!-- spin circle -->
+		<svg
+			class="inline-block size-4 text-red-500 origin-center animate-[spin_3s_linear_infinite]"
+			viewBox="0 0 24 24"
+		>
+			<use href="#icon-spin" />
+		</svg>
+	{/if}
+	<div class={[!grade && 'hidden', 'px-2']}>
+		<p
+			id="grade"
+			class={[
+				grade && 'bg-linear-to-b from-slate-700 to-slate-500 text-white shadow-xs shadow-blue-800',
+				'rounded-full px-2'
+			]}
+			transition:fade
+		>
+			{grade}
+		</p>
+	</div>
+
+	<!-- MARK: ESL-level -->
+	<div class="radio-bg">
+		{#each LEVEL_TYPE as { id, label, value }}
+			<label class="radio-label" for={id}>
+				<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />{label}
+			</label>
+		{/each}
+	</div>
+
+	<!-- MARK: ESL-type -->
+	<div class="radio-bg">
+		{#each Object.entries(ClassType) as [type, value]}
+			<!-- only render out CLIL if class is not G9 -->
+			{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
+				<label class="radio-label" for={type}
+					><input
+						id={type}
+						class="appearance-none"
+						type="radio"
+						bind:group={UI_ClassType}
+						{value}
+						aria-label={value}
+					/>{value}</label
+				>
+			{/if}
+		{/each}
+	</div>
+
+	<!-- MARK: class-number -->
+	<div>
+		<input
+			type="number"
+			class="bg-linear-to-b from-slate-700 to-slate-500 invalid:bg-none shadow-blue-800 shadow-xs invalid:shadow-none mx-1 focus:border-blue-800 invalid:border-2 invalid:border-red-400 rounded-full invalid:rounded-sm focus:outline-hidden w-8 h-6 text-white invalid:text-red-400 text-center transition duration-400 ease-in"
+			bind:value={UI_ClassNum}
+			placeholder="#?"
+			max="9"
+			min="1"
+			required
+		/>
+	</div>
+</fieldset>
 
 <!-- MARK: students -->
 <fieldset class="w-full">
@@ -118,6 +218,7 @@
 							oninput={handleStudentChange}
 						/>
 					</td>
+
 					<td class="w-14 chinese-class">
 						<input
 							class="text-center"

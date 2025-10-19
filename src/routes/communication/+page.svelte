@@ -173,27 +173,32 @@
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
 	<section
 		id="controls"
-		class="print:hidden top-10 z-10 fixed self-start pt-2 w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
+		class="print:hidden top-11 z-10 fixed self-start pt-2 w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
 	>
 		<AssignmentForm
 			{assignmentTypes}
 			bind:UI_Assignment={ui.assignment}
 			bind:UI_Dates={ui.dates}
-			{grade}
-			{students}
-			UI_Grade={ui.grade}
-			bind:UI_Level={ui.level}
-			bind:UI_ClassType={ui.classType}
-			bind:UI_ClassNum={ui.classNum}
 			{studentsRaw}
 			{recordManager}
 			{currentRecord}
 			onClearForm={clearForm}
 		/>
 
-		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-lg">
-			<StudentTable bind:studentsText bind:studentsRaw {shouldHideTextarea} />
-
+		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1">
+			<StudentTable
+				bind:studentsText
+				bind:studentsRaw
+				{shouldHideTextarea}
+				{grade}
+				{students}
+				UI_Grade={ui.grade}
+				bind:UI_Level={ui.level}
+				bind:UI_ClassType={ui.classType}
+				bind:UI_ClassNum={ui.classNum}
+			/>
+		</div>
+		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-1 rounded-b-lg">
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 				<SignatureUpload bind:signatureImage />
 
