@@ -4,6 +4,7 @@
 	import { slide } from 'svelte/transition';
 	import {
 		type Student,
+		type DisplayStudent,
 		AssignmentCode,
 		STATUS_TYPE,
 		ASSIGNMENT_TYPES,
@@ -26,7 +27,7 @@
 	let studentsText = $state(store.studentsText);
 	// Parse students immediately
 	let studentsRaw: Array<Student> = $derived.by(() => parseStudentsFromText(studentsText));
-	let shouldHideTextarea = $state(store.shouldHideTextarea);
+	let shouldHideTextarea = $derived(store.shouldHideTextarea);
 	const ui = $state({
 		grade: store.grade,
 		level: store.level,
@@ -38,10 +39,10 @@
 	const assignmentRaw = $state(store.assignmentRaw);
 	let signatureImage = $state(store.signatureImage);
 
-	// Development helper
+	// Development helper for playwright tests
 	onMount(() => {
 		if (browser && import.meta.env.DEV) {
-			(window as any).setStudentsText = (value: string) => {
+			window.setStudentsText = (value: string) => {
 				studentsText = value;
 			};
 		}
@@ -52,11 +53,6 @@
 	});
 
 	//#region Student table ---------------------------------------------------------------
-
-	// Type for students with transformed status for display
-	type DisplayStudent = Omit<Student, 'status'> & {
-		status: { english: string; chinese: string };
-	};
 
 	const students = $derived(
 		(() => {
@@ -173,7 +169,7 @@
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
 	<section
 		id="controls"
-		class="print:hidden top-11 z-10 fixed self-start pt-2 w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
+		class="print:hidden top-13.5 z-10 fixed self-start bg-black pt-2 rounded-lg w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
 	>
 		<AssignmentForm
 			{assignmentTypes}
@@ -184,23 +180,18 @@
 			{currentRecord}
 			onClearForm={clearForm}
 		/>
-
-		<div
-			class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 border-gray-600 border-y-1 border-dashed"
-		>
-			<StudentTable
-				bind:studentsText
-				bind:studentsRaw
-				{shouldHideTextarea}
-				{grade}
-				{students}
-				UI_Grade={ui.grade}
-				bind:UI_Level={ui.level}
-				bind:UI_ClassType={ui.classType}
-				bind:UI_ClassNum={ui.classNum}
-			/>
-		</div>
-		<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 rounded-b-lg">
+		<StudentTable
+			bind:studentsText
+			bind:studentsRaw
+			{shouldHideTextarea}
+			{grade}
+			{students}
+			UI_Grade={ui.grade}
+			bind:UI_Level={ui.level}
+			bind:UI_ClassType={ui.classType}
+			bind:UI_ClassNum={ui.classNum}
+		/>
+		<div class="flex flex-wrap justify-start items-center mb-0 p-2">
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 				<SignatureUpload bind:signatureImage />
 
@@ -228,7 +219,7 @@
 			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
 		</h3>
 		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]">
-			{#each students as student, i}
+			{#each students as student, i (student.id)}
 				<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
 					Slip #{i + 1}
 				</p>

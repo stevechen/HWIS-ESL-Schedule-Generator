@@ -38,7 +38,7 @@
 </script>
 
 <div id="assignment">
-	<div class="flex flex-wrap justify-start items-center bg-black mb-0 p-2 pb-0 rounded-t-lg">
+	<div class="flex flex-wrap justify-start items-center bg-black mb-0 px-2 pb-0 rounded-t-lg">
 		<div class="flex items-center border-gray-500 border-b-1 w-full">
 			<h3 class="mx-2 my-1 pr-10 text-white">Assignment</h3>
 			<div class="ml-auto">

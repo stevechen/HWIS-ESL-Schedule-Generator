@@ -16,7 +16,7 @@
 		"test:unit": "vitest",
 		"test:e2e": "playwright test && playwright test --browser=webkit",
 		"test:ui": "playwright test --ui",
-		 "test-and-push": "echo 'Tailscale connect…' && tailscale up --exit-node=100.86.31.118 --accept-routes --exit-node-allow-lan-access && echo 'Running tests...' && vitest --run && playwright test --browser=chromium && playwright test --browser=webkit && echo 'Pushing to git...' && git push origin master && echo 'Resetting Tailscale configuration...' && tailscale up --reset && echo 'Tailscale connected without exit node.' && tailscale up"
+		"test-and-push": "echo 'Tailscale connect…' && tailscale up --exit-node=100.86.31.118 --accept-routes --exit-node-allow-lan-access && echo 'Running tests...' && vitest --run && playwright test --browser=chromium && playwright test --browser=webkit && echo 'Pushing to git...' && git push origin master && echo 'Resetting Tailscale configuration...' && tailscale up --reset && echo 'Tailscale connected without exit node.' && tailscale up"
 	},
 	"devDependencies": {
 		"@eslint-community/eslint-utils": "^4.7.0",
@@ -34,6 +34,7 @@
 		"eslint": "^9.32.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.11.0",
+		"globals": "^16.5.0",
 		"playwright": "^1.54.2",
 		"postcss": "^8.5.6",
 		"prettier": "^3.6.2",

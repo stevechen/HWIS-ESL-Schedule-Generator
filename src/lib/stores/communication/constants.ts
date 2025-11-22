@@ -41,7 +41,8 @@ export const ASSIGNMENT_TYPES: AssignmentType[] = [
 		english: 'Oral Exam',
 		chinese: '期中/末考口試',
 		g9: true,
-		comm: true
+		comm: true,
+		clil: false
 	},
 	{
 		code: AssignmentCode.speech,

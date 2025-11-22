@@ -10,6 +10,10 @@ export interface Student {
 	selected: boolean;
 }
 
+export type DisplayStudent = Omit<Student, 'status'> & {
+	status: { english: string; chinese: string };
+};
+
 // Assignment and status enums
 export enum AssignmentCode {
 	workbook = 'workbook',

@@ -212,7 +212,7 @@
 		</div>
 	</section>
 	<!-- MARK: **** Output **** -->
-	<section id="output" class="flex flex-col ml-87">
+	<section id="output" class="flex flex-col ml-92">
 		<div class="relative flex items-center gap-2">
 			<h3>{scheduleName}</h3>
 			<div class="relative ml-auto">
@@ -287,7 +287,7 @@
 				<thead>
 					<tr class="bg-blue-700 text-white">
 						{#each outputTable.header as header_item}
-							<th class="p-2 border-t-gray-200 border-r border-blue-600 border-l">{header_item}</th>
+							<th class="p-2 border-blue-600 border-t-gray-200 border-r border-l">{header_item}</th>
 						{/each}
 					</tr>
 				</thead>
