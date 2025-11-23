@@ -10,7 +10,7 @@
 	// Props
 	interface Props {
 		classNum: string;
-		studentsRaw: Student[];
+		studentsParsed: Student[];
 		selectedStudentsCount: number;
 		assignmentDates: {
 			assigned: string;
@@ -24,7 +24,7 @@
 
 	let {
 		classNum,
-		studentsRaw,
+		studentsParsed,
 		selectedStudentsCount,
 		assignmentDates,
 		grade,
@@ -35,8 +35,8 @@
 	// Calculate isAllChecked for print validation
 	const isAllChecked = $derived(
 		(() => {
-			let allChecked = studentsRaw.every((student) => student.selected);
-			let anyChecked = studentsRaw.some((student) => student.selected);
+			let allChecked = studentsParsed.every((student) => student.selected);
+			let anyChecked = studentsParsed.some((student) => student.selected);
 			return {
 				checked: allChecked,
 				indeterminate: !allChecked && anyChecked
@@ -47,7 +47,7 @@
 	const printValidation = $derived(
 		validatePrintReadiness({
 			classNum,
-			studentsRaw,
+			studentsParsed,
 			isAllChecked,
 			assignmentDates,
 			grade,

@@ -12,7 +12,7 @@ describe('CommunicationStore', () => {
 
 	it('should initialize with default values', () => {
 		expect(store.studentsText).toBe('');
-		expect(store.studentsRaw).toEqual([]);
+		expect(store.studentsParsed).toEqual([]);
 		expect(store.shouldHideTextarea).toBe(false);
 		expect(store.grade).toBe('');
 		expect(store.level).toBe(Level.Basic); // LEVEL_TYPE[2].value
@@ -56,7 +56,7 @@ describe('CommunicationStore', () => {
 
 		// Verify all values are back to defaults
 		expect(store.studentsText).toBe('');
-		expect(store.studentsRaw).toEqual([]);
+		expect(store.studentsParsed).toEqual([]);
 		expect(store.shouldHideTextarea).toBe(false);
 		expect(store.grade).toBe('');
 		expect(store.level).toBe(Level.Basic);
@@ -115,10 +115,10 @@ describe('CommunicationStore', () => {
 			}
 		];
 
-		store.studentsRaw = mockStudents;
-		expect(store.studentsRaw).toEqual(mockStudents);
-		expect(store.studentsRaw.length).toBe(1);
-		expect(store.studentsRaw[0].name.english).toBe('John Doe');
+		store.studentsParsed = mockStudents;
+		expect(store.studentsParsed).toEqual(mockStudents);
+		expect(store.studentsParsed.length).toBe(1);
+		expect(store.studentsParsed[0].name.english).toBe('John Doe');
 	});
 
 	it('should handle textarea visibility state', () => {

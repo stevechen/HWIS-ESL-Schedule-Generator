@@ -27,7 +27,7 @@ const mockProps = {
 	UI_Level: Level.Basic,
 	UI_ClassType: ClassType.COMM,
 	UI_ClassNum: '1',
-	studentsRaw: [] as Student[],
+	studentsParsed: [] as Student[],
 	isSaveable: true,
 	isModified: false,
 	onClearForm: vi.fn(),

@@ -41,7 +41,7 @@ const mockRecord: CommunicationRecord = {
 		due: '1/22',
 		late: '1/29'
 	},
-	studentsRaw: []
+	studentsParsed: []
 };
 
 describe('recordManager', () => {

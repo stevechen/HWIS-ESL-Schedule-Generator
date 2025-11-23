@@ -20,7 +20,7 @@ const mockStudents: Student[] = [
 
 const mockProps = {
     studentsText: 'John Doe\t1234567\tJ101\t约翰\nJane Smith\t2345678\tJ102\t简',
-    studentsRaw: mockStudents,
+    studentsParsed: mockStudents,
     shouldHideTextarea: false,
     isAllChecked: { checked: false, indeterminate: true },
     onToggleAll: vi.fn()
@@ -145,13 +145,13 @@ describe('StudentTable', () => {
     it('should handle empty student list', () => {
         const emptyProps = {
             ...mockProps,
-            studentsRaw: [],
+            studentsParsed: [],
             studentsText: '',
             shouldHideTextarea: false,
             isAllChecked: { checked: false, indeterminate: false }
         };
 
-        expect(emptyProps.studentsRaw.length).toBe(0);
+        expect(emptyProps.studentsParsed.length).toBe(0);
         expect(emptyProps.studentsText).toBe('');
         expect(emptyProps.shouldHideTextarea).toBe(false);
         expect(emptyProps.isAllChecked.checked).toBe(false);
@@ -162,7 +162,7 @@ describe('StudentTable', () => {
         const allSelectedStudents = mockStudents.map(s => ({ ...s, selected: true }));
         const allSelectedProps = {
             ...mockProps,
-            studentsRaw: allSelectedStudents,
+            studentsParsed: allSelectedStudents,
             isAllChecked: { checked: true, indeterminate: false }
         };
 

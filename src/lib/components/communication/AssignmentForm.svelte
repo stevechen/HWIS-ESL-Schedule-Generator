@@ -13,7 +13,7 @@
 		assignmentTypes: AssignmentType[];
 		UI_Assignment: AssignmentCode;
 		UI_Dates: { [key: string]: string };
-		studentsRaw: Array<Student>;
+		studentsParsed: Array<Student>;
 		recordManager: RecordManager;
 		currentRecord: CommunicationRecord;
 		onClearForm: () => void;
@@ -23,7 +23,7 @@
 		assignmentTypes,
 		UI_Assignment = $bindable(),
 		UI_Dates = $bindable(),
-		studentsRaw,
+		studentsParsed,
 		recordManager,
 		currentRecord,
 		onClearForm
@@ -42,7 +42,7 @@
 		<div class="flex items-center border-gray-500 border-b-1 w-full">
 			<h3 class="mx-2 my-1 pr-10 text-white">Assignment</h3>
 			<div class="ml-auto">
-				{#if studentsRaw.length > 0}
+				{#if studentsParsed.length > 0}
 					<button
 						id="clear_button"
 						class="bg-gray-500 hover:bg-gray-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"

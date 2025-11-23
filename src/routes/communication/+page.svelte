@@ -27,7 +27,7 @@
 
 	let studentsText = $state(store.studentsText);
 	// Parse students immediately
-	let studentsRaw: Array<Student> = $derived.by(() => parseStudentsFromText(studentsText));
+	let studentsParsed: Array<Student> = $derived.by(() => parseStudentsFromText(studentsText));
 	let shouldHideTextarea = $derived(store.shouldHideTextarea);
 	const ui = $state({
 		grade: store.grade,
@@ -50,12 +50,12 @@
 	});
 
 	$effect(() => {
-		shouldHideTextarea = studentsRaw.length > 0;
+		shouldHideTextarea = studentsParsed.length > 0;
 	});
 
 	//#region Student table ---------------------------------------------------------------
 	const students = $derived(
-		studentsRaw
+		studentsParsed
 			.filter((student) => student.selected) // filter out unselected
 			.map(({ status, ...rest }) => {
 				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
@@ -120,7 +120,7 @@
 			classNum: ui.classNum,
 			assignment: ui.assignment,
 			dates: ui.dates,
-			studentsRaw
+			studentsParsed
 		})
 	);
 
@@ -137,7 +137,7 @@
 		ui.classNum = record.classNum;
 		ui.assignment = record.assignment as AssignmentCode;
 		ui.dates = record.dates;
-		studentsRaw = JSON.parse(JSON.stringify(record.studentsRaw));
+		studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
 	}
 
 	function handleLoadRecord(record: CommunicationRecord) {
@@ -147,7 +147,7 @@
 	function clearForm() {
 		const newStore = new CommunicationStore();
 		studentsText = newStore.studentsText;
-		studentsRaw = newStore.studentsRaw;
+		studentsParsed = newStore.studentsParsed;
 		ui.grade = newStore.grade;
 		ui.level = newStore.level as Level;
 		ui.classType = newStore.classType;
@@ -169,14 +169,14 @@
 			{assignmentTypes}
 			bind:UI_Assignment={ui.assignment}
 			bind:UI_Dates={ui.dates}
-			{studentsRaw}
+			{studentsParsed}
 			{recordManager}
 			{currentRecord}
 			onClearForm={clearForm}
 		/>
 		<StudentTable
 			bind:studentsText
-			bind:studentsRaw
+			bind:studentsParsed
 			{shouldHideTextarea}
 			{grade}
 			{students}
@@ -191,7 +191,7 @@
 
 				<PrintButton
 					classNum={ui.classNum}
-					{studentsRaw}
+					{studentsParsed}
 					selectedStudentsCount={students.length}
 					assignmentDates={{
 						assigned: assignment.assigned,

@@ -107,16 +107,15 @@ test('2. Loading a Saved Record', async ({ page }) => {
 		assignment: 'workbook', // Lowercase to match AssignmentCode enum
 		classNum: 5,
 		dates: { assigned: '08/10', due: '08/20', late: '08/21' },
-		studentsRaw: [
-			{
-				id: '9876543',
-				name: { english: 'Wang Wu', chinese: '王五' },
-				cClass: 'J203',
-				status: 0,
-				selected: true
-			}
-		]
-	};
+					studentsParsed: [
+						{
+							id: '9876543',
+							name: { english: 'Wang Wu', chinese: '王五' },
+							cClass: 'J203',
+							status: 0,
+							selected: true
+						}
+					]	};
 	await page.evaluate(
 		([key, settings]) => {
 			localStorage.setItem(String(key), JSON.stringify(settings));
@@ -164,7 +163,7 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 		assignment: 'quiz',
 		classNum: 2,
 		dates: { assigned: '08/01', due: '08/02', late: '08/03' },
-		studentsRaw: [
+		studentsParsed: [
 			{
 				id: '1111111',
 				name: { english: 'Ming Liu', chinese: '小明' },

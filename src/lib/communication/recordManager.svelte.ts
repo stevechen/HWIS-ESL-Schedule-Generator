@@ -9,7 +9,7 @@ export interface CommunicationRecord {
 	classNum: string;
 	assignment: AssignmentCode;
 	dates: { [key: string]: string };
-	studentsRaw: Student[];
+	studentsParsed: Student[];
 }
 
 export interface RecordManagerState {
@@ -54,7 +54,7 @@ export class RecordManager {
 	 */
 	updateState(currentRecord: CommunicationRecord) {
 		this.state.isSaveable =
-			!!currentRecord.classNum && currentRecord.studentsRaw.filter((s) => s.selected).length > 0;
+			!!currentRecord.classNum && currentRecord.studentsParsed.filter((s) => s.selected).length > 0;
 
 		if (!this.state.lastLoadedRecord) {
 			this.state.isModified = true;
@@ -181,7 +181,7 @@ export function generateRecordName(record: CommunicationRecord): string {
 		datePart = `${year}/${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
 	}
 
-	const selectedStudentCount = record.studentsRaw.filter((student) => student.selected).length;
+	const selectedStudentCount = record.studentsParsed.filter((student) => student.selected).length;
 
 	const baseRecordName = capitalizeWords(
 		`${datePart}-${record.grade} ${record.level} ${record.classType} ${record.classNum}-${record.assignment}-${selectedStudentCount} students`

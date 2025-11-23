@@ -28,7 +28,7 @@ describe('SavedRecords Integration', () => {
 			UI_ClassNum: '1',
 			UI_Assignment: 'passport',
 			UI_Dates: { assigned: '1/15', due: '1/22', late: '1/29' },
-			studentsRaw: []
+			studentsParsed: []
 		};
 		
 		mockRecordManager.loadRecord.mockReturnValue(mockRecord);

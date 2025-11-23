@@ -9,7 +9,7 @@ export interface PrintValidationState {
 
 export interface PrintValidationInput {
 	classNum: string;
-	studentsRaw: Student[];
+	studentsParsed: Student[];
 	isAllChecked: { checked: boolean; indeterminate: boolean };
 	assignmentDates: {
 		assigned: string;
@@ -27,7 +27,7 @@ export interface PrintValidationInput {
 export function validatePrintReadiness(input: PrintValidationInput): PrintValidationState {
 	const {
 		classNum,
-		studentsRaw,
+		studentsParsed,
 		isAllChecked,
 		assignmentDates,
 		grade,
@@ -37,7 +37,7 @@ export function validatePrintReadiness(input: PrintValidationInput): PrintValida
 	// Check for invalid conditions (blocking errors)
 	const invalidConditions = [
 		{ condition: !classNum, message: 'Class number is required' },
-		{ condition: !studentsRaw.length, message: 'No students added' },
+		{ condition: !studentsParsed.length, message: 'No students added' },
 		{ condition: !isAllChecked.indeterminate && !isAllChecked.checked, message: 'No students selected' },
 		{ condition: !isValidMonthAndDay(assignmentDates.assigned), message: 'Invalid assigned date' },
 		{ condition: !isValidMonthAndDay(assignmentDates.due), message: 'Invalid due date' },

@@ -39,7 +39,7 @@ test.describe('Communication App - Blank Student Input', () => {
 			UI_Assignment: 'passport',
 			UI_ClassNum: 1,
 			UI_Dates: { assigned: '01/01', due: '01/15', late: '01/16' },
-			studentsRaw: [
+			studentsParsed: [
 				{
 					id: '1234567',
 					name: { english: 'Test Name', chinese: 'Test Student' },

@@ -9,7 +9,7 @@ import {
 
 const mockValidInput: PrintValidationInput = {
 	classNum: '1',
-	studentsRaw: [
+	studentsParsed: [
 		{ id: '1234567', name: { english: 'John Doe', chinese: '约翰' }, cClass: 'J101', status: 'NOT_SUBMITTED', selected: true }
 	],
 	isAllChecked: { checked: true, indeterminate: false },
@@ -41,7 +41,7 @@ describe('printValidator', () => {
 		});
 
 		it('should return invalid for no students', () => {
-			const input = { ...mockValidInput, studentsRaw: [] };
+			const input = { ...mockValidInput, studentsParsed: [] };
 			const result = validatePrintReadiness(input);
 			
 			expect(result.isInvalid).toBe(true);

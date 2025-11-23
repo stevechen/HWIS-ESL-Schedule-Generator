@@ -13,7 +13,7 @@
 	// Props
 	interface Props {
 		studentsText: string;
-		studentsRaw: Student[];
+		studentsParsed: Student[];
 		shouldHideTextarea: boolean;
 		grade: string | null;
 		students: Array<DisplayStudent>;
@@ -25,7 +25,7 @@
 
 	let {
 		studentsText = $bindable(),
-		studentsRaw = $bindable(),
+		studentsParsed = $bindable(),
 		shouldHideTextarea,
 		grade,
 		students,
@@ -38,8 +38,8 @@
 	// Master checkbox logic - moved from main component
 	let isAllChecked = $derived(
 		(() => {
-			let allChecked = studentsRaw.every((student) => student.selected);
-			let anyChecked = studentsRaw.some((student) => student.selected);
+			let allChecked = studentsParsed.every((student) => student.selected);
+			let anyChecked = studentsParsed.some((student) => student.selected);
 			return {
 				checked: allChecked,
 				indeterminate: !allChecked && anyChecked
@@ -48,17 +48,17 @@
 	);
 
 	function handleToggleAll() {
-		const isAllChecked = studentsRaw.every((student) => student.selected);
+		const isAllChecked = studentsParsed.every((student) => student.selected);
 		const newCheckedState = !isAllChecked;
 
-		studentsRaw = studentsRaw.map((student) => ({
+		studentsParsed = studentsParsed.map((student) => ({
 			...student,
 			selected: newCheckedState
 		}));
 	}
 
 	function handleStudentChange() {
-		studentsRaw = [...studentsRaw];
+		studentsParsed = [...studentsParsed];
 	}
 </script>
 
@@ -158,7 +158,7 @@
 	</fieldset>
 
 	<!-- MARK: student table -->
-	{#if studentsRaw.length > 0}
+	{#if studentsParsed.length > 0}
 		<table class="bg-white mx-6 mb-2 w-full text-sm border-collapse table-auto">
 			<thead class="bg-slate-100 font-semibold text-xs">
 				<tr>
@@ -178,7 +178,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each studentsRaw as student}
+				{#each studentsParsed as student}
 					<tr
 						class="[&>td>input]:box-border [&>td>input:focus]:bg-blue-50 [&>td>input]:bg-transparent [&>td]:p-1 [&>td]:border border-slate-200 [&>td]:border-gray-500 [&>td>input]:border-none [&>td>input]:size-full [&>td]:text-center [&>td]:border-collapse"
 					>
