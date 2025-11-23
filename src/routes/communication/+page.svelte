@@ -54,23 +54,19 @@
 	});
 
 	//#region Student table ---------------------------------------------------------------
-
 	const students = $derived(
-		(() => {
-			const studentsSelected: DisplayStudent[] = studentsRaw
-				.filter((student) => student.selected) // filter out unselected
-				.map(({ status, ...rest }) => {
-					// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
-					const studentStatus = STATUS_TYPE[status as keyof typeof STATUS_TYPE];
-					return {
-						...rest,
-						status: studentStatus
-							? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
-							: { english: 'Unknown', chinese: '未知' }
-					};
-				});
-			return studentsSelected;
-		})()
+		studentsRaw
+			.filter((student) => student.selected) // filter out unselected
+			.map(({ status, ...rest }) => {
+				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
+				const studentStatus = STATUS_TYPE[status as keyof typeof STATUS_TYPE];
+				return {
+					...rest,
+					status: studentStatus
+						? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
+						: { english: 'Unknown', chinese: '未知' }
+				};
+			})
 	);
 
 	//#region ESL class ---------------------------------------------------------------
@@ -84,11 +80,8 @@
 	});
 
 	const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.g9);
-
 	const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
-
 	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
-
 	const assignmentTypes = $derived(
 		ui.grade === 'G9'
 			? [...G9_ASSIGNMENT_TYPES]
