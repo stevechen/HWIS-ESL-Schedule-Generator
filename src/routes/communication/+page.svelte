@@ -4,7 +4,6 @@
 	import { slide } from 'svelte/transition';
 	import {
 		type Student,
-		type DisplayStudent,
 		AssignmentCode,
 		STATUS_TYPE,
 		ASSIGNMENT_TYPES,
@@ -25,37 +24,40 @@
 
 	const store = new CommunicationStore();
 
-	let studentsText = $state(store.studentsText);
-	// Parse students immediately
-	let studentsParsed: Array<Student> = $derived.by(() => parseStudentsFromText(studentsText));
-	let shouldHideTextarea = $derived(store.shouldHideTextarea);
-	const ui = $state({
+	const state = $state({
+		studentsText: store.studentsText,
+		studentsParsed: [] as Student[],
 		grade: store.grade,
 		level: store.level,
 		classType: store.classType,
 		classNum: store.classNum,
 		assignment: store.assignment,
-		dates: store.dates
+		dates: store.dates,
+		assignmentRaw: store.assignmentRaw,
+		signatureImage: store.signatureImage,
+		_isLoadingRecord: false
 	});
-	const assignmentRaw = $state(store.assignmentRaw);
-	let signatureImage = $state(store.signatureImage);
+
+	// Initialize studentsParsed and keep it in sync with studentsText
+	$effect(() => {
+		if (state._isLoadingRecord) return;
+		state.studentsParsed = parseStudentsFromText(state.studentsText);
+	});
+
+	const shouldHideTextarea = $derived(state.studentsParsed.length > 0);
 
 	// Development helper for playwright tests
 	onMount(() => {
 		if (browser && import.meta.env.DEV) {
 			window.setStudentsText = (value: string) => {
-				studentsText = value;
+				state.studentsText = value;
 			};
 		}
 	});
 
-	$effect(() => {
-		shouldHideTextarea = studentsParsed.length > 0;
-	});
-
-	//#region Student table ---------------------------------------------------------------
+	//#region Derived State ---------------------------------------------------------------
 	const students = $derived(
-		studentsParsed
+		state.studentsParsed
 			.filter((student) => student.selected) // filter out unselected
 			.map(({ status, ...rest }) => {
 				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
@@ -69,32 +71,31 @@
 			})
 	);
 
-	//#region ESL class ---------------------------------------------------------------
-	const grade = $derived(determineGradeFromText(studentsText));
-	let className = $derived([ui.grade, ui.level, ui.classNum, ui.classType].join(' '));
+	const grade = $derived(determineGradeFromText(state.studentsText));
+	const className = $derived([state.grade, state.level, state.classNum, state.classType].join(' '));
 
 	$effect(() => {
-		ui.grade = grade || '';
-		if (ui.classType === ClassType.CLIL) ui.assignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
-		assignmentRaw.esl = className;
+		state.grade = grade || '';
+		if (state.classType === ClassType.CLIL) state.assignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
+		state.assignmentRaw.esl = className;
 	});
 
 	const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.g9);
 	const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
 	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
 	const assignmentTypes = $derived(
-		ui.grade === 'G9'
+		state.grade === 'G9'
 			? [...G9_ASSIGNMENT_TYPES]
-			: ui.classType === ClassType.CLIL
+			: state.classType === ClassType.CLIL
 				? [...CLIL_ASSIGNMENT_TYPES]
 				: [...COMM_ASSIGNMENT_TYPES]
 	);
 
-	let assignment = $derived(
+	const assignment = $derived(
 		(() => {
-			const assignmentTypeText = assignmentTypes.find((type) => type.code === ui.assignment);
+			const assignmentTypeText = assignmentTypes.find((type) => type.code === state.assignment);
 			return {
-				...assignmentRaw,
+				...state.assignmentRaw,
 				type: {
 					english: assignmentTypeText ? assignmentTypeText.english : 'Unknown',
 					chinese: assignmentTypeText ? assignmentTypeText.chinese : '未知'
@@ -104,40 +105,44 @@
 	);
 
 	$effect(() => {
-		assignmentRaw.assigned = ui.dates.assigned;
-		assignmentRaw.due = ui.dates.due;
-		assignmentRaw.late = ui.dates.late;
+		state.assignmentRaw.assigned = state.dates.assigned;
+		state.assignmentRaw.due = state.dates.due;
+		state.assignmentRaw.late = state.dates.late;
 	});
-	// #region Save Record -------------------------------------------
+
+	//#region Record Management -------------------------------------------
 	const recordManager = new RecordManager();
 
-	const currentRecord = $derived.by(
-		(): CommunicationRecord => ({
-			studentsText,
-			grade: ui.grade,
-			level: ui.level,
-			classType: ui.classType,
-			classNum: ui.classNum,
-			assignment: ui.assignment,
-			dates: ui.dates,
-			studentsParsed
-		})
-	);
+	const currentRecord: CommunicationRecord = $derived({
+		studentsText: state.studentsText,
+		grade: state.grade,
+		level: state.level,
+		classType: state.classType,
+		classNum: state.classNum,
+		assignment: state.assignment,
+		dates: state.dates,
+		studentsParsed: state.studentsParsed
+	});
 
-	// Update record manager state when current record changes
 	$effect(() => {
 		recordManager.updateState(currentRecord);
 	});
 
 	function loadRecordData(record: CommunicationRecord) {
-		studentsText = record.studentsText;
-		ui.grade = record.grade;
-		ui.level = record.level as Level;
-		ui.classType = record.classType;
-		ui.classNum = record.classNum;
-		ui.assignment = record.assignment as AssignmentCode;
-		ui.dates = record.dates;
-		studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
+		state._isLoadingRecord = true;
+		state.studentsText = record.studentsText;
+		state.grade = record.grade;
+		state.level = record.level as Level;
+		state.classType = record.classType;
+		state.classNum = record.classNum;
+		state.assignment = record.assignment as AssignmentCode;
+		state.dates = record.dates;
+		state.studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
+
+		// Defer setting the flag back to false to prevent the effect from re-parsing immediately
+		setTimeout(() => {
+			state._isLoadingRecord = false;
+		}, 0);
 	}
 
 	function handleLoadRecord(record: CommunicationRecord) {
@@ -146,14 +151,14 @@
 
 	function clearForm() {
 		const newStore = new CommunicationStore();
-		studentsText = newStore.studentsText;
-		studentsParsed = newStore.studentsParsed;
-		ui.grade = newStore.grade;
-		ui.level = newStore.level as Level;
-		ui.classType = newStore.classType;
-		ui.classNum = newStore.classNum;
-		ui.assignment = newStore.assignment as AssignmentCode;
-		ui.dates = newStore.dates;
+		state.studentsText = newStore.studentsText;
+		// studentsParsed will be updated by the $effect
+		state.grade = newStore.grade;
+		state.level = newStore.level as Level;
+		state.classType = newStore.classType;
+		state.classNum = newStore.classNum;
+		state.assignment = newStore.assignment as AssignmentCode;
+		state.dates = newStore.dates;
 		recordManager.clearLoadedRecord();
 	}
 </script>
@@ -167,31 +172,31 @@
 	>
 		<AssignmentForm
 			{assignmentTypes}
-			bind:UI_Assignment={ui.assignment}
-			bind:UI_Dates={ui.dates}
-			{studentsParsed}
+			bind:UI_Assignment={state.assignment}
+			bind:UI_Dates={state.dates}
+			studentsParsed={state.studentsParsed}
 			{recordManager}
 			{currentRecord}
 			onClearForm={clearForm}
 		/>
 		<StudentTable
-			bind:studentsText
-			bind:studentsParsed
+			bind:studentsText={state.studentsText}
+			bind:studentsParsed={state.studentsParsed}
 			{shouldHideTextarea}
 			{grade}
 			{students}
-			UI_Grade={ui.grade}
-			bind:UI_Level={ui.level}
-			bind:UI_ClassType={ui.classType}
-			bind:UI_ClassNum={ui.classNum}
+			UI_Grade={state.grade}
+			bind:UI_Level={state.level}
+			bind:UI_ClassType={state.classType}
+			bind:UI_ClassNum={state.classNum}
 		/>
 		<div class="flex flex-wrap justify-start items-center mb-0 p-2">
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
-				<SignatureUpload bind:signatureImage />
+				<SignatureUpload bind:signatureImage={state.signatureImage} />
 
 				<PrintButton
-					classNum={ui.classNum}
-					{studentsParsed}
+					classNum={state.classNum}
+					studentsParsed={state.studentsParsed}
 					selectedStudentsCount={students.length}
 					assignmentDates={{
 						assigned: assignment.assigned,
@@ -199,7 +204,7 @@
 						late: assignment.late
 					}}
 					{grade}
-					{signatureImage}
+					signatureImage={state.signatureImage}
 					onPrint={() => window.print()}
 				/>
 			</div>
@@ -217,7 +222,7 @@
 				<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
 					Slip #{i + 1}
 				</p>
-				<Slip {student} signatureSrc={signatureImage} {assignment} />
+				<Slip {student} signatureSrc={state.signatureImage} {assignment} />
 			{/each}
 		</div>
 	</section>
