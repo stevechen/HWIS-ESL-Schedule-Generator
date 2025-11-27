@@ -94,28 +94,36 @@ test('1. Saving a New Record', async ({ page }) => {
 	await expect(page.locator('#save_button')).not.toBeVisible();
 });
 
-test('2. Loading a Saved Record', async ({ page }) => {
+test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) => {
 	const year = new Date().getFullYear();
 	// This name must match the data in savedSettings
-	const recordName = `${year}/08/20-G8 Advanced CLIL 5-Workbook-1 Students`;
+	const recordName = `${year}/08/20-G8 Advanced CLIL 5-Workbook-2 Students`;
 	const recordKey = `comm_${recordName}`;
 	const savedSettings = {
-		studentsText: '9876543\t王五\tWang Wu\tJ203',
+		studentsText: '9876543\t王五\tWang Wu\tJ203\n8765432\t趙六\tZhao Liu\tJ204',
 		grade: 'G8',
 		level: 'Advanced', // Capitalized to match component's expected value
 		classType: 'CLIL', // Capitalized to match component's expected value
 		assignment: 'workbook', // Lowercase to match AssignmentCode enum
 		classNum: 5,
 		dates: { assigned: '08/10', due: '08/20', late: '08/21' },
-					studentsParsed: [
-						{
-							id: '9876543',
-							name: { english: 'Wang Wu', chinese: '王五' },
-							cClass: 'J203',
-							status: 0,
-							selected: true
-						}
-					]	};
+		studentsParsed: [
+			{
+				id: '9876543',
+				name: { english: 'Wang Wu', chinese: '王五' },
+				cClass: 'J203',
+				status: 0,
+				selected: false
+			},
+			{
+				id: '8765432',
+				name: { english: 'Zhao Liu', chinese: '趙六' },
+				cClass: 'J204',
+				status: 0,
+				selected: true
+			}
+		]
+	};
 	await page.evaluate(
 		([key, settings]) => {
 			localStorage.setItem(String(key), JSON.stringify(settings));
@@ -147,9 +155,20 @@ test('2. Loading a Saved Record', async ({ page }) => {
 	await expect(page.locator('label:has-text("CLIL") input')).toBeChecked();
 	await expect(page.locator('#grade:has-text("G8")')).toBeVisible(); // Check grade derived from studentsText
 
-	// Verify student table is populated
+	// Verify student table is populated and checkboxes are in correct state
 	await expect(page.locator('table.table-auto')).toBeVisible();
-	await expect(page.locator('td.english-name input')).toHaveValue('Wang Wu');
+	const rows = page.locator('table.table-auto tbody tr');
+	await expect(rows).toHaveCount(2);
+
+	// Check first student (Wang Wu, selected: false)
+	const row1 = rows.nth(0);
+	await expect(row1.locator('td.english-name input')).toHaveValue('Wang Wu');
+	await expect(row1.locator('input[type="checkbox"]')).not.toBeChecked();
+
+	// Check second student (Zhao Liu, selected: true)
+	const row2 = rows.nth(1);
+	await expect(row2.locator('td.english-name input')).toHaveValue('Zhao Liu');
+	await expect(row2.locator('input[type="checkbox"]')).toBeChecked();
 });
 
 test('3. Deleting a Saved Record', async ({ page }) => {

@@ -145,7 +145,7 @@ test.describe('Assignment Handling', () => {
 });
 
 test.describe('Student Data Handling', () => {
-	test('should pre-populate due/late dates and display students in the table', async ({ 
+	test('should pre-populate due/late dates and display students in the table', async ({
 		page,
 		context
 	}) => {
@@ -272,7 +272,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Explicitly dispatch change event after uncheck
 		await page.evaluate(
 			([index]) => {
-				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[ 
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
 					index
 				];
 				if (checkbox) {
@@ -284,7 +284,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Explicitly dispatch change event after uncheck
 		await page.evaluate(
 			([index]) => {
-				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[ 
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
 					index
 				];
 				if (checkbox) {
@@ -296,7 +296,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		// Explicitly dispatch change event after uncheck
 		await page.evaluate(
 			([index]) => {
-				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[ 
+				const checkbox = document.querySelectorAll('td.student-checkbox input[type="checkbox"]')[
 					index
 				];
 				if (checkbox) {
@@ -331,7 +331,7 @@ test.describe('Student Inclusion/Exclusion', () => {
 		await expect(page.locator(`text=(${studentIdValue})`)).toBeVisible();
 	});
 
-	test('should check/uncheck all with the master-checkbox and master-checkbox should have an indeterminate state ', async ({ 
+	test('should check/uncheck all with the master-checkbox and master-checkbox should have an indeterminate state ', async ({
 		page,
 		context
 	}) => {
@@ -441,15 +441,14 @@ test.describe('Signature Upload', () => {
 		// await uploadSignature(page, 'sig_bmp.bmp');
 		await uploadSignature(page, 'sig_test.png');
 
-		page.on('dialog', async dialog => {
+		page.on('dialog', async (dialog) => {
 			expect(dialog.message()).toContain('JPG');
 			expect(dialog.message()).toContain('PNG');
 			dialog.dismiss().catch(() => {});
 		});
 	});
 
-
-		test('should reject signature images over size limit', async ({ page }) => {
+	test('should reject signature images over size limit', async ({ page }) => {
 		await uploadSignature(page, 'sig_big.jpg');
 
 		page.once('dialog', (dialog) => {
@@ -457,7 +456,6 @@ test.describe('Signature Upload', () => {
 			dialog.dismiss().catch(() => {});
 		});
 	});
-
 
 	test('should upload/display valid png signature', async ({ page }) => {
 		await uploadSignature(page, 'sig_test.png');

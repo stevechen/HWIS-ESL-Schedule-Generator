@@ -22,7 +22,12 @@
 	import Slip from '$lib/components/communication/Slip.svelte';
 	import IconLib from '$lib/components/communication/IconLib.svelte';
 
+	const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.g9);
+	const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
+	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
+
 	const store = new CommunicationStore();
+	let _isLoadingRecord = false;
 
 	const state = $state({
 		studentsText: store.studentsText,
@@ -34,13 +39,12 @@
 		assignment: store.assignment,
 		dates: store.dates,
 		assignmentRaw: store.assignmentRaw,
-		signatureImage: store.signatureImage,
-		_isLoadingRecord: false
+		signatureImage: store.signatureImage
 	});
 
 	// Initialize studentsParsed and keep it in sync with studentsText
 	$effect(() => {
-		if (state._isLoadingRecord) return;
+		if (_isLoadingRecord) return;
 		state.studentsParsed = parseStudentsFromText(state.studentsText);
 	});
 
@@ -80,15 +84,12 @@
 		state.assignmentRaw.esl = className;
 	});
 
-	const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.g9);
-	const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
-	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
 	const assignmentTypes = $derived(
 		state.grade === 'G9'
-			? [...G9_ASSIGNMENT_TYPES]
+			? G9_ASSIGNMENT_TYPES
 			: state.classType === ClassType.CLIL
-				? [...CLIL_ASSIGNMENT_TYPES]
-				: [...COMM_ASSIGNMENT_TYPES]
+				? CLIL_ASSIGNMENT_TYPES
+				: COMM_ASSIGNMENT_TYPES
 	);
 
 	const assignment = $derived(
@@ -96,6 +97,9 @@
 			const assignmentTypeText = assignmentTypes.find((type) => type.code === state.assignment);
 			return {
 				...state.assignmentRaw,
+				assigned: state.dates.assigned,
+				due: state.dates.due,
+				late: state.dates.late,
 				type: {
 					english: assignmentTypeText ? assignmentTypeText.english : 'Unknown',
 					chinese: assignmentTypeText ? assignmentTypeText.chinese : '未知'
@@ -103,12 +107,6 @@
 			};
 		})()
 	);
-
-	$effect(() => {
-		state.assignmentRaw.assigned = state.dates.assigned;
-		state.assignmentRaw.due = state.dates.due;
-		state.assignmentRaw.late = state.dates.late;
-	});
 
 	//#region Record Management -------------------------------------------
 	const recordManager = new RecordManager();
@@ -129,7 +127,7 @@
 	});
 
 	function loadRecordData(record: CommunicationRecord) {
-		state._isLoadingRecord = true;
+		_isLoadingRecord = true;
 		state.studentsText = record.studentsText;
 		state.grade = record.grade;
 		state.level = record.level as Level;
@@ -141,7 +139,7 @@
 
 		// Defer setting the flag back to false to prevent the effect from re-parsing immediately
 		setTimeout(() => {
-			state._isLoadingRecord = false;
+			_isLoadingRecord = false;
 		}, 0);
 	}
 
