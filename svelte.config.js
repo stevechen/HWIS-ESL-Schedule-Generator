@@ -4,7 +4,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	kit: {
 		adapter: vercel(),
-			experimental: {
+		experimental: {
 			remoteFunctions: true
 		}
 	},
@@ -13,7 +13,20 @@ const config = {
 			async: true
 		}
 	},
-	preprocess: [vitePreprocess()]
+	preprocess: vitePreprocess(),
+	vitePlugin: {
+		inspector: {
+			toggleKeyCombo: 'meta-shift',
+			// holdMode: true,
+			showToggleButton: 'always',
+			navKeys: {
+				parent: 'ArrowUp',
+				child: 'ArrowDown',
+				next: 'ArrowRight',
+				prev: 'ArrowLeft'
+			}
+		}
+	}
 };
 
 export default config;

@@ -50,6 +50,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@sveltejs/vite-plugin-svelte-inspector": "^5.0.1",
 		"date-fns": "^4.1.0"
 	}
 }
