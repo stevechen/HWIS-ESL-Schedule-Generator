@@ -1,81 +1,79 @@
 import { test, expect, type Page } from '@playwright/test';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 interface CustomWindow extends Window {
 	setStudentsText: (studentsText: string) => void;
 }
 
 declare let window: CustomWindow;
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+async function uploadSignature(page: Page, image: string) {
+	const fixturePath = path.join(__dirname, '../fixtures', image);
+	try {
+		await fs.access(fixturePath);
+	} catch {
+		throw new Error(`Test setup error: Fixture file not found at ${fixturePath}`);
+	}
+
+	const fileChooserPromise = page.waitForEvent('filechooser');
+	await page.locator('#browse').click();
+	const fileChooser = await fileChooserPromise;
+	await fileChooser.setFiles(fixturePath);
+}
+
 test.beforeEach(async ({ page }) => {
 	await page.goto('/communication');
 	await page.evaluate(() => localStorage.clear());
-	await page.reload(); // Reload to ensure localStorage is cleared and component re-initializes
-	await page.waitForLoadState('domcontentloaded'); // Wait for the DOM to be loaded
+	await page.reload();
+	await page.waitForLoadState('domcontentloaded');
 });
 
-const sampleStudentsText = `1234567\t張三\tChang San\tJ101
-2345678\t李四\tSi Li\tJ102`;
+const sampleStudentsText = `1234567	張三	Chang San	J101
+2345678	李四	Si Li	J102`;
 
 const fillForm = async (page: Page) => {
-	// Use window.setStudentsText for direct state manipulation
 	await page.waitForFunction(() => window.setStudentsText !== undefined);
 	await page.locator('#student-list-input').fill(sampleStudentsText);
-	// Wait for the student table to appear after setting studentsText
 	await expect(page.locator('table.table-auto')).toBeVisible();
-
-	// Add explicit wait for the Passport label to be visible and click it
 	await expect(page.locator('label:has-text("Passport")')).toBeVisible();
-	await page.locator('label:has-text("Passport")').click(); // Select Passport assignment type
+	await page.locator('label:has-text("Passport")').click();
 	await expect(page.locator('label:has-text("Passport") input')).toBeChecked();
-
 	await page.locator('#due').fill('08/15');
 	await expect(page.locator('#due')).toHaveValue('08/15');
-
 	await page.locator('#late').fill('08/16');
 	await expect(page.locator('#late')).toHaveValue('08/16');
-
-	await page.locator('label:has-text("Basic")').click(); // Select Basic CLIL level
+	await page.locator('label:has-text("Basic")').click();
 	await expect(page.locator('label:has-text("Basic") input')).toBeChecked();
-
-	await page.locator('label:has-text("CLIL")').click(); // Select CLIL class type
+	await page.locator('label:has-text("CLIL")').click();
 	await expect(page.locator('label:has-text("CLIL") input')).toBeChecked();
-
-	await page.locator('input[placeholder="#?"]').fill('1'); // Fill class number
+	await page.locator('input[placeholder="#?"]').fill('1');
 	await expect(page.locator('input[placeholder="#?"]')).toHaveValue('1');
-
-	// Ensure the UI has settled after all inputs
 	await page.waitForLoadState('domcontentloaded');
 };
+
 const getExpectedRecordName = (studentsCount: number) => {
 	const date = new Date();
 	const year = date.getFullYear();
-	const month = '08'; // Based on the due date '08/15'
+	const month = '08';
 	const day = '15';
-	// The component capitalizes words and formats the date as YYYY/MM/DD
-	// The assignment type is now Passport
 	return `${year}/${month}/${day}-G7 Basic CLIL 1-Workbook-${studentsCount} Students`;
 };
 
 test('1. Saving a New Record', async ({ page }) => {
-	// Verify initial state
 	await expect(page.locator('summary:has-text("Saved Records")')).not.toBeVisible();
 	await expect(page.locator('#save_button')).not.toBeVisible();
-
-	// Populate form
 	await fillForm(page);
-
-	// Click save button
 	await expect(page.locator('#save_button')).toBeVisible();
 	await page.locator('#save_button').click();
-
-	// Verify saved state
 	await expect(page.locator('summary:has-text("Saved Records")')).toBeVisible();
-	await page.locator('summary:has-text("Saved Records")').click(); // Open accordion
-	await expect(page.locator('#records_list')).toBeVisible(); // Ensure records list is visible after opening accordion
-	const expectedRecordName = getExpectedRecordName(2); // 2 students in sampleStudentsText
-	// The displayed record name in the UI does not have the "comm_" prefix
+	await page.locator('summary:has-text("Saved Records")').click();
+	await expect(page.locator('#records_list')).toBeVisible();
+	const expectedRecordName = getExpectedRecordName(2);
 	await expect(page.locator(`.record:has-text("${expectedRecordName}")`)).toBeVisible();
-
-	// Verify data in localStorage (with "comm_" prefix)
 	const savedData = await page.evaluate(
 		(name) => localStorage.getItem(`comm_${name}`),
 		expectedRecordName
@@ -89,22 +87,19 @@ test('1. Saving a New Record', async ({ page }) => {
 	expect(parsedData.level).toBe('Basic');
 	expect(parsedData.classType).toBe('CLIL');
 	expect(parsedData.classNum).toBe(1);
-
-	// Verify save button disappears after saving
 	await expect(page.locator('#save_button')).not.toBeVisible();
 });
 
 test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) => {
 	const year = new Date().getFullYear();
-	// This name must match the data in savedSettings
 	const recordName = `${year}/08/20-G8 Advanced CLIL 5-Workbook-2 Students`;
 	const recordKey = `comm_${recordName}`;
 	const savedSettings = {
-		studentsText: '9876543\t王五\tWang Wu\tJ203\n8765432\t趙六\tZhao Liu\tJ204',
+		studentsText: '9876543	王五	Wang Wu	J203  8765432	趙六	Zhao Liu	J204',
 		grade: 'G8',
-		level: 'Advanced', // Capitalized to match component's expected value
-		classType: 'CLIL', // Capitalized to match component's expected value
-		assignment: 'workbook', // Lowercase to match AssignmentCode enum
+		level: 'Advanced',
+		classType: 'CLIL',
+		assignment: 'workbook',
 		classNum: 5,
 		dates: { assigned: '08/10', due: '08/20', late: '08/21' },
 		studentsParsed: [
@@ -130,42 +125,28 @@ test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) =>
 		},
 		[recordKey, savedSettings]
 	);
-	await page.reload(); // Reload to load the saved record into the component
+	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
-
-	// Verify initial state
 	await expect(page.locator('summary:has-text("Saved Records")')).toBeVisible();
-	await page.locator('summary:has-text("Saved Records")').click(); // Open accordion
-	await expect(page.locator('#records_list')).toBeVisible(); // Ensure records list is visible after opening accordion
+	await page.locator('summary:has-text("Saved Records")').click();
+	await expect(page.locator('#records_list')).toBeVisible();
 	await expect(page.locator(`.record:has-text("${recordName}")`)).toBeVisible();
-
-	// Load record
 	await page.locator(`.record:has-text("${recordName}")`).click();
 	await page.waitForLoadState('domcontentloaded');
-
-	// Verify loaded state
 	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
 	await expect(page.locator('input[name="due"]')).toHaveValue(savedSettings.dates.due);
 	await expect(page.locator('input[name="late"]')).toHaveValue(savedSettings.dates.late);
 	await expect(page.locator('input[placeholder="#?"]')).toHaveValue(String(savedSettings.classNum));
 	await expect(page.locator('label:has-text("Workbook") input')).toBeChecked();
-	// Add explicit wait for the Advanced input to be visible
-	// await expect(page.locator('label[for="adv"] input')).toBeVisible();
 	await expect(page.locator('label[for="adv"] input')).toBeChecked();
 	await expect(page.locator('label:has-text("CLIL") input')).toBeChecked();
-	await expect(page.locator('#grade:has-text("G8")')).toBeVisible(); // Check grade derived from studentsText
-
-	// Verify student table is populated and checkboxes are in correct state
+	await expect(page.locator('#grade:has-text("G8")')).toBeVisible();
 	await expect(page.locator('table.table-auto')).toBeVisible();
 	const rows = page.locator('table.table-auto tbody tr');
 	await expect(rows).toHaveCount(2);
-
-	// Check first student (Wang Wu, selected: false)
 	const row1 = rows.nth(0);
 	await expect(row1.locator('td.english-name input')).toHaveValue('Wang Wu');
 	await expect(row1.locator('input[type="checkbox"]')).not.toBeChecked();
-
-	// Check second student (Zhao Liu, selected: true)
 	const row2 = rows.nth(1);
 	await expect(row2.locator('td.english-name input')).toHaveValue('Zhao Liu');
 	await expect(row2.locator('input[type="checkbox"]')).toBeChecked();
@@ -175,7 +156,7 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	const recordName = 'RecordToDelete';
 	const recordKey = `comm_${recordName}`;
 	const savedSettings = {
-		studentsText: '1111111\t小明\tMing Liu\tJ304',
+		studentsText: '1111111	小明	Ming Liu	J304',
 		grade: 'G9',
 		level: 'intermediate',
 		classType: 'CLIL',
@@ -200,26 +181,17 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	);
 	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
-
-	// Verify initial state
 	await expect(page.locator('summary:has-text("Saved Records")')).toBeVisible();
-	await page.locator('summary:has-text("Saved Records")').click(); // Open accordion
-	await expect(page.locator('#records_list')).toBeVisible(); // Ensure records list is visible after opening accordion
+	await page.locator('summary:has-text("Saved Records")').click();
+	await expect(page.locator('#records_list')).toBeVisible();
 	await expect(page.locator(`.record:has-text("${recordName}")`)).toBeVisible();
-
-	// Delete record
 	await page
 		.locator(`.record:has-text("${recordName}") button[aria-label="Delete record"]`)
 		.click();
 	await page.waitForLoadState('domcontentloaded');
-
-	// Verify deleted state
 	await expect(page.locator(`.record:has-text("${recordName}")`)).not.toBeVisible();
 	const savedData = await page.evaluate((name) => localStorage.getItem(name), recordKey);
 	expect(savedData).toBeNull();
-
-	// Test: If the deleted record was the one currently loaded, the form should remain populated.
-	// First, load the record
 	await page.evaluate(
 		([key, settings]) => {
 			localStorage.setItem(String(key), JSON.stringify(settings));
@@ -228,64 +200,67 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	);
 	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
-	await page.locator('summary:has-text("Saved Records")').click(); // Open accordion
-	await expect(page.locator('#records_list')).toBeVisible(); // Ensure records list is visible after opening accordion
+	await page.locator('summary:has-text("Saved Records")').click();
+	await expect(page.locator('#records_list')).toBeVisible();
 	await page.locator(`.record:has-text("${recordName}")`).click();
 	await page.waitForLoadState('domcontentloaded');
-	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText); // Ensure it's loaded
-
-	// Now delete it
+	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
 	await page
 		.locator(`.record:has-text("${recordName}") button[aria-label="Delete record"]`)
 		.click();
 	await page.waitForLoadState('domcontentloaded');
-	// The component does NOT clear the form when a loaded record is deleted. This is the expected behavior for now.
-	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText); // Should still have the value
+	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
 });
 
 test('4. Clearing the Form', async ({ page }) => {
-	// Populate form
+	// Populate form first to ensure the page is in a stable state, mimicking other tests
 	await fillForm(page);
+
+	// Upload a signature to ensure it is not cleared
+	await uploadSignature(page, 'sig_test.png');
+	const signaturePreview = page.locator('img.signature-preview');
+	await expect(signaturePreview).toHaveAttribute('src', /data:image/);
+	await expect(signaturePreview).toBeVisible();
+	const signatureSrc = await signaturePreview.getAttribute('src');
+	expect(signatureSrc).not.toBe('');
+	expect(signatureSrc).not.toBeNull();
+
+	// Verify form is populated
 	await expect(page.locator('#student-list-input')).toHaveValue(sampleStudentsText);
 	await expect(page.locator('button:has-text("Clear")')).toBeVisible();
 
 	// Clear form
 	await page.locator('button:has-text("Clear")').click();
+	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
 
 	// Verify cleared state
 	await expect(page.locator('#student-list-input')).toHaveValue('');
 	await expect(page.locator('input[placeholder="#?"]')).toHaveValue('');
-	await expect(page.locator('table.table-auto')).not.toBeVisible(); // Student table should be hidden
-	await expect(page.locator('button:has-text("Clear")')).not.toBeVisible(); // Clear button should disappear
+	await expect(page.locator('table.table-auto')).not.toBeVisible();
+	await expect(page.locator('button:has-text("Clear")')).not.toBeVisible();
+
+	// Verify signature is NOT cleared (it's reloaded from localStorage)
+	await expect(signaturePreview).toBeVisible();
+	const signatureSrcAfterClear = await signaturePreview.getAttribute('src');
+	expect(signatureSrcAfterClear).toBe(signatureSrc);
 });
 
 test('5. Save Button State Management', async ({ page }) => {
-	// 1. Fill the form and save the record.
 	await fillForm(page);
 	await expect(page.locator('#save_button')).toBeVisible();
 	await page.locator('#save_button').click();
 	await expect(page.locator('#save_button')).not.toBeVisible();
-
-	// 2. Get the name of the created record.
 	const expectedRecordName = getExpectedRecordName(2);
-	await page.locator('summary:has-text("Saved Records")').click(); // Open accordion
+	await page.locator('summary:has-text("Saved Records")').click();
 	await expect(page.locator(`.record:has-text("${expectedRecordName}")`)).toBeVisible();
-
-	// 3. Reload the page to ensure a clean state for loading.
 	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
-
-	// 4. Load the created record.
-	await page.locator('summary:has-text("Saved Records")').click(); // Open accordion
+	await page.locator('summary:has-text("Saved Records")').click();
 	await expect(page.locator(`.record:has-text("${expectedRecordName}")`)).toBeVisible();
 	await page.locator(`.record:has-text("${expectedRecordName}")`).click();
 	await page.waitForLoadState('domcontentloaded');
-
-	// 5. Verify that the save button is not visible after loading.
 	await expect(page.locator('#save_button')).not.toBeVisible();
-
-	// 6. Modify a student's name in the table and verify the save button appears.
 	await page.locator('td.english-name input').first().fill('A New Name');
 	await expect(page.locator('#save_button')).toBeVisible();
 });

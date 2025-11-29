@@ -2,17 +2,10 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { slide } from 'svelte/transition';
-	import {
-		AssignmentCode,
-		STATUS_TYPE,
-		ASSIGNMENT_TYPES,
-		ClassType,
-		Level,
-		CommunicationStore
-	} from '$lib/stores/communication';
-	import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
+	import { STATUS_TYPE, CommunicationStore } from '$lib/stores/communication';
+	import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
+	import { RecordManager } from '$lib/communication/recordManager.svelte';
 
-	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
 	import SavedRecords from '$lib/components/communication/SavedRecords.svelte';
 	import StudentTable from '$lib/components/communication/StudentTable.svelte';
@@ -21,20 +14,7 @@
 	import Slip from '$lib/components/communication/Slip.svelte';
 	import IconLib from '$lib/components/communication/IconLib.svelte';
 
-	const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.g9);
-	const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
-	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
-
 	const state = new CommunicationStore();
-	let _isLoadingRecord = false;
-
-	// Initialize studentsParsed and keep it in sync with studentsText
-	$effect(() => {
-		if (_isLoadingRecord) return;
-		state.studentsParsed = parseStudentsFromText(state.studentsText);
-	});
-
-	const shouldHideTextarea = $derived(state.studentsParsed.length > 0);
 
 	// Development helper for playwright tests
 	onMount(() => {
@@ -61,39 +41,6 @@
 			})
 	);
 
-	const grade = $derived(determineGradeFromText(state.studentsText));
-	const className = $derived([state.grade, state.level, state.classNum, state.classType].join(' '));
-
-	$effect(() => {
-		state.grade = grade || '';
-		if (state.classType === ClassType.CLIL) state.assignment = AssignmentCode.workbook; //change default to Workbook if it's CLIL
-		state.assignmentRaw.esl = className;
-	});
-
-	const assignmentTypes = $derived(
-		state.grade === 'G9'
-			? G9_ASSIGNMENT_TYPES
-			: state.classType === ClassType.CLIL
-				? CLIL_ASSIGNMENT_TYPES
-				: COMM_ASSIGNMENT_TYPES
-	);
-
-	const assignment = $derived(
-		(() => {
-			const assignmentTypeText = assignmentTypes.find((type) => type.code === state.assignment);
-			return {
-				...state.assignmentRaw,
-				assigned: state.dates.assigned,
-				due: state.dates.due,
-				late: state.dates.late,
-				type: {
-					english: assignmentTypeText ? assignmentTypeText.english : 'Unknown',
-					chinese: assignmentTypeText ? assignmentTypeText.chinese : '未知'
-				}
-			};
-		})()
-	);
-
 	//#region Record Management -------------------------------------------
 	const recordManager = new RecordManager();
 
@@ -112,37 +59,12 @@
 		recordManager.updateState(currentRecord);
 	});
 
-	function loadRecordData(record: CommunicationRecord) {
-		_isLoadingRecord = true;
-		state.studentsText = record.studentsText;
-		state.grade = record.grade;
-		state.level = record.level as Level;
-		state.classType = record.classType;
-		state.classNum = record.classNum;
-		state.assignment = record.assignment as AssignmentCode;
-		state.dates = record.dates;
-		state.studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
-
-		// Defer setting the flag back to false to prevent the effect from re-parsing immediately
-		setTimeout(() => {
-			_isLoadingRecord = false;
-		}, 0);
-	}
-
 	function handleLoadRecord(record: CommunicationRecord) {
-		loadRecordData(record);
+		state.loadRecordData(record);
 	}
 
 	function clearForm() {
-		const newStore = new CommunicationStore();
-		state.studentsText = newStore.studentsText;
-		// studentsParsed will be updated by the $effect
-		state.grade = newStore.grade;
-		state.level = newStore.level as Level;
-		state.classType = newStore.classType;
-		state.classNum = newStore.classNum;
-		state.assignment = newStore.assignment as AssignmentCode;
-		state.dates = newStore.dates;
+		state.reset();
 		recordManager.clearLoadedRecord();
 	}
 </script>
@@ -155,7 +77,7 @@
 		class="print:hidden top-13.5 z-10 fixed self-start bg-black pt-2 rounded-lg w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
 	>
 		<AssignmentForm
-			{assignmentTypes}
+			assignmentTypes={state.assignmentTypes}
 			bind:UI_Assignment={state.assignment}
 			bind:UI_Dates={state.dates}
 			studentsParsed={state.studentsParsed}
@@ -166,8 +88,8 @@
 		<StudentTable
 			bind:studentsText={state.studentsText}
 			bind:studentsParsed={state.studentsParsed}
-			hideTextarea={shouldHideTextarea}
-			{grade}
+			hideTextarea={state.hideTextarea}
+			grade={state.grade}
 			{students}
 			UI_Grade={state.grade}
 			bind:UI_Level={state.level}
@@ -183,11 +105,11 @@
 					studentsParsed={state.studentsParsed}
 					selectedStudentsCount={students.length}
 					assignmentDates={{
-						assigned: assignment.assigned,
-						due: assignment.due,
-						late: assignment.late
+						assigned: state.assignmentDetails.assigned,
+						due: state.assignmentDetails.due,
+						late: state.assignmentDetails.late
 					}}
-					{grade}
+					grade={state.grade}
 					signatureImage={state.signatureImage}
 					onPrint={() => window.print()}
 				/>
@@ -199,14 +121,14 @@
 		<SavedRecords {recordManager} onLoadRecord={handleLoadRecord} />
 		<!-- MARK: slip preview -->
 		<h3 class="print:hidden mx-2 my-0.5">
-			Preview {students.length} communication slip{students.length == 1 ? '' : 's'}
+			Preview {students.length} selected communication slip{students.length == 1 ? '' : 's'}
 		</h3>
 		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]">
 			{#each students as student, i (student.id)}
 				<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
 					Slip #{i + 1}
 				</p>
-				<Slip {student} signatureSrc={state.signatureImage} {assignment} />
+				<Slip {student} signatureSrc={state.signatureImage} assignment={state.assignmentDetails} />
 			{/each}
 		</div>
 	</section>
