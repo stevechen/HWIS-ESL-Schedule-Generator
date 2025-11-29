@@ -14,7 +14,7 @@
 	interface Props {
 		studentsText: string;
 		studentsParsed: Student[];
-		shouldHideTextarea: boolean;
+		hideTextarea: boolean;
 		grade: string | null;
 		students: Array<DisplayStudent>;
 		UI_Grade: string;
@@ -26,7 +26,7 @@
 	let {
 		studentsText = $bindable(),
 		studentsParsed = $bindable(),
-		shouldHideTextarea,
+		hideTextarea: shouldHideTextarea,
 		grade,
 		students,
 		UI_Grade,
@@ -195,7 +195,7 @@
 								</label>
 							</div>
 						</td>
-						<td class="w-[4.5rem] student-id">
+						<td class="w-18 student-id">
 							<input
 								class="text-center"
 								type="text"

@@ -10,7 +10,7 @@ export class CommunicationStore {
 	// Student data
 	studentsText: string = $state('');
 	studentsParsed: Student[] = $derived.by(() => parseStudentsFromText(this.studentsText));
-	shouldHideTextarea: boolean = $derived(this.studentsParsed.length > 0);
+	hideTextarea: boolean = $derived(this.studentsParsed.length > 0);
 
 	// Class information
 	grade: string = $state('');
@@ -61,7 +61,7 @@ export class CommunicationStore {
 	reset() {
 		this.studentsText = '';
 		this.studentsParsed = [];
-		this.shouldHideTextarea = false;
+		this.hideTextarea = false;
 		this.grade = '';
 		this.level = LEVEL_TYPE[2].value;
 		this.classType = ClassType.COMM;

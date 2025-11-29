@@ -3,7 +3,6 @@
 	import { browser } from '$app/environment';
 	import { slide } from 'svelte/transition';
 	import {
-		type Student,
 		AssignmentCode,
 		STATUS_TYPE,
 		ASSIGNMENT_TYPES,
@@ -26,21 +25,8 @@
 	const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
 	const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
 
-	const store = new CommunicationStore();
+	const state = new CommunicationStore();
 	let _isLoadingRecord = false;
-
-	const state = $state({
-		studentsText: store.studentsText,
-		studentsParsed: [] as Student[],
-		grade: store.grade,
-		level: store.level,
-		classType: store.classType,
-		classNum: store.classNum,
-		assignment: store.assignment,
-		dates: store.dates,
-		assignmentRaw: store.assignmentRaw,
-		signatureImage: store.signatureImage
-	});
 
 	// Initialize studentsParsed and keep it in sync with studentsText
 	$effect(() => {
@@ -180,7 +166,7 @@
 		<StudentTable
 			bind:studentsText={state.studentsText}
 			bind:studentsParsed={state.studentsParsed}
-			{shouldHideTextarea}
+			hideTextarea={shouldHideTextarea}
 			{grade}
 			{students}
 			UI_Grade={state.grade}
