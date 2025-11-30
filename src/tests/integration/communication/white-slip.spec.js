@@ -530,4 +530,28 @@ test.describe('Signature Upload', () => {
 		await expect(signaturePreview).not.toBeVisible();
 		expect(await page.evaluate(() => localStorage.getItem('signatureImage'))).toBeNull();
 	});
+
+	test('should upload signature image via direct file input for testing', async ({ page, context }) => {
+		await pasteDataIntoInput(page, context, '#student-list-input', MOCK_STUDENT_DATA);
+
+		const fixturePath = path.join(__dirname, '../fixtures', 'sig_test.png');
+		await fs.access(fixturePath); // Verify file exists
+
+		// Directly set files on the hidden input element
+		await page.locator('#signature-upload').setInputFiles(fixturePath);
+
+		// Verify the image is displayed
+		const signaturePreview = page.locator('.signature-preview');
+		await expect(signaturePreview).toBeVisible();
+		await expect(signaturePreview).toHaveAttribute('src', /data:image\/(png|jpeg);base64,.+/);
+
+		// Verify it's saved to local storage
+		const storedImage = await page.evaluate(() => localStorage.getItem('signatureImage'));
+		expect(storedImage).toMatch(/data:image\/(png|jpeg);base64,.+/);
+
+		// Verify it can be removed
+		await page.locator('#remove-signature').click();
+		await expect(signaturePreview).toBeHidden();
+		expect(await page.evaluate(() => localStorage.getItem('signatureImage'))).toBeNull();
+	});
 });
