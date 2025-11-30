@@ -1,34 +1,11 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { browser } from '$app/environment';
 	import { processSignatureFile } from '$lib/communication/signatureValidator';
 
-	// Props
-	interface Props {
-		signatureImage: string;
-	}
-
-	let { signatureImage = $bindable() }: Props = $props();
+	let { signatureImage = $bindable() }: { signatureImage: string } = $props();
 
 	let dragCounter = $state(0);
 	const isDraggingOver = $derived(dragCounter > 0);
-
-	// Load signature from localStorage on mount
-	onMount(() => {
-		if (browser) {
-			const savedSignature = localStorage.getItem('signatureImage');
-			if (savedSignature) {
-				signatureImage = savedSignature;
-			}
-		}
-	});
-
-	// Clean up blob URLs on destroy
-	onDestroy(() => {
-		if (signatureImage && signatureImage.startsWith('blob:')) {
-			URL.revokeObjectURL(signatureImage);
-		}
-	});
+	let fileInput: HTMLInputElement; // Declare fileInput for bind:this
 
 	async function validateAndSetImage(file: File): Promise<void> {
 		const result = await processSignatureFile(file);
@@ -40,7 +17,6 @@
 
 		if (result.dataURL) {
 			signatureImage = result.dataURL;
-			localStorage.setItem('signatureImage', result.dataURL);
 		}
 	}
 
@@ -79,16 +55,13 @@
 	function removeSignature(event: MouseEvent) {
 		event.stopPropagation();
 		signatureImage = '';
-		localStorage.removeItem('signatureImage');
 		// Reset the file input value so the same file can be uploaded again
-		const input = document.getElementById('signature-upload') as HTMLInputElement | null;
-		if (input) input.value = '';
+		if (fileInput) fileInput.value = '';
 	}
 
 	function handleBrowseClick() {
-		const element = document.getElementById('signature-upload');
-		if (element) {
-			element.click();
+		if (fileInput) {
+			fileInput.click();
 		}
 	}
 
@@ -162,5 +135,6 @@
 		type="file"
 		accept="image/*"
 		onchange={handleFileSelect}
+		bind:this={fileInput}
 	/>
 </div>

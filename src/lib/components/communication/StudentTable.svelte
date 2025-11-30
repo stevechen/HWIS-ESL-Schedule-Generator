@@ -1,39 +1,36 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import {
-		StatusTypeCode,
+		STATUS_TYPE_CODE,
 		STATUS_TYPE,
 		type Student,
 		type DisplayStudent,
 		LEVEL_TYPE,
-		ClassType,
+		CLASS_TYPE,
 		Level
 	} from '$lib/stores/communication';
-
-	// Props
-	interface Props {
-		studentsText: string;
-		studentsParsed: Student[];
-		hideTextarea: boolean;
-		grade: string | null;
-		students: Array<DisplayStudent>;
-		UI_Grade: string;
-		UI_Level: Level;
-		UI_ClassType: string;
-		UI_ClassNum: string;
-	}
 
 	let {
 		studentsText = $bindable(),
 		studentsParsed = $bindable(),
-		hideTextarea: shouldHideTextarea,
+		hideTextarea,
 		grade,
 		students,
 		UI_Grade,
 		UI_Level = $bindable(),
 		UI_ClassType = $bindable(),
 		UI_ClassNum = $bindable()
-	}: Props = $props();
+	}: {
+		studentsText: string;
+		studentsParsed: Array<Student>;
+		hideTextarea: boolean;
+		grade: string;
+		students: Array<DisplayStudent>;
+		UI_Grade: string;
+		UI_Level: Level;
+		UI_ClassType: string;
+		UI_ClassNum: string;
+	} = $props();
 
 	// Master checkbox logic - moved from main component
 	let isAllChecked = $derived(
@@ -110,9 +107,9 @@
 
 		<!-- MARK: ESL-type -->
 		<div class="radio-bg">
-			{#each Object.entries(ClassType) as [type, value]}
+			{#each Object.entries(CLASS_TYPE) as [type, value]}
 				<!-- only render out CLIL if class is not G9 -->
-				{#if value !== ClassType.CLIL || UI_Grade !== 'G9'}
+				{#if value !== CLASS_TYPE.CLIL || UI_Grade !== 'G9'}
 					<label class="radio-label" for={type}
 						><input
 							id={type}
@@ -146,7 +143,7 @@
 		<textarea
 			id="student-list-input"
 			class={[
-				shouldHideTextarea && 'hidden',
+				hideTextarea && 'hidden',
 				'mx-5 h-12 min-w-15/16 overflow-hidden rounded-md border bg-white px-2 py-0.5 placeholder:text-sm  invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
 			]}
 			bind:value={studentsText}
@@ -229,11 +226,11 @@
 						</td>
 						<td class="w-auto text-center">
 							<select bind:value={student.status} onchange={handleStudentChange}>
-								<option value={StatusTypeCode.NOT_SUBMITTED}>
-									{STATUS_TYPE[StatusTypeCode.NOT_SUBMITTED].text.english}
+								<option value={STATUS_TYPE_CODE.NOT_SUBMITTED}>
+									{STATUS_TYPE[STATUS_TYPE_CODE.NOT_SUBMITTED].text.english}
 								</option>
-								<option value={StatusTypeCode.NOT_COMPLETED}>
-									{STATUS_TYPE[StatusTypeCode.NOT_COMPLETED].text.english}
+								<option value={STATUS_TYPE_CODE.NOT_COMPLETED}>
+									{STATUS_TYPE[STATUS_TYPE_CODE.NOT_COMPLETED].text.english}
 								</option>
 							</select>
 						</td>

@@ -1,39 +1,7 @@
 <script lang="ts">
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
 
-	// Marked Interfaces
-	interface Student {
-		id: string;
-		name: { english: string; chinese: string };
-		cClass: string;
-		status: { english: string; chinese: string };
-	}
-
-	interface Assignment {
-		esl: string;
-		type: { english: string; chinese: string };
-		assigned: string | null;
-		due: string | null;
-		late: string | null;
-	}
-
-	//#region  Default objects
-	const defaultStudent: Student = {
-		id: '123456',
-		name: { english: 'Daniel Wang', chinese: '王小明' },
-		cClass: 'J101',
-		status: { english: "hasn't been submitted", chinese: '未繳交' }
-	};
-
-	const defaultAssignment: Assignment = {
-		esl: 'G7 Elementary 1 Comm',
-		type: { english: 'Passport', chinese: '英文護照' },
-		assigned: '',
-		due: '',
-		late: ''
-	};
-
-	let { student = defaultStudent, assignment = defaultAssignment, signatureSrc = '' } = $props();
+	let { student, signatureSrc, assignment } = $props();
 </script>
 
 <div

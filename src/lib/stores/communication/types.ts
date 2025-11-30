@@ -24,6 +24,16 @@ export enum AssignmentCode {
 	worksheet = 'worksheet'
 }
 
+// Assignment type with grade and class filters
+export interface AssignmentType {
+	code: AssignmentCode;
+	english: string;
+	chinese: string;
+	comm?: boolean;
+	g9?: boolean;
+	clil?: boolean;
+}
+
 export enum Level {
 	PreElementary = 'Pre-Elementary',
 	Elementary = 'Elementary',
@@ -33,13 +43,13 @@ export enum Level {
 }
 
 // Status type constants
-export const StatusTypeCode = {
+export const STATUS_TYPE_CODE = {
 	NOT_SUBMITTED: '0',
 	NOT_COMPLETED: '1'
 } as const;
 
 // Class type constants
-export const ClassType = {
+export const CLASS_TYPE = {
 	COMM: 'Comm',
 	CLIL: 'CLIL'
 } as const;
@@ -47,14 +57,4 @@ export const ClassType = {
 // File upload limits
 export enum Limit {
 	height = 160
-}
-
-// Assignment type with grade and class filters
-export interface AssignmentType {
-	code: AssignmentCode;
-	english: string;
-	chinese: string;
-	comm?: boolean;
-	g9?: boolean;
-	clil?: boolean;
 }

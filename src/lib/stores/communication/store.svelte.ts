@@ -1,4 +1,5 @@
-import { AssignmentCode, ClassType, type Student, Level } from './types';
+import { browser } from '$app/environment';
+import { AssignmentCode, CLASS_TYPE, type Student, Level } from './types';
 import { LEVEL_TYPE, ASSIGNMENT_TYPES } from './constants';
 import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
 import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
@@ -23,7 +24,7 @@ export class CommunicationStore {
 	// Class information
 	grade = $derived(determineGradeFromText(this.studentsText));
 	level = $state(LEVEL_TYPE[2].value); // Default to Basic
-	classType: string = $state(ClassType.COMM);
+	classType: string = $state(CLASS_TYPE.COMM);
 	classNum: string = $state('');
 	className = $derived([this.grade, this.level, this.classNum, this.classType].join(' '));
 
@@ -46,12 +47,13 @@ export class CommunicationStore {
 
 	// Signature
 	signatureImage: string = $state('');
+	private _previousSignatureImage: string | null = $state(null);
 
 	// DERIVED STATE ----------------
 	assignmentTypes = $derived(
 		this.grade === 'G9'
 			? G9_ASSIGNMENT_TYPES
-			: this.classType === ClassType.CLIL
+			: this.classType === CLASS_TYPE.CLIL
 				? CLIL_ASSIGNMENT_TYPES
 				: COMM_ASSIGNMENT_TYPES
 	);
@@ -81,8 +83,35 @@ export class CommunicationStore {
 		});
 
 		$effect(() => {
-			if (this.classType === ClassType.CLIL) this.assignment = AssignmentCode.workbook;
+			if (this.classType === CLASS_TYPE.CLIL) this.assignment = AssignmentCode.workbook;
 			this.assignmentRaw.esl = this.className;
+		});
+
+		// Load signature from localStorage on mount
+		$effect(() => {
+			if (browser) {
+				const savedSignature = localStorage.getItem('signatureImage');
+				if (savedSignature) {
+					this.signatureImage = savedSignature;
+				}
+			}
+		});
+
+		// Handle signature image changes: save to localStorage and revoke old blob URLs
+		$effect(() => {
+			if (browser) {
+				if (this._previousSignatureImage && this._previousSignatureImage.startsWith('blob:')) {
+					URL.revokeObjectURL(this._previousSignatureImage);
+				}
+
+				if (this.signatureImage) {
+					localStorage.setItem('signatureImage', this.signatureImage);
+					this._previousSignatureImage = this.signatureImage;
+				} else {
+					localStorage.removeItem('signatureImage');
+					this._previousSignatureImage = null; // Clear previous if signatureImage is empty
+				}
+			}
 		});
 	}
 
@@ -118,7 +147,7 @@ export class CommunicationStore {
 		this.studentsText = '';
 		this.studentsParsed = [];
 		this.level = LEVEL_TYPE[2].value;
-		this.classType = ClassType.COMM;
+		this.classType = CLASS_TYPE.COMM;
 		this.classNum = '';
 		this.assignment = AssignmentCode.passport;
 		this.assignmentRaw = {

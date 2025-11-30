@@ -1,13 +1,13 @@
-import { StatusTypeCode, AssignmentCode, Level, type AssignmentType } from './types';
+import { STATUS_TYPE_CODE, AssignmentCode, Level, type AssignmentType } from './types';
 
 // Status type definitions with bilingual text
 export const STATUS_TYPE = {
-	[StatusTypeCode.NOT_SUBMITTED]: {
-		code: StatusTypeCode.NOT_SUBMITTED,
+	[STATUS_TYPE_CODE.NOT_SUBMITTED]: {
+		code: STATUS_TYPE_CODE.NOT_SUBMITTED,
 		text: { english: "hasn't been submitted", chinese: '未繳交' }
 	},
-	[StatusTypeCode.NOT_COMPLETED]: {
-		code: StatusTypeCode.NOT_COMPLETED,
+	[STATUS_TYPE_CODE.NOT_COMPLETED]: {
+		code: STATUS_TYPE_CODE.NOT_COMPLETED,
 		text: { english: "wasn't completed", chinese: '完成度不佳' }
 	}
 } as const;
