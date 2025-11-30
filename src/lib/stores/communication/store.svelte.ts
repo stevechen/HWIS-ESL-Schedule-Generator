@@ -145,7 +145,7 @@ export class CommunicationStore {
 		this.dates.late = lateDate;
 	}
 
-	loadRecordData(record: CommunicationRecord) {
+	loadRecordData = (record: CommunicationRecord) => {
 		this._isLoadingRecord = true;
 		this.studentsText = record.studentsText;
 		this.level = record.level as Levels;
@@ -154,12 +154,12 @@ export class CommunicationStore {
 		this.assignment = record.assignment as AssignmentCode;
 		this.dates = record.dates;
 		this.studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
-	}
+	};
 
 	/**
 	 * Reset all store values to defaults
 	 */
-	reset() {
+	reset = () => {
 		this._isLoadingRecord = false;
 		this.studentsText = '';
 		this.studentsParsed = [];
@@ -180,5 +180,5 @@ export class CommunicationStore {
 			late: ''
 		};
 		this.initializeDates();
-	}
+	};
 }
