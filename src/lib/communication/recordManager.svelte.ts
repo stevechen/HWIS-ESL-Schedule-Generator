@@ -1,10 +1,10 @@
 import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
-import type { Student, Level, AssignmentCode } from '$lib/stores/communication';
+import type { Student, Levels, AssignmentCode } from '$lib/stores/communication';
 
 export interface CommunicationRecord {
 	studentsText: string;
 	grade: string;
-	level: Level;
+	level: Levels;
 	classType: string;
 	classNum: string;
 	assignment: AssignmentCode;

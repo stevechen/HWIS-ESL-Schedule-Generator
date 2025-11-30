@@ -1,12 +1,13 @@
 import { browser } from '$app/environment';
-import { AssignmentCode, CLASS_TYPE, type Student, Level } from './types';
-import { LEVEL_TYPE, ASSIGNMENT_TYPES } from './constants';
+import type { Student, DisplayStudent } from '$lib/stores/communication/types';
+import { AssignmentCode, Levels } from '$lib/stores/communication/types';
+import { ESL_TYPE, LEVELS, ASSIGNMENT_TYPE, STATUSES } from '$lib/stores/communication/constants';
 import { parseStudentsFromText, determineGradeFromText } from '$lib/communication/studentParser';
 import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
 
-const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.g9);
-const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.clil);
-const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPES.filter((type) => type.comm);
+const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.g9);
+const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.clil);
+const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.comm);
 
 /**
  * Communication Store - Manages state for the communication slip feature
@@ -23,8 +24,8 @@ export class CommunicationStore {
 
 	// Class information
 	grade = $derived(determineGradeFromText(this.studentsText));
-	level = $state(LEVEL_TYPE[2].value); // Default to Basic
-	classType: string = $state(CLASS_TYPE.COMM);
+	level = $state(LEVELS[2].value); // Default to Basic
+	classType: string = $state(ESL_TYPE.COMM);
 	classNum: string = $state('');
 	className = $derived([this.grade, this.level, this.classNum, this.classType].join(' '));
 
@@ -50,10 +51,26 @@ export class CommunicationStore {
 	private _previousSignatureImage: string | null = $state(null);
 
 	// DERIVED STATE ----------------
+
+	students: DisplayStudent[] = $derived(
+		this.studentsParsed
+			.filter((student) => student.selected) // filter out unselected
+			.map(({ status, ...rest }) => {
+				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
+				const studentStatus = STATUSES[status as keyof typeof STATUSES];
+				return {
+					...rest,
+					status: studentStatus
+						? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
+						: { english: 'Unknown', chinese: '未知' }
+				};
+			})
+	);
+
 	assignmentTypes = $derived(
 		this.grade === 'G9'
 			? G9_ASSIGNMENT_TYPES
-			: this.classType === CLASS_TYPE.CLIL
+			: this.classType === ESL_TYPE.CLIL
 				? CLIL_ASSIGNMENT_TYPES
 				: COMM_ASSIGNMENT_TYPES
 	);
@@ -83,7 +100,7 @@ export class CommunicationStore {
 		});
 
 		$effect(() => {
-			if (this.classType === CLASS_TYPE.CLIL) this.assignment = AssignmentCode.workbook;
+			if (this.classType === ESL_TYPE.CLIL) this.assignment = AssignmentCode.workbook;
 			this.assignmentRaw.esl = this.className;
 		});
 
@@ -131,7 +148,7 @@ export class CommunicationStore {
 	loadRecordData(record: CommunicationRecord) {
 		this._isLoadingRecord = true;
 		this.studentsText = record.studentsText;
-		this.level = record.level as Level;
+		this.level = record.level as Levels;
 		this.classType = record.classType;
 		this.classNum = record.classNum;
 		this.assignment = record.assignment as AssignmentCode;
@@ -146,8 +163,8 @@ export class CommunicationStore {
 		this._isLoadingRecord = false;
 		this.studentsText = '';
 		this.studentsParsed = [];
-		this.level = LEVEL_TYPE[2].value;
-		this.classType = CLASS_TYPE.COMM;
+		this.level = LEVELS[2].value;
+		this.classType = ESL_TYPE.COMM;
 		this.classNum = '';
 		this.assignment = AssignmentCode.passport;
 		this.assignmentRaw = {

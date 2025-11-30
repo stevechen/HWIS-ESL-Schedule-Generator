@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { slide } from 'svelte/transition';
-	import { STATUS_TYPE, CommunicationStore } from '$lib/stores/communication';
+	import { CommunicationStore } from '$lib/stores/communication';
 	import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
 	import { RecordManager } from '$lib/communication/recordManager.svelte';
 
@@ -24,22 +24,6 @@
 			};
 		}
 	});
-
-	//#region Derived State ---------------------------------------------------------------
-	const students = $derived(
-		state.studentsParsed
-			.filter((student) => student.selected) // filter out unselected
-			.map(({ status, ...rest }) => {
-				// Lookup the status in STATUS_TYPE to find the corresponding {english, chinese} object to pass to Slip
-				const studentStatus = STATUS_TYPE[status as keyof typeof STATUS_TYPE];
-				return {
-					...rest,
-					status: studentStatus
-						? { english: studentStatus.text.english, chinese: studentStatus.text.chinese }
-						: { english: 'Unknown', chinese: '未知' }
-				};
-			})
-	);
 
 	//#region Record Management -------------------------------------------
 	const recordManager = new RecordManager();
@@ -90,7 +74,7 @@
 			bind:studentsParsed={state.studentsParsed}
 			hideTextarea={state.hideTextarea}
 			grade={state.grade}
-			{students}
+			students={state.students}
 			UI_Grade={state.grade}
 			bind:UI_Level={state.level}
 			bind:UI_ClassType={state.classType}
@@ -103,7 +87,7 @@
 				<PrintButton
 					classNum={state.classNum}
 					studentsParsed={state.studentsParsed}
-					selectedStudentsCount={students.length}
+					selectedStudentsCount={state.students.length}
 					assignmentDates={{
 						assigned: state.assignmentDetails.assigned,
 						due: state.assignmentDetails.due,
@@ -121,10 +105,12 @@
 		<SavedRecords {recordManager} onLoadRecord={handleLoadRecord} />
 		<!-- MARK: slip preview -->
 		<h3 class="print:hidden mx-2 my-0.5">
-			Preview {students.length} selected communication slip{students.length == 1 ? '' : 's'}
+			Preview {state.students.length} selected communication slip{state.students.length == 1
+				? ''
+				: 's'}
 		</h3>
 		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]">
-			{#each students as student, i (student.id)}
+			{#each state.students as student, i (student.id)}
 				<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
 					Slip #{i + 1}
 				</p>

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import {
-		STATUS_TYPE_CODE,
-		STATUS_TYPE,
+		STATUS_CODE,
+		STATUSES,
 		type Student,
 		type DisplayStudent,
-		LEVEL_TYPE,
-		CLASS_TYPE,
-		Level
+		LEVELS,
+		ESL_TYPE,
+		Levels
 	} from '$lib/stores/communication';
 
 	let {
@@ -27,7 +27,7 @@
 		grade: string;
 		students: Array<DisplayStudent>;
 		UI_Grade: string;
-		UI_Level: Level;
+		UI_Level: Levels;
 		UI_ClassType: string;
 		UI_ClassNum: string;
 	} = $props();
@@ -60,7 +60,7 @@
 </script>
 
 <div
-	class="flex flex-wrap justify-start items-center mb-0 p-2 border-gray-600 border-y-1 border-dashed"
+	class="flex flex-wrap justify-start items-center mb-0 p-2 border-gray-600 border-y border-dashed"
 >
 	<!-- MARK: class-info -->
 	<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
@@ -98,7 +98,7 @@
 
 		<!-- MARK: ESL-level -->
 		<div class="radio-bg">
-			{#each LEVEL_TYPE as { id, label, value }}
+			{#each LEVELS as { id, label, value }}
 				<label class="radio-label" for={id}>
 					<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />{label}
 				</label>
@@ -107,9 +107,9 @@
 
 		<!-- MARK: ESL-type -->
 		<div class="radio-bg">
-			{#each Object.entries(CLASS_TYPE) as [type, value]}
+			{#each Object.entries(ESL_TYPE) as [type, value]}
 				<!-- only render out CLIL if class is not G9 -->
-				{#if value !== CLASS_TYPE.CLIL || UI_Grade !== 'G9'}
+				{#if value !== ESL_TYPE.CLIL || UI_Grade !== 'G9'}
 					<label class="radio-label" for={type}
 						><input
 							id={type}
@@ -226,11 +226,11 @@
 						</td>
 						<td class="w-auto text-center">
 							<select bind:value={student.status} onchange={handleStudentChange}>
-								<option value={STATUS_TYPE_CODE.NOT_SUBMITTED}>
-									{STATUS_TYPE[STATUS_TYPE_CODE.NOT_SUBMITTED].text.english}
+								<option value={STATUS_CODE.NOT_SUBMITTED}>
+									{STATUSES[STATUS_CODE.NOT_SUBMITTED].text.english}
 								</option>
-								<option value={STATUS_TYPE_CODE.NOT_COMPLETED}>
-									{STATUS_TYPE[STATUS_TYPE_CODE.NOT_COMPLETED].text.english}
+								<option value={STATUS_CODE.NOT_COMPLETED}>
+									{STATUSES[STATUS_CODE.NOT_COMPLETED].text.english}
 								</option>
 							</select>
 						</td>

@@ -1,19 +1,31 @@
-import { STATUS_TYPE_CODE, AssignmentCode, Level, type AssignmentType } from './types';
+import { AssignmentCode, Levels, type AssignmentType } from './types';
+
+// Status type constants
+export const STATUS_CODE = {
+	NOT_SUBMITTED: '0',
+	NOT_COMPLETED: '1'
+} as const;
+
+// Class type constants
+export const ESL_TYPE = {
+	COMM: 'Comm',
+	CLIL: 'CLIL'
+} as const;
 
 // Status type definitions with bilingual text
-export const STATUS_TYPE = {
-	[STATUS_TYPE_CODE.NOT_SUBMITTED]: {
-		code: STATUS_TYPE_CODE.NOT_SUBMITTED,
+export const STATUSES = {
+	[STATUS_CODE.NOT_SUBMITTED]: {
+		code: STATUS_CODE.NOT_SUBMITTED,
 		text: { english: "hasn't been submitted", chinese: '未繳交' }
 	},
-	[STATUS_TYPE_CODE.NOT_COMPLETED]: {
-		code: STATUS_TYPE_CODE.NOT_COMPLETED,
+	[STATUS_CODE.NOT_COMPLETED]: {
+		code: STATUS_CODE.NOT_COMPLETED,
 		text: { english: "wasn't completed", chinese: '完成度不佳' }
 	}
 } as const;
 
 // Assignment type definitions with grade and class type filters
-export const ASSIGNMENT_TYPES: AssignmentType[] = [
+export const ASSIGNMENT_TYPE: AssignmentType[] = [
 	{
 		code: AssignmentCode.passport,
 		english: 'Passport',
@@ -63,16 +75,16 @@ export const ASSIGNMENT_TYPES: AssignmentType[] = [
 ];
 
 // Level type definitions for UI
-export const LEVEL_TYPE = [
-	{ id: 'pre-ele', label: 'Pre-Ele', value: Level.PreElementary },
-	{ id: 'ele', label: 'Ele', value: Level.Elementary },
-	{ id: 'bas', label: 'Basic', value: Level.Basic },
-	{ id: 'int', label: 'Int', value: Level.Intermediate },
-	{ id: 'adv', label: 'Adv', value: Level.Advanced }
+export const LEVELS = [
+	{ id: 'pre-ele', label: 'Pre-Ele', value: Levels.PreElementary },
+	{ id: 'ele', label: 'Ele', value: Levels.Elementary },
+	{ id: 'bas', label: 'Basic', value: Levels.Basic },
+	{ id: 'int', label: 'Int', value: Levels.Intermediate },
+	{ id: 'adv', label: 'Adv', value: Levels.Advanced }
 ];
 
 // Date field definitions for form rendering
-export const DATE_FIELDS = [
+export const DATES = [
 	{ label: 'Assigned:', key: 'assigned' },
 	{ label: 'Due:', key: 'due' },
 	{ label: 'Make up:', key: 'late' }

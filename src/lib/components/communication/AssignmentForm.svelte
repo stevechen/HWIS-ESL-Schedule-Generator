@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
-	import {
-		type Student,
-		type AssignmentType,
-		AssignmentCode,
-		DATE_FIELDS
-	} from '$lib/stores/communication';
+	import type { Student, AssignmentType } from '$lib/stores/communication/types';
+	import { AssignmentCode, DATES } from '$lib/stores/communication';
 	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 
 	// Props
@@ -39,7 +35,7 @@
 
 <div id="assignment">
 	<div class="flex flex-wrap justify-start items-center bg-black mb-0 px-2 pb-0 rounded-t-lg">
-		<div class="flex items-center border-gray-500 border-b-1 w-full">
+		<div class="flex items-center border-gray-500 border-b w-full">
 			<h3 class="mx-2 my-1 pr-10 text-white">Assignment</h3>
 			<div class="ml-auto">
 				{#if studentsParsed.length > 0}
@@ -89,7 +85,7 @@
 			<svg class="fill-white my-1 mr-4 ml-5 size-4" viewBox="0 0 612 612">
 				<use href="#icon-calendar" />
 			</svg>
-			{#each DATE_FIELDS as { key, label }}
+			{#each DATES as { key, label }}
 				{@const invalid =
 					!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key])}
 				<label class="group px-2 text-white text-sm" for={key}>

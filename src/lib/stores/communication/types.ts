@@ -34,25 +34,13 @@ export interface AssignmentType {
 	clil?: boolean;
 }
 
-export enum Level {
+export enum Levels {
 	PreElementary = 'Pre-Elementary',
 	Elementary = 'Elementary',
 	Basic = 'Basic',
 	Intermediate = 'Intermediate',
 	Advanced = 'Advanced'
 }
-
-// Status type constants
-export const STATUS_TYPE_CODE = {
-	NOT_SUBMITTED: '0',
-	NOT_COMPLETED: '1'
-} as const;
-
-// Class type constants
-export const CLASS_TYPE = {
-	COMM: 'Comm',
-	CLIL: 'CLIL'
-} as const;
 
 // File upload limits
 export enum Limit {

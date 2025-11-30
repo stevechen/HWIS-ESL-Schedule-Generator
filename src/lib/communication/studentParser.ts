@@ -1,4 +1,4 @@
-import { STATUS_TYPE_CODE, type Student } from '$lib/stores/communication';
+import { STATUS_CODE, type Student } from '$lib/stores/communication';
 
 /**
  * Parses tab-separated student data from spreadsheet paste
@@ -23,7 +23,7 @@ export function parseStudentsFromText(data: string): Student[] {
 				id: '',
 				name: { english: '', chinese: '' },
 				cClass: '',
-				status: STATUS_TYPE_CODE.NOT_SUBMITTED,
+				status: STATUS_CODE.NOT_SUBMITTED,
 				selected: true
 			};
 
