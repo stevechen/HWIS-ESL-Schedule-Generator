@@ -119,20 +119,77 @@ test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) =>
 			}
 		]
 	};
+
+	const anotherRecordName = `${year}/09/01-G9 Basic CLIL 1-Homework-5 Students`;
+	const anotherRecordKey = `comm_${anotherRecordName}`;
+	const anotherSavedSettings = {
+		studentsText: '1112223	陳七	Chen Qi	J301',
+		grade: 'G9',
+		level: 'Basic',
+		classType: 'CLIL',
+		assignment: 'homework',
+		classNum: 1,
+		dates: { assigned: '08/30', due: '09/01', late: '09/02' },
+		studentsParsed: [
+			{
+				id: '1112223',
+				name: { english: 'Chen Qi', chinese: '陳七' },
+				cClass: 'J301',
+				status: 0,
+				selected: true
+			}
+		]
+	};
+
 	await page.evaluate(
-		([key, settings]) => {
-			localStorage.setItem(String(key), JSON.stringify(settings));
+		(records: [string, object][]) => {
+			for (const [key, settings] of records) {
+				localStorage.setItem(String(key), JSON.stringify(settings));
+			}
 		},
-		[recordKey, savedSettings]
+		[
+			[recordKey, savedSettings],
+			[anotherRecordKey, anotherSavedSettings]
+		]
 	);
+
 	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
 	await expect(page.locator('summary:has-text("Saved Records")')).toBeVisible();
 	await page.locator('summary:has-text("Saved Records")').click();
 	await expect(page.locator('#records_list')).toBeVisible();
 	await expect(page.locator(`.record:has-text("${recordName}")`)).toBeVisible();
+	await expect(page.locator(`.record:has-text("${anotherRecordName}")`)).toBeVisible();
+
+	// Check that nothing is highlighted initially by comparing colors
+	const recordDivBeforeLoad = page.locator(`.record:has-text("${recordName}") > div`).first();
+	const anotherRecordDivBeforeLoad = page
+		.locator(`.record:has-text("${anotherRecordName}") > div`)
+		.first();
+	const bgColor1_before = await recordDivBeforeLoad.evaluate(
+		(el) => window.getComputedStyle(el).backgroundColor
+	);
+	const bgColor2_before = await anotherRecordDivBeforeLoad.evaluate(
+		(el) => window.getComputedStyle(el).backgroundColor
+	);
+	expect(bgColor1_before).toBe(bgColor2_before);
+
 	await page.locator(`.record:has-text("${recordName}")`).click();
 	await page.waitForLoadState('domcontentloaded');
+
+	// Check for highlight after loading by comparing colors
+	const loadedRecordDiv = page.locator(`.record:has-text("${recordName}") > div`).first();
+	const otherRecordDiv = page.locator(`.record:has-text("${anotherRecordName}") > div`).first();
+	const loadedBgColor = await loadedRecordDiv.evaluate(
+		(el) => window.getComputedStyle(el).backgroundColor
+	);
+	const otherBgColor = await otherRecordDiv.evaluate(
+		(el) => window.getComputedStyle(el).backgroundColor
+	);
+	expect(loadedBgColor).not.toBe(otherBgColor);
+	// Also check that the loaded color is not a default/transparent color
+	expect(['rgba(0, 0, 0, 0)', 'rgb(255, 255, 255)']).not.toContain(loadedBgColor);
+
 	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
 	await expect(page.locator('input[name="due"]')).toHaveValue(savedSettings.dates.due);
 	await expect(page.locator('input[name="late"]')).toHaveValue(savedSettings.dates.late);

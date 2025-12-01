@@ -7,10 +7,7 @@
 		onLoadRecord: (record: CommunicationRecord) => void;
 	}
 
-	let {
-		recordManager,
-		onLoadRecord
-	}: Props = $props();
+	let { recordManager, onLoadRecord }: Props = $props();
 
 	function handleLoadRecord(recordName: string) {
 		const result = recordManager.load(recordName);
@@ -46,7 +43,12 @@
 			>
 				{#each recordManager.savedRecords as recordName}
 					<li class="record">
-						<div class="flex justify-between items-center hover:bg-blue-200 pl-2">
+						<div
+							class="flex justify-between items-center pl-2 {recordManager.lastLoadedRecordName ===
+							recordName
+								? 'bg-blue-300 hover:bg-blue-400'
+								: 'hover:bg-blue-200'}"
+						>
 							<button
 								class="flex-1 bg-transparent border-none text-left cursor-pointer"
 								onclick={() => handleLoadRecord(recordName)}
@@ -54,7 +56,7 @@
 								{recordName}
 							</button>
 							<button
-								class="flex-shrink-0 hover:bg-red-600 ml-2 p-1 rounded"
+								class="shrink-0 hover:bg-red-600 ml-2 p-1 rounded"
 								aria-label="Delete record"
 								onclick={(e) => {
 									e.stopPropagation();

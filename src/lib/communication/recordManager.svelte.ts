@@ -41,6 +41,10 @@ export class RecordManager {
 		return this.state.lastLoaded?.record ?? null;
 	}
 
+	get lastLoadedRecordName(): string | null {
+		return this.state.lastLoaded?.name ?? null;
+	}
+
 	get isModified() {
 		return this.state.isModified;
 	}
@@ -66,9 +70,7 @@ export class RecordManager {
 	/**
 	 * Refreshes the list of saved records from storage
 	 */
-	refreshSavedRecords() {
-		this.state.savedRecords = getSavedRecordNames();
-	}
+	refreshSavedRecords = () => (this.state.savedRecords = getSavedRecordNames());
 
 	/**
 	 * Saves a record and updates state
@@ -193,24 +195,18 @@ function getRecordIndex(): string[] {
 /**
  * Saves the record index to localStorage.
  */
-function saveRecordIndex(names: string[]): void {
+const saveRecordIndex = (names: string[]): void =>
 	localStorage.setItem(RECORD_INDEX_KEY, JSON.stringify(names));
-}
 
 /**
  * Capitalizes the first letter of each word in a string
  */
-function capitalizeWords(str: string): string {
-	return str.replace(/\b\w/g, (char) => char.toUpperCase());
-}
+const capitalizeWords = (str: string): string => str.replace(/\b\w/g, (char) => char.toUpperCase());
 
 /**
  * Generates a unique record name based on the record's content and existing names.
  */
-export function generateRecordName(
-	record: CommunicationRecord,
-	existingNames: string[]
-): string {
+export function generateRecordName(record: CommunicationRecord, existingNames: string[]): string {
 	let datePart = record.dates.due;
 	if (isValidMonthAndDay(record.dates.due)) {
 		const [month, day] = record.dates.due.split('/');
