@@ -14,7 +14,7 @@ export interface CommunicationRecord {
 
 export interface RecordManagerState {
 	savedRecords: string[];
-	lastLoadedRecord: CommunicationRecord | null;
+	lastLoaded: { name: string; record: CommunicationRecord } | null;
 	isModified: boolean;
 	isSaveable: boolean;
 }
@@ -22,7 +22,7 @@ export interface RecordManagerState {
 export class RecordManager {
 	private state = $state<RecordManagerState>({
 		savedRecords: [],
-		lastLoadedRecord: null,
+		lastLoaded: null,
 		isModified: true,
 		isSaveable: false
 	});
@@ -37,8 +37,8 @@ export class RecordManager {
 		return this.state.savedRecords;
 	}
 
-	get lastLoadedRecord() {
-		return this.state.lastLoadedRecord;
+	get lastLoadedRecord(): CommunicationRecord | null {
+		return this.state.lastLoaded?.record ?? null;
 	}
 
 	get isModified() {
@@ -56,15 +56,15 @@ export class RecordManager {
 		this.state.isSaveable =
 			!!currentRecord.classNum && currentRecord.studentsParsed.filter((s) => s.selected).length > 0;
 
-		if (!this.state.lastLoadedRecord) {
+		if (!this.state.lastLoaded) {
 			this.state.isModified = true;
 		} else {
-			this.state.isModified = !recordMatches(currentRecord, this.state.lastLoadedRecord);
+			this.state.isModified = !areRecordsEqual(currentRecord, this.state.lastLoaded.record);
 		}
 	}
 
 	/**
-	 * Refreshes the list of saved records
+	 * Refreshes the list of saved records from storage
 	 */
 	refreshSavedRecords() {
 		this.state.savedRecords = getSavedRecordNames();
@@ -77,11 +77,9 @@ export class RecordManager {
 		try {
 			const recordName = saveRecord(record);
 
-			if (!this.state.savedRecords.includes(recordName)) {
-				this.state.savedRecords = [...this.state.savedRecords, recordName].sort().reverse();
-			}
+			this.refreshSavedRecords();
 
-			this.state.lastLoadedRecord = JSON.parse(JSON.stringify(record));
+			this.state.lastLoaded = { name: recordName, record: JSON.parse(JSON.stringify(record)) };
 			this.state.isModified = false;
 
 			return { success: true, recordName };
@@ -101,7 +99,7 @@ export class RecordManager {
 		const record = loadRecord(recordName);
 
 		if (record) {
-			this.state.lastLoadedRecord = record;
+			this.state.lastLoaded = { name: recordName, record };
 			this.state.isModified = false;
 			return { success: true, record };
 		}
@@ -115,12 +113,9 @@ export class RecordManager {
 	delete(recordName: string): { success: boolean; error?: string } {
 		try {
 			// Check if we're deleting the currently loaded record
-			if (this.state.lastLoadedRecord) {
-				const currentRecordName = generateRecordName(this.state.lastLoadedRecord);
-				if (currentRecordName === recordName) {
-					this.state.lastLoadedRecord = null;
-					this.state.isModified = true;
-				}
+			if (this.state.lastLoaded?.name === recordName) {
+				this.state.lastLoaded = null;
+				this.state.isModified = true;
 			}
 
 			deleteRecord(recordName);
@@ -156,12 +151,51 @@ export class RecordManager {
 	 * Clears the current loaded record state
 	 */
 	clearLoadedRecord() {
-		this.state.lastLoadedRecord = null;
+		this.state.lastLoaded = null;
 		this.state.isModified = true;
 	}
 }
 
 const RECORD_PREFIX = 'comm_';
+const RECORD_INDEX_KEY = 'comm_index';
+
+/**
+ * Gets the index of record names from localStorage.
+ * Rebuilds the index if it's missing, corrupted, or out of sync with actual records.
+ */
+function getRecordIndex(): string[] {
+	const keys = Object.keys(localStorage);
+	const recordKeys = keys.filter(
+		(key) => key.startsWith(RECORD_PREFIX) && key !== RECORD_INDEX_KEY
+	);
+	const indexJson = localStorage.getItem(RECORD_INDEX_KEY);
+
+	if (indexJson) {
+		try {
+			const index: unknown = JSON.parse(indexJson);
+			// Validate index: is it an array and is its length consistent with actual records?
+			if (Array.isArray(index) && index.length === recordKeys.length) {
+				// A more robust check could verify that all keys in recordKeys are in the index,
+				// but for now, we'll trust the length. This is a good trade-off for performance.
+				return index as string[];
+			}
+		} catch (e) {
+			console.error('Could not parse record index, rebuilding...', e);
+		}
+	}
+
+	// Fallback to rebuilding the index if it doesn't exist, is corrupt, or is out of sync.
+	const names = recordKeys.map((key) => key.substring(RECORD_PREFIX.length));
+	saveRecordIndex(names);
+	return names;
+}
+
+/**
+ * Saves the record index to localStorage.
+ */
+function saveRecordIndex(names: string[]): void {
+	localStorage.setItem(RECORD_INDEX_KEY, JSON.stringify(names));
+}
 
 /**
  * Capitalizes the first letter of each word in a string
@@ -171,9 +205,12 @@ function capitalizeWords(str: string): string {
 }
 
 /**
- * Generates a unique record name based on the current form state
+ * Generates a unique record name based on the record's content and existing names.
  */
-export function generateRecordName(record: CommunicationRecord): string {
+export function generateRecordName(
+	record: CommunicationRecord,
+	existingNames: string[]
+): string {
 	let datePart = record.dates.due;
 	if (isValidMonthAndDay(record.dates.due)) {
 		const [month, day] = record.dates.due.split('/');
@@ -190,7 +227,7 @@ export function generateRecordName(record: CommunicationRecord): string {
 	// Make the name unique by appending a counter if needed
 	let recordName = baseRecordName;
 	let counter = 1;
-	while (localStorage.getItem(`${RECORD_PREFIX}${recordName}`)) {
+	while (existingNames.includes(recordName)) {
 		recordName = `${baseRecordName} (${counter})`;
 		counter++;
 	}
@@ -199,13 +236,17 @@ export function generateRecordName(record: CommunicationRecord): string {
 }
 
 /**
- * Saves a communication record to localStorage
+ * Saves a communication record to localStorage and updates the index.
  */
 export function saveRecord(record: CommunicationRecord): string {
-	const recordName = generateRecordName(record);
+	const existingNames = getRecordIndex();
+	const recordName = generateRecordName(record, existingNames);
 
 	if (recordName) {
 		localStorage.setItem(`${RECORD_PREFIX}${recordName}`, JSON.stringify(record));
+		if (!existingNames.includes(recordName)) {
+			saveRecordIndex([...existingNames, recordName]);
+		}
 		return recordName;
 	}
 
@@ -229,29 +270,33 @@ export function loadRecord(recordName: string): CommunicationRecord | null {
 }
 
 /**
- * Deletes a communication record from localStorage
+ * Deletes a communication record from localStorage and the index.
  */
 export function deleteRecord(recordName: string): void {
 	localStorage.removeItem(`${RECORD_PREFIX}${recordName}`);
+	const index = getRecordIndex();
+	const newIndex = index.filter((name) => name !== recordName);
+	saveRecordIndex(newIndex);
 }
 
 /**
- * Gets all saved record names, sorted by most recent first
+ * Gets all saved record names, sorted by most recent first.
  */
 export function getSavedRecordNames(): string[] {
-	const keys = Object.keys(localStorage);
-	const recordKeys = keys.filter((key) => key.startsWith(RECORD_PREFIX));
-	return recordKeys
-		.map((key) => key.substring(RECORD_PREFIX.length))
-		.sort()
-		.reverse();
+	return getRecordIndex().sort().reverse();
 }
 
 /**
- * Checks if a record matches the current form state (for detecting modifications)
+ * Checks if two records are deeply equal.
+ * Note: This uses JSON.stringify for a quick but potentially brittle comparison.
+ * It's fast but can fail if key order differs between objects. For this app's
+ * data structures, it's a reasonable trade-off.
  */
-export function recordMatches(record1: CommunicationRecord, record2: CommunicationRecord): boolean {
-	// Deep comparison using JSON.stringify as a heuristic
+export function areRecordsEqual(
+	record1: CommunicationRecord,
+	record2: CommunicationRecord
+): boolean {
+	if (record1 === record2) return true;
 	return JSON.stringify(record1) === JSON.stringify(record2);
 }
 
@@ -264,8 +309,8 @@ export function getMostRecentRecordName(): string | null {
 }
 
 /**
- * Checks if a record with the given name exists
+ * Checks if a record with the given name exists by checking the index.
  */
 export function recordExists(recordName: string): boolean {
-	return localStorage.getItem(`${RECORD_PREFIX}${recordName}`) !== null;
+	return getRecordIndex().includes(recordName);
 }
