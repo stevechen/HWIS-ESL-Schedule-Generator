@@ -14,22 +14,13 @@
 
 	const schoolYearAndSemesterPrefix = $derived(getSchoolYearAndSemesterPrefix());
 
-	const scheduleName = $derived(
-		(() => {
-			const [year1, year2, semester] = schoolYearAndSemesterPrefix.split('-');
-			const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
-			const semesterText = `S${semester}`;
-
-			let gradeText;
-			if (grade === 'G7/8') {
-				gradeText = `Junior ${classType}`;
-			} else {
-				gradeText = grade;
-			}
-
-			return `${shortYear} ${semesterText} ${gradeText} schedule`;
-		})()
-	);
+	const scheduleName = $derived.by(() => {
+		const [year1, year2, semester] = schoolYearAndSemesterPrefix.split('-');
+		const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
+		const semesterText = `S${semester}`;
+		const gradeText = grade === 'G7/8' ? `Junior ${classType}` : grade;
+		return `${shortYear} ${semesterText} ${gradeText} schedule`;
+	});
 
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 	let checkedDaysState = $state([true, false, true, false, true]); //default
