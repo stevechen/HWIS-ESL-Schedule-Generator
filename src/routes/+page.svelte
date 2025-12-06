@@ -75,14 +75,14 @@
 	//#region Load data
 	async function loadSchoolEvents(fileNamePrefix: string) {
 		try {
-			const module = await import(`$lib/data/${fileNamePrefix}-schoolEvents.js`);
+			const module = await import(`$lib/data/${fileNamePrefix}-schoolEvents.ts`);
 			const data = module.schoolEvents
 				.split('\n')
 				.filter((line: string) => line.trim() !== '')
 				.join('\n');
 			return data;
 		} catch (error) {
-			console.error(`Failed to load ${fileNamePrefix}-schoolEvents.js`, error);
+			console.error(`Failed to load ${fileNamePrefix}-schoolEvents.ts`, error);
 			return null;
 		}
 	}

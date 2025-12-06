@@ -1,4 +1,3 @@
-/** @type {String} */
 export const schoolEvents = `
 2025-01-17	Exam		
 2025-01-16	Exam		
