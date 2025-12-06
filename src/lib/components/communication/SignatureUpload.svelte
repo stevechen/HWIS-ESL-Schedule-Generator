@@ -10,13 +10,13 @@
 	async function validateAndSetImage(file: File): Promise<void> {
 		const result = await processSignatureFile(file);
 
-		if (!result.success) {
+		if (!result.isValid) {
 			alert(result.error);
 			return;
 		}
 
-		if (result.dataURL) {
-			signatureImage = result.dataURL;
+		if (result.data) {
+			signatureImage = result.data;
 		}
 	}
 
@@ -25,7 +25,11 @@
 		if (!inputField) return;
 
 		const file = inputField.files?.[0];
-		if (file) await validateAndSetImage(file);
+		if (file) {
+			await validateAndSetImage(file);
+			// Reset input value to allow re-uploading the same file or uploading after validation failure
+			inputField.value = '';
+		}
 	}
 
 	function handleDragEnter(event: DragEvent) {
