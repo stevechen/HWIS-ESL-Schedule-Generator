@@ -292,7 +292,7 @@
 									class={[
 										isOff && i !== 3 && 'text-gray-400',
 										isExam && 'text-red-500',
-										'border-1 border-gray-200 p-2 whitespace-nowrap nth-of-type-3:w-full nth-of-type-4:w-full'
+										'border border-gray-200 p-2 whitespace-nowrap nth-of-type-3:w-full nth-of-type-4:w-full'
 									]}>{cell}</td
 								>
 							{/each}
