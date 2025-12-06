@@ -1,5 +1,5 @@
 import { expect, it, beforeEach, describe } from 'vitest';
-import { getDates } from '../../lib/getAllClassDays.svelte';
+import { getDates } from '$lib/utils/getAllClassDays';
 import { schoolEvents } from './schoolEvents';
 import { parseISO, getDay, parse, isEqual, format, add } from 'date-fns';
 

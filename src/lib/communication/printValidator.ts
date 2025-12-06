@@ -1,4 +1,4 @@
-import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
+import { isValidMonthAndDay } from '$lib/utils/dateValidation';
 import type { Student } from '$lib/stores/communication';
 
 export interface PrintValidationState {

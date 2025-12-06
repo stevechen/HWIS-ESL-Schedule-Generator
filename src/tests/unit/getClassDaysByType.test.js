@@ -1,7 +1,7 @@
 import { expect, it, beforeEach } from 'vitest';
 import { schoolEvents, schoolEvents2 } from './schoolEvents';
-import { getDates } from '$lib/getAllClassDays.svelte';
-import { getClassDaysByType } from '$lib/getClassDaysByType.svelte';
+import { getDates } from '$lib/utils/getAllClassDays';
+import { getClassDaysByType } from '$lib/utils/getClassDaysByType';
 
 /** @type {Array <{ countdown: Number | null, date: String, weekday: Number, description: String, note: String, type: String }>} */
 let allClassDays;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isValidMonthAndDay } from '$lib/utils.ts.svelte';
+	import { isValidMonthAndDay } from '$lib/utils/dateValidation';
 	import type { Student, AssignmentType } from '$lib/stores/communication/types';
 	import { AssignmentCode, DATES } from '$lib/stores/communication';
 	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
