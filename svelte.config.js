@@ -1,5 +1,5 @@
 import vercel from '@sveltejs/adapter-vercel';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+// import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const config = {
 	kit: {
@@ -13,7 +13,7 @@ const config = {
 			async: true
 		}
 	},
-	preprocess: vitePreprocess(),
+	// preprocess: vitePreprocess(),
 	vitePlugin: {
 		inspector: {
 			toggleKeyCombo: 'meta-shift',
