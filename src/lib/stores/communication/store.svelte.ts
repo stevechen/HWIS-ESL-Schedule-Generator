@@ -1,3 +1,4 @@
+import { untrack, tick } from 'svelte';
 import { browser } from '$app/environment';
 import type { Student, DisplayStudent } from '$lib/stores/communication/types';
 import { AssignmentCode, Levels } from '$lib/stores/communication/types';
@@ -16,7 +17,9 @@ const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.comm);
 export class CommunicationStore {
 	// Loading flag
 	_isLoadingRecord = $state(false);
+    _lastParsedText = '';
 
+	// Student data
 	// Student data
 	studentsText: string = $state('');
 	studentsParsed: Student[] = $state([]);
@@ -24,14 +27,13 @@ export class CommunicationStore {
 
 	// Class information
 	grade = $derived(determineGradeFromText(this.studentsText));
-	level = $state(LEVELS[2].value); // Default to Basic
+	level = $state(Levels.Basic);
 	classType: string = $state(ESL_TYPE.COMM);
 	classNum: string = $state('');
 	className = $derived([this.grade, this.level, this.classNum, this.classType].join(' '));
 
 	// Assignment information
 	assignmentRaw = $state({
-		esl: '',
 		type: '',
 		assigned: '',
 		due: '',
@@ -80,6 +82,7 @@ export class CommunicationStore {
 			const assignmentTypeText = this.assignmentTypes.find((type) => type.code === this.assignment);
 			return {
 				...this.assignmentRaw,
+				esl: this.className,
 				assigned: this.dates.assigned,
 				due: this.dates.due,
 				late: this.dates.late,
@@ -95,13 +98,41 @@ export class CommunicationStore {
 		this.initializeDates();
 
 		$effect(() => {
-			if (this._isLoadingRecord) return;
-			this.studentsParsed = parseStudentsFromText(this.studentsText);
+			try {
+                if (this.studentsText === this._lastParsedText) {
+                    return;
+                }
+                this._lastParsedText = this.studentsText;
+
+				const rawParsed = parseStudentsFromText(this.studentsText);
+				const currentParsed = untrack(() => this.studentsParsed);
+
+				// Merge existing statuses/selection if IDs match
+				const mergedParsed = rawParsed.map(newStudent => {
+					const existing = currentParsed.find(s => s.id === newStudent.id);
+					if (existing) {
+						return {
+							...newStudent,
+							status: existing.status,
+							selected: existing.selected
+						};
+					}
+					return newStudent;
+				});
+
+				const currentParsedStr = JSON.stringify(currentParsed);
+				const newParsedStr = JSON.stringify(mergedParsed);
+
+				if (currentParsedStr !== newParsedStr) {
+					this.studentsParsed = mergedParsed;
+				}
+			} catch (e) {
+				console.error('[STORE] Parsing error:', e);
+			}
 		});
 
 		$effect(() => {
 			if (this.classType === ESL_TYPE.CLIL) this.assignment = AssignmentCode.workbook;
-			this.assignmentRaw.esl = this.className;
 		});
 
 		// Load signature from localStorage on mount
@@ -145,7 +176,7 @@ export class CommunicationStore {
 		this.dates.late = lateDate;
 	}
 
-	loadRecordData = (record: CommunicationRecord) => {
+	loadRecordData = async (record: CommunicationRecord) => {
 		this._isLoadingRecord = true;
 		this.studentsText = record.studentsText;
 		this.level = record.level as Levels;
@@ -154,6 +185,9 @@ export class CommunicationStore {
 		this.assignment = record.assignment as AssignmentCode;
 		this.dates = record.dates;
 		this.studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
+		
+		await tick(); // Wait for effect to run (blocked by _isLoadingRecord=true)
+		this._isLoadingRecord = false;
 	};
 
 	/**
@@ -163,12 +197,11 @@ export class CommunicationStore {
 		this._isLoadingRecord = false;
 		this.studentsText = '';
 		this.studentsParsed = [];
-		this.level = LEVELS[2].value;
+		this.level = Levels.Basic;
 		this.classType = ESL_TYPE.COMM;
 		this.classNum = '';
 		this.assignment = AssignmentCode.passport;
 		this.assignmentRaw = {
-			esl: '',
 			type: '',
 			assigned: '',
 			due: '',

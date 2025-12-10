@@ -1,7 +1,7 @@
-import { AssignmentCode, Levels, type AssignmentType } from './types';
+import { AssignmentCode, Levels, type AssignmentType, type StatusCode } from './types';
 
 // Status type constants
-export const STATUS_CODE = {
+export const STATUS_CODE: Record<string, StatusCode> = {
 	NOT_SUBMITTED: '0',
 	NOT_COMPLETED: '1'
 } as const;

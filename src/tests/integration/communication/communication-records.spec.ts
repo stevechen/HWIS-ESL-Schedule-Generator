@@ -95,7 +95,7 @@ test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) =>
 	const recordName = `${year}/08/20-G8 Advanced CLIL 5-Workbook-2 Students`;
 	const recordKey = `comm_${recordName}`;
 	const savedSettings = {
-		studentsText: '9876543	王五	Wang Wu	J203  8765432	趙六	Zhao Liu	J204',
+		studentsText: '9876543	王五	Wang Wu	J203\n8765432	趙六	Zhao Liu	J204',
 		grade: 'G8',
 		level: 'Advanced',
 		classType: 'CLIL',
@@ -142,7 +142,7 @@ test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) =>
 	};
 
 	await page.evaluate(
-		(records: [string, object][]) => {
+		(records: any[]) => {
 			for (const [key, settings] of records) {
 				localStorage.setItem(String(key), JSON.stringify(settings));
 			}
@@ -320,4 +320,68 @@ test('5. Save Button State Management', async ({ page }) => {
 	await expect(page.locator('#save_button')).not.toBeVisible();
 	await page.locator('td.english-name input').first().fill('A New Name');
 	await expect(page.locator('#save_button')).toBeVisible();
+});
+
+test('6. Load, Clear, then Paste New Data', async ({ page }) => {
+
+	// 1. Load a record first
+	const year = new Date().getFullYear();
+	const recordName = `${year}/08/20-G8 Advanced CLIL 5-Workbook-2 Students`;
+	const recordKey = `comm_${recordName}`;
+	const savedSettings = {
+		studentsText: '9876543	王五	Wang Wu	J203\n8765432	趙六	Zhao Liu	J204',
+		grade: 'G8',
+		level: 'Advanced',
+		classType: 'CLIL',
+		assignment: 'workbook',
+		classNum: 5,
+		dates: { assigned: '08/10', due: '08/20', late: '08/21' },
+		studentsParsed: [
+			{
+				id: '9876543',
+				name: { english: 'Wang Wu', chinese: '王五' },
+				cClass: 'J203',
+				status: 0,
+				selected: false
+			},
+			{
+				id: '8765432',
+				name: { english: 'Zhao Liu', chinese: '趙六' },
+				cClass: 'J204',
+				status: 0,
+				selected: true
+			}
+		]
+	};
+
+	await page.evaluate(
+		([key, settings]) => {
+			localStorage.setItem(String(key), JSON.stringify(settings));
+		},
+		[recordKey, savedSettings]
+	);
+
+	await page.reload();
+	await page.waitForLoadState('domcontentloaded');
+	await page.locator('summary:has-text("Saved Records")').click();
+	await expect(page.locator(`.record:has-text("${recordName}")`)).toBeVisible();
+	await page.locator(`.record:has-text("${recordName}")`).click();
+	await page.waitForLoadState('domcontentloaded');
+	
+	// Verify loaded
+	await expect(page.locator('table.table-auto tbody tr')).toHaveCount(2);
+
+	// 2. Clear the form
+	await page.locator('button:has-text("Clear")').click();
+	await expect(page.locator('table.table-auto')).not.toBeVisible();
+	await expect(page.locator('#student-list-input')).toHaveValue('');
+
+	// 3. Paste new data
+	const newStudentsText = `1234567	New Student	New Name	J101`;
+	await page.locator('#student-list-input').fill(newStudentsText);
+
+	// 4. Verify new data is parsed (this is where it allegedly fails)
+	await expect(page.locator('table.table-auto')).toBeVisible();
+	await expect(page.locator('table.table-auto tbody tr')).toHaveCount(1);
+	await expect(page.locator('td.english-name input')).toHaveValue('New Name');
 });

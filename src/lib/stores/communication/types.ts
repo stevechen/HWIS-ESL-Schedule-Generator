@@ -6,7 +6,7 @@ export interface Student {
 		chinese: string;
 	};
 	cClass: string;
-	status: string;
+	status: StatusCode;
 	selected: boolean;
 }
 
@@ -46,3 +46,5 @@ export enum Levels {
 export enum Limit {
 	height = 160
 }
+
+export type StatusCode = '0' | '1';

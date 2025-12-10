@@ -63,7 +63,8 @@ export class RecordManager {
 		if (!this.state.lastLoaded) {
 			this.state.isModified = true;
 		} else {
-			this.state.isModified = !areRecordsEqual(currentRecord, this.state.lastLoaded.record);
+			const equal = areRecordsEqual(currentRecord, this.state.lastLoaded.record);
+			this.state.isModified = !equal;
 		}
 	}
 
@@ -101,7 +102,7 @@ export class RecordManager {
 		const record = loadRecord(recordName);
 
 		if (record) {
-			this.state.lastLoaded = { name: recordName, record };
+			this.state.lastLoaded = { name: recordName, record: JSON.parse(JSON.stringify(record)) };
 			this.state.isModified = false;
 			return { success: true, record };
 		}

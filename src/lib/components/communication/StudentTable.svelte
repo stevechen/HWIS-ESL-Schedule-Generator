@@ -164,7 +164,7 @@
 							id="master-checkbox"
 							type="checkbox"
 							class="m-1 size-4"
-							bind:checked={isAllChecked.checked}
+							checked={isAllChecked.checked}
 							indeterminate={isAllChecked.indeterminate}
 							onchange={handleToggleAll}
 						/>
@@ -202,7 +202,8 @@
 						</td>
 						<td class="w-auto english-name">
 							<input
-								type="text-center"
+								class="text-center"
+								type="text"
 								bind:value={student.name.english}
 								oninput={handleStudentChange}
 							/>
