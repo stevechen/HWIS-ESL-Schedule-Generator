@@ -20,7 +20,6 @@ export class CommunicationStore {
     _lastParsedText = '';
 
 	// Student data
-	// Student data
 	studentsText: string = $state('');
 	studentsParsed: Student[] = $state([]);
 	hideTextarea: boolean = $derived(this.studentsParsed.length > 0);
@@ -50,6 +49,7 @@ export class CommunicationStore {
 
 	// Signature
 	signatureImage: string = $state('');
+	isSignatureInitialized = $state(false);
 	private _previousSignatureImage: string | null = $state(null);
 
 	// DERIVED STATE ----------------
@@ -142,6 +142,7 @@ export class CommunicationStore {
 				if (savedSignature) {
 					this.signatureImage = savedSignature;
 				}
+				this.isSignatureInitialized = true;
 			}
 		});
 

@@ -82,7 +82,17 @@
 		/>
 		<div class="flex flex-wrap justify-start items-center mb-0 p-2">
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
-				<SignatureUpload bind:signatureImage={state.signatureImage} />
+				{#if state.isSignatureInitialized}
+					<SignatureUpload bind:signatureImage={state.signatureImage} />
+				{:else}
+					<!-- spin circle -->
+					<svg
+						class="inline-block size-12 text-red-500 origin-center animate-[spin_3s_linear_infinite]"
+						viewBox="0 0 24 24"
+					>
+						<use href="#icon-spin" />
+					</svg>
+				{/if}
 
 				<PrintButton
 					classNum={state.classNum}
