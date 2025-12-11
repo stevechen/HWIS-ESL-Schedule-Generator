@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { slide } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import { CommunicationStore } from '$lib/stores/communication';
 	import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
 	import { RecordManager } from '$lib/communication/recordManager.svelte';
@@ -121,10 +121,16 @@
 		</h3>
 		<div class="bg-blue-100 print:p-0 px-2 py-1 rounded-lg w-[182mm] min-h-[calc(100dvh-6.5rem)]">
 			{#each state.students as student, i (student.id)}
-				<p class="print:hidden block mx-4 mt-2 text-slate-500" transition:slide>
-					Slip #{i + 1}
-				</p>
-				<Slip {student} signatureSrc={state.signatureImage} assignment={state.assignmentDetails} />
+				<div transition:fade|local>
+					<div transition:slide|local>
+						<p class="print:hidden block mx-4 mt-2 text-slate-500">Slip #{i + 1}</p>
+						<Slip
+							{student}
+							signatureSrc={state.signatureImage}
+							assignment={state.assignmentDetails}
+						/>
+					</div>
+				</div>
 			{/each}
 		</div>
 	</section>

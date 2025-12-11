@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
 	import {
 		STATUS_CODE,
 		STATUSES,
@@ -90,7 +89,6 @@
 						'bg-linear-to-b from-slate-700 to-slate-500 text-white shadow-xs shadow-blue-800',
 					'rounded-full px-2'
 				]}
-				transition:fade
 			>
 				{grade}
 			</p>
