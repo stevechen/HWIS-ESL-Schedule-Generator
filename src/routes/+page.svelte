@@ -173,7 +173,7 @@
 >
 	<!-- MARK: **** Controls **** -->
 	<section id="input" class="top-13 z-10 fixed flex flex-col mt-2">
-		<h3>Class</h3>
+		<h3 class="text-slate-700">Class</h3>
 		<div
 			id="options"
 			class="flex flex-col bg-black px-2 py-1 pt-0 border border-gray-500 border-dotted rounded-lg"
@@ -205,7 +205,7 @@
 	<!-- MARK: **** Output **** -->
 	<section id="output" class="flex flex-col ml-92">
 		<div class="relative flex items-center gap-2">
-			<h3>{scheduleName}</h3>
+			<h3 class="text-slate-700">{scheduleName}</h3>
 			<div class="relative ml-auto">
 				<button
 					id="download_button"
@@ -274,7 +274,10 @@
 		</div>
 		<!-- MARK: * Output table * 	 -->
 		<div class="flex-1 border border-gray-400 min-w-96 overflow-auto font-mono text-xs">
-			<table id="output_table" class="w-full min-w-2xl text-left border-separate border-spacing-0">
+			<table
+				id="output_table"
+				class="w-full min-w-2xl text-left border-separate border-spacing-0 text-slate-700"
+			>
 				<thead>
 					<tr class="bg-blue-700 text-white">
 						{#each outputTable.header as header_item}
