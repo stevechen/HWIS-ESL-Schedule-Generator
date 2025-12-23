@@ -118,4 +118,41 @@ test.describe('Communication Slip Printing', () => {
 			}
 		}
 	});
+
+	test('should show warning dialog when printing with missing info but ALLOW printing', async ({ page }) => {
+		await page.goto('/communication');
+		await page.locator('#student-list-input').fill(THREE_STUDENTS);
+		await page.waitForTimeout(500);
+
+		// Missing dates and class number
+		const printButton = page.locator('button.print-slips');
+		await printButton.click();
+
+		// Dialog should be visible
+		const dialog = page.locator('dialog');
+		await expect(dialog).toBeVisible();
+		await expect(dialog).toContainText('Missing Information');
+		await expect(dialog).toContainText('Class number');
+		await expect(dialog).toContainText('Assigned date');
+
+		// Click Print Anyway
+		const printAnywayButton = page.getByRole('button', { name: 'Print Anyway' });
+		await printAnywayButton.click();
+
+		// Dialog should be closed
+		await expect(dialog).not.toBeVisible();
+	});
+
+	test('should NOT show warning dialog when 0 slips are selected', async ({ page }) => {
+		await page.goto('/communication');
+		
+		// No students added/selected
+		const printButton = page.locator('button.print-slips');
+		await expect(printButton).toHaveText('Print 0 Slips');
+		
+		// Clicking should do nothing (no dialog)
+		await printButton.click();
+		const dialog = page.locator('dialog');
+		await expect(dialog).not.toBeVisible();
+	});
 });

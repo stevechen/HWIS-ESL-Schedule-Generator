@@ -5,6 +5,7 @@ export interface PrintValidationState {
 	isInvalid: boolean;
 	hasCaution: boolean;
 	message: string;
+	missingItems: string[];
 }
 
 export interface PrintValidationInput {
@@ -34,36 +35,44 @@ export function validatePrintReadiness(input: PrintValidationInput): PrintValida
 		signatureImage
 	} = input;
 
-	// Check for invalid conditions (blocking errors)
-	const invalidConditions = [
-		{ condition: !classNum, message: 'Class number is required' },
-		{ condition: !studentsParsed.length, message: 'No students added' },
-		{ condition: !isAllChecked.indeterminate && !isAllChecked.checked, message: 'No students selected' },
-		{ condition: !isValidMonthAndDay(assignmentDates.assigned), message: 'Invalid assigned date' },
-		{ condition: !isValidMonthAndDay(assignmentDates.due), message: 'Invalid due date' },
-		{ condition: !isValidMonthAndDay(assignmentDates.late), message: 'Invalid late date' },
-		{ condition: !grade, message: 'Grade could not be determined' }
-	];
+	const missingItems: string[] = [];
 
-	const failedCondition = invalidConditions.find(({ condition }) => condition);
-	
-	if (failedCondition) {
+	// Blocking error: No students selected
+	const noStudentsSelected = !isAllChecked.indeterminate && !isAllChecked.checked;
+	if (noStudentsSelected) {
 		return {
 			isInvalid: true,
 			hasCaution: false,
-			message: failedCondition.message
+			message: studentsParsed.length === 0 ? 'No students added' : 'No students selected',
+			missingItems: []
 		};
 	}
 
-	// Check for caution conditions (warnings but not blocking)
-	const hasCaution = !signatureImage;
+	// Cautions (warnings)
+	if (!classNum) missingItems.push('Class number');
+	if (!grade) missingItems.push('Grade level');
+	if (!isValidMonthAndDay(assignmentDates.assigned)) missingItems.push('Assigned date');
+	if (!isValidMonthAndDay(assignmentDates.due)) missingItems.push('Due date');
+	if (!isValidMonthAndDay(assignmentDates.late)) missingItems.push('Late date');
+	if (!signatureImage) missingItems.push('Signature');
+
+	// Check for incomplete student information for selected students
+	const selectedStudents = studentsParsed.filter((s) => s.selected);
+	const hasIncompleteStudent = selectedStudents.some(
+		(s) => !s.id || !s.name.english || !s.name.chinese || !s.cClass
+	);
+	if (hasIncompleteStudent) missingItems.push('Student information (ID, name, or class)');
+
+	const hasCaution = missingItems.length > 0;
 
 	return {
 		isInvalid: false,
 		hasCaution,
-		message: hasCaution ? 'Missing signature' : 'Ready to print'
+		message: hasCaution ? 'Missing Info!' : 'Ready to print',
+		missingItems
 	};
 }
+
 
 /**
  * Gets the appropriate print button styling based on validation state

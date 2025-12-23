@@ -186,31 +186,32 @@ test.describe('Student Data Handling', () => {
 
 		//change the random row data
 		await page.fill(`tr:nth-child(${randomIndex}) td.student-id > input`, '5555555');
-		await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .student-info`)).toContainText(
+		await expect(page.locator('.slip').nth(randomIndex - 1).locator('.student-info')).toContainText(
 			'5555555'
 		);
 
 		await page.fill(`tr:nth-child(${randomIndex}) .chinese-name > input`, '王八');
-		await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .student-info`)).toContainText(
+		await expect(page.locator('.slip').nth(randomIndex - 1).locator('.student-info')).toContainText(
 			'王八'
 		);
 
 		await page.fill(`tr:nth-child(${randomIndex}) .english-name > input`, 'Mary Jane');
-		await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .student-info`)).toContainText(
+		await expect(page.locator('.slip').nth(randomIndex - 1).locator('.student-info')).toContainText(
 			'Mary Jane'
 		);
 
 		await page.fill(`tr:nth-child(${randomIndex}) .chinese-class > input`, 'J112');
-		await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .class-info`)).toContainText(
+		await expect(page.locator('.slip').nth(randomIndex - 1).locator('.class-info')).toContainText(
 			'J112'
 		);
 
 		await page.click(`tr:nth-child(${randomIndex}) > td > select`);
 		await page.selectOption(`tr:nth-of-type(${randomIndex}) > td > select`, { value: '1' });
 
-		await expect(page.locator(`.slip:nth-of-type(${randomIndex}) .assignment-info`)).toContainText(
+		await expect(page.locator('.slip').nth(randomIndex - 1).locator('.assignment-info')).toContainText(
 			"wasn't completed"
 		);
+
 	});
 });
 
