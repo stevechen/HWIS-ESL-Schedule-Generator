@@ -78,7 +78,7 @@
 
 <!-- MARK: signature -->
 <div
-	class="flex flex-wrap justify-self-start col-start-1 col-end-10 mr-4 *:border-dashed *:rounded-lg cursor-default"
+	class="flex flex-wrap justify-self-start col-start-1 col-end-9 mr-4 *:border-dashed *:rounded-lg cursor-default"
 	ondragenter={handleDragEnter}
 	ondragover={handleDragOver}
 	ondrop={handleDrop}

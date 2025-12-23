@@ -18,8 +18,9 @@ test.describe('Communication Slip Printing', () => {
 	test('should display a maximum of three slips on a B5 page', async ({ page }) => {
 		await page.goto('/communication');
 		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
-		await page.locator('#student-list-input').fill(THREE_STUDENTS);
-		await page.waitForTimeout(1000); // wait for svelte to update
+		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
+		await page.evaluate((text) => (window as any).setStudentsText(text), THREE_STUDENTS);
+		await page.waitForTimeout(500); // wait for svelte to update
 		await page.getByLabel('Passport').check();
 		await page.locator('#due').fill('9/10');
 		await page.locator('#late').fill('9/11');
@@ -41,8 +42,9 @@ test.describe('Communication Slip Printing', () => {
 	test('should place the fourth slip on the next page', async ({ page }) => {
 		await page.goto('/communication');
 		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
-		await page.locator('#student-list-input').fill(FOUR_STUDENTS);
-		await page.waitForTimeout(1000); // wait for svelte to update
+		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
+		await page.evaluate((text) => (window as any).setStudentsText(text), FOUR_STUDENTS);
+		await page.waitForTimeout(500); // wait for svelte to update
 		await page.getByLabel('Passport').check();
 		await page.locator('#due').fill('9/10');
 		await page.locator('#late').fill('9/11');
@@ -75,8 +77,9 @@ test.describe('Communication Slip Printing', () => {
 	test('should distribute slips evenly on the page', async ({ page }) => {
 		await page.goto('/communication');
 		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
-		await page.locator('#student-list-input').fill(THREE_STUDENTS);
-		await page.waitForTimeout(1000); // wait for svelte to update
+		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
+		await page.evaluate((text) => (window as any).setStudentsText(text), THREE_STUDENTS);
+		await page.waitForTimeout(500); // wait for svelte to update
 		await page.getByLabel('Passport').check();
 		await page.locator('#due').fill('9/10');
 		await page.locator('#late').fill('9/11');
@@ -121,8 +124,9 @@ test.describe('Communication Slip Printing', () => {
 
 	test('should show warning dialog when printing with missing info but ALLOW printing', async ({ page }) => {
 		await page.goto('/communication');
-		await page.locator('#student-list-input').fill(THREE_STUDENTS);
-		await page.waitForTimeout(500);
+		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
+		await page.evaluate((text) => (window as any).setStudentsText(text), THREE_STUDENTS);
+		await page.waitForTimeout(200);
 
 		// Missing dates and class number
 		const printButton = page.locator('button.print-slips');

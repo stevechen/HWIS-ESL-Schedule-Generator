@@ -26,7 +26,7 @@
 }
 
 .radio-bg {
-	@apply flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,_0,_0,_1),inset_0_8px_3px_-8px_rgba(255,_255,_255,_1)] mx-1 my-1 p-0.5 rounded-full;
+	@apply flex flex-row justify-start items-center bg-linear-[270deg,#444,#222] shadow-[0px_0px_3px_1px_rgba(0,0,0,1),inset_0_8px_3px_-8px_rgba(255,255,255,1)] mx-1 my-1 p-0.5 rounded-full;
 }
 
 .radio-label {
@@ -41,5 +41,17 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 input[type="number"] {
+	appearance: textfield;
 	-moz-appearance: textfield;
+}
+
+@utility student-row {
+	& input:not([type='checkbox']) {
+		@apply h-6 w-full border-none bg-transparent text-center text-slate-700 focus:bg-blue-50 focus:outline-hidden;
+	}
+	& select {
+		@apply h-6 w-full cursor-pointer border-none bg-transparent text-center focus:outline-hidden px-1;
+		appearance: none;
+		-webkit-appearance: none;
+	}
 }

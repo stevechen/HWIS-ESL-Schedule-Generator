@@ -20,8 +20,9 @@ test.describe('Communication Controls Scrolling', () => {
 		// Generate a list of 30 students to ensure the controls panel overflows
 		const longStudentList = generateStudentList(30);
 
-		// Fill the textarea with the student list
-		await page.locator('#student-list-input').fill(longStudentList);
+		// Use the development helper to simulate paste
+		await page.waitForFunction(() => typeof window.setStudentsText === 'function');
+		await page.evaluate((text) => window.setStudentsText(text), longStudentList);
 
 		// Wait for the table to be populated
 		await expect(page.locator('table tbody tr').nth(29)).toBeVisible();

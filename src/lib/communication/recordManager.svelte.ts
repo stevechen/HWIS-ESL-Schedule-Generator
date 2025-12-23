@@ -2,7 +2,6 @@ import { isValidMonthAndDay } from '$lib/utils/dateValidation';
 import type { Student, Levels, AssignmentCode } from '$lib/stores/communication';
 
 export interface CommunicationRecord {
-	studentsText: string;
 	grade: string;
 	level: Levels;
 	classType: string;

@@ -20,7 +20,7 @@
 	onMount(() => {
 		if (browser && import.meta.env.DEV) {
 			window.setStudentsText = (value: string) => {
-				state.studentsText = value;
+				state.handlePaste(value);
 			};
 		}
 	});
@@ -29,7 +29,6 @@
 	const recordManager = new RecordManager();
 
 	const currentRecord: CommunicationRecord = $derived({
-		studentsText: state.studentsText,
 		grade: state.grade,
 		level: state.level,
 		classType: state.classType,
@@ -70,9 +69,8 @@
 			onClearForm={clearForm}
 		/>
 		<StudentTable
-			bind:studentsText={state.studentsText}
 			bind:studentsParsed={state.studentsParsed}
-			hideTextarea={state.hideTextarea}
+			onPaste={(text) => state.handlePaste(text)}
 			grade={state.grade}
 			students={state.students}
 			UI_Grade={state.grade}

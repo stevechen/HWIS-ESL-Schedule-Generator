@@ -36,9 +36,9 @@ const sampleStudentsText = `1234567	張三	Chang San	J101
 2345678	李四	Si Li	J102`;
 
 const fillForm = async (page: Page) => {
-	await page.waitForFunction(() => window.setStudentsText !== undefined);
-	await page.locator('#student-list-input').fill(sampleStudentsText);
-	await expect(page.locator('table.table-auto')).toBeVisible();
+	await page.waitForFunction(() => typeof window.setStudentsText === 'function');
+	await page.evaluate((text) => window.setStudentsText(text), sampleStudentsText);
+	await expect(page.locator('table')).toBeVisible();
 	await expect(page.locator('label:has-text("Passport")')).toBeVisible();
 	await page.locator('label:has-text("Passport")').click();
 	await expect(page.locator('label:has-text("Passport") input')).toBeChecked();
@@ -80,7 +80,6 @@ test('1. Saving a New Record', async ({ page }) => {
 	);
 	expect(savedData).not.toBeNull();
 	const parsedData = JSON.parse(savedData!);
-	expect(parsedData.studentsText).toBe(sampleStudentsText);
 	expect(parsedData.assignment).toBe('workbook');
 	expect(parsedData.dates.due).toBe('08/15');
 	expect(parsedData.dates.late).toBe('08/16');
@@ -190,7 +189,6 @@ test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) =>
 	// Also check that the loaded color is not a default/transparent color
 	expect(['rgba(0, 0, 0, 0)', 'rgb(255, 255, 255)']).not.toContain(loadedBgColor);
 
-	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
 	await expect(page.locator('input[name="due"]')).toHaveValue(savedSettings.dates.due);
 	await expect(page.locator('input[name="late"]')).toHaveValue(savedSettings.dates.late);
 	await expect(page.locator('input[placeholder="#?"]')).toHaveValue(String(savedSettings.classNum));
@@ -198,8 +196,8 @@ test('2. Loading a Saved Record & Verifying Checkbox State', async ({ page }) =>
 	await expect(page.locator('label[for="adv"] input')).toBeChecked();
 	await expect(page.locator('label:has-text("CLIL") input')).toBeChecked();
 	await expect(page.locator('#grade:has-text("G8")')).toBeVisible();
-	await expect(page.locator('table.table-auto')).toBeVisible();
-	const rows = page.locator('table.table-auto tbody tr');
+	await expect(page.locator('table')).toBeVisible();
+	const rows = page.locator('table tbody tr');
 	await expect(rows).toHaveCount(2);
 	const row1 = rows.nth(0);
 	await expect(row1.locator('td.english-name input')).toHaveValue('Wang Wu');
@@ -259,14 +257,13 @@ test('3. Deleting a Saved Record', async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded');
 	await page.locator('summary:has-text("Saved Records")').click();
 	await expect(page.locator('#records_list')).toBeVisible();
+	await expect(page.locator(`.record:has-text("${recordName}")`)).toBeVisible();
 	await page.locator(`.record:has-text("${recordName}")`).click();
 	await page.waitForLoadState('domcontentloaded');
-	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
 	await page
 		.locator(`.record:has-text("${recordName}") button[aria-label="Delete record"]`)
 		.click();
 	await page.waitForLoadState('domcontentloaded');
-	await expect(page.locator('#student-list-input')).toHaveValue(savedSettings.studentsText);
 });
 
 test('4. Clearing the Form', async ({ page }) => {
@@ -283,7 +280,7 @@ test('4. Clearing the Form', async ({ page }) => {
 	expect(signatureSrc).not.toBeNull();
 
 	// Verify form is populated
-	await expect(page.locator('#student-list-input')).toHaveValue(sampleStudentsText);
+	await expect(page.locator('table')).toBeVisible();
 	await expect(page.locator('button:has-text("Clear")')).toBeVisible();
 
 	// Clear form
@@ -292,9 +289,8 @@ test('4. Clearing the Form', async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded');
 
 	// Verify cleared state
-	await expect(page.locator('#student-list-input')).toHaveValue('');
 	await expect(page.locator('input[placeholder="#?"]')).toHaveValue('');
-	await expect(page.locator('table.table-auto')).not.toBeVisible();
+	await expect(page.locator('text=Paste students from spreadsheet here')).toBeVisible();
 	await expect(page.locator('button:has-text("Clear")')).not.toBeVisible();
 
 	// Verify signature is NOT cleared (it's reloaded from localStorage)
@@ -369,19 +365,19 @@ test('6. Load, Clear, then Paste New Data', async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded');
 	
 	// Verify loaded
-	await expect(page.locator('table.table-auto tbody tr')).toHaveCount(2);
+	await expect(page.locator('table tbody tr')).toHaveCount(2);
 
 	// 2. Clear the form
 	await page.locator('button:has-text("Clear")').click();
-	await expect(page.locator('table.table-auto')).not.toBeVisible();
-	await expect(page.locator('#student-list-input')).toHaveValue('');
+	await expect(page.locator('text=Paste students from spreadsheet here')).toBeVisible();
 
 	// 3. Paste new data
 	const newStudentsText = `1234567	New Student	New Name	J101`;
-	await page.locator('#student-list-input').fill(newStudentsText);
+	await page.waitForFunction(() => typeof window.setStudentsText === 'function');
+	await page.evaluate((text) => window.setStudentsText(text), newStudentsText);
 
 	// 4. Verify new data is parsed (this is where it allegedly fails)
-	await expect(page.locator('table.table-auto')).toBeVisible();
-	await expect(page.locator('table.table-auto tbody tr')).toHaveCount(1);
+	await expect(page.locator('table')).toBeVisible();
+	await expect(page.locator('table tbody tr')).toHaveCount(1);
 	await expect(page.locator('td.english-name input')).toHaveValue('New Name');
 });

@@ -85,7 +85,7 @@
 </script>
 
 <!-- Print button -->
-<div class="justify-self-end col-start-10 col-end-13 my-0 text-center">
+<div class="justify-self-end col-start-9 col-end-13 my-0 text-center">
 	<p
 		class={[
 			printValidation.isInvalid && 'text-red-400',

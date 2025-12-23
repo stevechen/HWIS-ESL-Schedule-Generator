@@ -61,3 +61,11 @@ export function determineGradeFromText(pastedText: string): string {
 	}
 	return ''; // out of range or not found, return empty string instead of null
 }
+/**
+ * Determines grade from an array of parsed students by checking their Chinese class code
+ */
+export function determineGradeFromStudents(students: Student[]): string {
+	if (students.length === 0) return '';
+	// Use the first student's cClass to determine the grade
+	return determineGradeFromText(students[0].cClass);
+}

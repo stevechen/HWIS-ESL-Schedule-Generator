@@ -10,9 +10,8 @@
 	} from '$lib/stores/communication';
 
 	let {
-		studentsText = $bindable(),
 		studentsParsed = $bindable(),
-		hideTextarea,
+		onPaste,
 		grade,
 		students,
 		UI_Grade,
@@ -20,9 +19,8 @@
 		UI_ClassType = $bindable(),
 		UI_ClassNum = $bindable()
 	}: {
-		studentsText: string;
 		studentsParsed: Array<Student>;
-		hideTextarea: boolean;
+		onPaste: (text: string) => void;
 		grade: string;
 		students: Array<DisplayStudent>;
 		UI_Grade: string;
@@ -56,13 +54,22 @@
 	function handleStudentChange() {
 		studentsParsed = [...studentsParsed];
 	}
+
+	function onGlobalPaste(e: ClipboardEvent) {
+		const text = e.clipboardData?.getData('text');
+		if (text && (text.includes('\t') || text.includes('\n'))) {
+			e.preventDefault();
+			onPaste(text);
+		}
+	}
 </script>
 
 <div
-	class="flex flex-wrap justify-start items-center mb-0 p-2 border-gray-600 border-y border-dashed"
+	class="flex flex-wrap justify-start items-center mb-0 p-1 border-gray-600 border-y border-dashed"
+	onpaste={onGlobalPaste}
 >
 	<!-- MARK: class-info -->
-	<fieldset class="flex flex-row justify-start items-center mb-2 pr-2 w-full class-info">
+	<fieldset class="flex flex-row justify-start items-center mb-1 pr-2 w-full class-info">
 		<!-- student icon -->
 		<svg class="fill-white mx-4 my-1 size-5" viewBox="0 0 512 512">
 			<use href="#icon-student" />
@@ -136,106 +143,120 @@
 		</div>
 	</fieldset>
 
-	<!-- MARK: students -->
-	<fieldset class="w-full">
-		<textarea
-			id="student-list-input"
-			class={[
-				hideTextarea && 'hidden',
-				'mx-5 h-12 min-w-15/16 overflow-hidden rounded-md border bg-white px-2 py-0.5 placeholder:text-sm  invalid:border-2 invalid:border-red-400 focus:border-blue-800 focus:outline-hidden'
-			]}
-			bind:value={studentsText}
-			placeholder="Paste students from spreadsheet with fields (order agnostic):
-[ID, Chinese Name, English Name, Chinese Class]"
-			required
-		>
-		</textarea>
-	</fieldset>
-
 	<!-- MARK: student table -->
-	{#if studentsParsed.length > 0}
-		<table class="bg-white mx-6 mb-2 w-full text-sm border-collapse table-auto">
-			<thead class="bg-slate-100 font-semibold text-xs">
-				<tr>
-					<th class="border border-slate-300 border-solid">
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<div
+		class="mx-6 mb-2 rounded-lg border-2 border-transparent transition-all duration-300 focus:border-blue-500/80 focus:ring-4 focus:ring-blue-500/10 focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-hidden group overflow-hidden w-[calc(100%-3rem)]"
+		tabindex="0"
+		role="region"
+		aria-label="Student data table"
+	>
+		<table class="w-full table-fixed border-collapse bg-white text-sm text-slate-700">
+			<colgroup>
+				<col class="w-10" />
+				<col class="w-17" />
+				<col class="w-auto" />
+				<col class="w-20" />
+				<col class="w-12" />
+				<col class="w-42" />
+			</colgroup>
+			<thead class="bg-slate-200 text-xs font-semibold">
+				<tr class="h-6 [&>th]:border [&>th]:border-slate-300">
+					<th>
 						<input
 							id="master-checkbox"
 							type="checkbox"
-							class="m-1 size-4"
+							class="size-4 align-middle"
 							checked={isAllChecked.checked}
 							indeterminate={isAllChecked.indeterminate}
 							onchange={handleToggleAll}
+							disabled={studentsParsed.length === 0}
 						/>
 					</th>
-					{#each ['ID', 'English Name', 'C. Name', 'C. Class', 'Status'] as header}
-						<th class="border border-slate-300 border-solid">{header}</th>
-					{/each}
+					<th>ID</th>
+					<th>English Name</th>
+					<th>C. Name</th>
+					<th>Class</th>
+					<th>Status</th>
 				</tr>
 			</thead>
 			<tbody>
-				{#each studentsParsed as student}
-					<tr
-						class="[&>td>input]:box-border [&>td>input:focus]:bg-blue-50 [&>td>input]:bg-transparent [&>td]:p-1 [&>td]:border border-slate-200 [&>td]:border-gray-500 [&>td>input]:border-none [&>td>input]:size-full [&>td]:text-center [&>td]:border-collapse"
-					>
-						<td class="table-cell text-align-center align-middle student-checkbox">
-							<div class="flex justify-center items-center">
-								<label for="checkbox-{student.id}">
-									<input
-										type="checkbox"
-										id="checkbox-{student.id}"
-										class="min-w-4 min-h-4"
-										bind:checked={student.selected}
-										onchange={handleStudentChange}
-									/>
-								</label>
-							</div>
-						</td>
-						<td class="w-18 student-id">
-							<input
-								class="text-center"
-								type="text"
-								bind:value={student.id}
-								oninput={handleStudentChange}
-							/>
-						</td>
-						<td class="w-auto english-name">
-							<input
-								class="text-center"
-								type="text"
-								bind:value={student.name.english}
-								oninput={handleStudentChange}
-							/>
-						</td>
-						<td class="w-20 chinese-name">
-							<input
-								class="text-center"
-								type="text"
-								bind:value={student.name.chinese}
-								oninput={handleStudentChange}
-							/>
-						</td>
-
-						<td class="w-14 chinese-class">
-							<input
-								class="text-center"
-								type="text"
-								bind:value={student.cClass}
-								oninput={handleStudentChange}
-							/>
-						</td>
-						<td class="w-auto text-center">
-							<select bind:value={student.status} onchange={handleStudentChange}>
-								<option value={STATUS_CODE.NOT_SUBMITTED}>
-									{STATUSES[STATUS_CODE.NOT_SUBMITTED].text.english}
-								</option>
-								<option value={STATUS_CODE.NOT_COMPLETED}>
-									{STATUSES[STATUS_CODE.NOT_COMPLETED].text.english}
-								</option>
-							</select>
-						</td>
-					</tr>
-				{/each}
+				{#if studentsParsed.length === 0}
+					<!-- Placeholder rows to indicate where to paste -->
+					{#each Array(5) as _, i}
+						<tr
+							class={[
+								Math.floor(i / 3) % 2 === 1 && 'bg-blue-50',
+								'h-6 opacity-40 [&>td]:border [&>td]:border-slate-300'
+							]}
+						>
+							<td></td>
+							<td></td>
+							<td class="relative overflow-visible">
+								{#if i === 2}
+									<div
+										class="absolute inset-y-0 left-[-112px] right-[-300px] flex items-center justify-center whitespace-nowrap px-4 text-slate-400 transition-colors group-focus:font-medium group-focus:text-blue-500 pointer-events-none"
+									>
+										Paste students from spreadsheet here (ID, English Name, Chinese Name, Class)
+									</div>
+								{/if}
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					{/each}
+				{:else}
+					{#each studentsParsed as student, i}
+						<tr
+							class={[
+								Math.floor(i / 3) % 2 === 1 && 'bg-yellow-50/50',
+								'h-6 [&>td]:border [&>td]:border-slate-300 [&>td]:p-0 student-row'
+							]}
+						>
+							<td class="text-center align-middle student-checkbox">
+								<input
+									type="checkbox"
+									id="checkbox-{student.id}"
+									class="size-4 align-middle"
+									bind:checked={student.selected}
+									onchange={handleStudentChange}
+								/>
+							</td>
+							<td class="student-id">
+								<input type="text" bind:value={student.id} oninput={handleStudentChange} />
+							</td>
+							<td class="english-name">
+								<input
+									type="text"
+									bind:value={student.name.english}
+									oninput={handleStudentChange}
+								/>
+							</td>
+							<td class="chinese-name">
+								<input
+									type="text"
+									bind:value={student.name.chinese}
+									oninput={handleStudentChange}
+								/>
+							</td>
+							<td class="chinese-class">
+								<input type="text" bind:value={student.cClass} oninput={handleStudentChange} />
+							</td>
+							<td class="student-status">
+								<select bind:value={student.status} onchange={handleStudentChange}>
+									<option value={STATUS_CODE.NOT_SUBMITTED}>
+										{STATUSES[STATUS_CODE.NOT_SUBMITTED].text.english}
+									</option>
+									<option value={STATUS_CODE.NOT_COMPLETED}>
+										{STATUSES[STATUS_CODE.NOT_COMPLETED].text.english}
+									</option>
+								</select>
+							</td>
+						</tr>
+					{/each}
+				{/if}
 			</tbody>
 		</table>
-	{/if}
+	</div>
 </div>
