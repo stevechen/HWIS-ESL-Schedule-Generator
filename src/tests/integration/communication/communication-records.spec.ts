@@ -381,3 +381,56 @@ test('6. Load, Clear, then Paste New Data', async ({ page }) => {
 	await expect(page.locator('table tbody tr')).toHaveCount(1);
 	await expect(page.locator('td.english-name input')).toHaveValue('New Name');
 });
+
+test('7. Save Button - Resilience to Legacy Data', async ({ page }) => {
+	const year = new Date().getFullYear();
+	const recordName = `${year}/10/25-G9 Basic COMM 3-Homework-1 Students`;
+	const recordKey = `comm_${recordName}`;
+
+	// Record with legacy 'studentsText' and extra unknown properties
+	const recordWithLegacyData = {
+		grade: 'G9',
+		level: 'Basic',
+		classType: 'COMM',
+		classNum: '3',
+		assignment: 'homework',
+		dates: { assigned: '10/20', due: '10/25', late: '10/26' },
+		studentsParsed: [
+			{
+				id: '1234567',
+				name: { english: 'Test Student', chinese: '測試生' },
+				cClass: 'J303',
+				status: 0,
+				selected: true
+			}
+		],
+		// Extraneous properties that should be ignored by the equality check
+		studentsText: '1234567\t測試生\tTest Student\tJ303',
+		extraLegacyField: 'some old data',
+		metadata: { lastEditor: 'Old System' }
+	};
+
+	await page.evaluate(
+		([key, settings]) => {
+			localStorage.setItem(String(key), JSON.stringify(settings));
+		},
+		[recordKey, recordWithLegacyData]
+	);
+
+	await page.reload();
+	await page.waitForLoadState('domcontentloaded');
+	await page.locator('summary:has-text("Saved Records")').click();
+	await page.locator(`.record:has-text("${recordName}")`).click();
+	await page.waitForLoadState('domcontentloaded');
+
+	// Verify the record is loaded
+	await expect(page.locator('#grade:has-text("G9")')).toBeVisible();
+	await expect(page.locator('td.english-name input')).toHaveValue('Test Student');
+
+	// CRITICAL: Save button should STILL NOT be visible despite extra fields in the raw data
+	await expect(page.locator('#save_button')).not.toBeVisible();
+
+	// Verify it becomes visible on actual modification
+	await page.locator('td.english-name input').first().fill('Modified Name');
+	await expect(page.locator('#save_button')).toBeVisible();
+});

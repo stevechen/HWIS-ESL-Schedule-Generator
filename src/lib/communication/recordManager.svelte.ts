@@ -22,7 +22,7 @@ export class RecordManager {
 	private state = $state<RecordManagerState>({
 		savedRecords: [],
 		lastLoaded: null,
-		isModified: true,
+		isModified: false,
 		isSaveable: false
 	});
 
@@ -48,23 +48,16 @@ export class RecordManager {
 		return this.state.isModified;
 	}
 
+	set isModified(value: boolean) {
+		this.state.isModified = value;
+	}
+
 	get isSaveable() {
 		return this.state.isSaveable;
 	}
 
-	/**
-	 * Updates the saveable and modified state based on current record
-	 */
-	updateState(currentRecord: CommunicationRecord) {
-		this.state.isSaveable =
-			!!currentRecord.classNum && currentRecord.studentsParsed.filter((s) => s.selected).length > 0;
-
-		if (!this.state.lastLoaded) {
-			this.state.isModified = true;
-		} else {
-			const equal = areRecordsEqual(currentRecord, this.state.lastLoaded.record);
-			this.state.isModified = !equal;
-		}
+	set isSaveable(value: boolean) {
+		this.state.isSaveable = value;
 	}
 
 	/**
@@ -288,12 +281,73 @@ export function getSavedRecordNames(): string[] {
  * It's fast but can fail if key order differs between objects. For this app's
  * data structures, it's a reasonable trade-off.
  */
+/**
+ * Checks if two records are deeply equal, only considering relevant properties.
+ */
 export function areRecordsEqual(
 	record1: CommunicationRecord,
 	record2: CommunicationRecord
 ): boolean {
-	if (record1 === record2) return true;
-	return JSON.stringify(record1) === JSON.stringify(record2);
+	// Normalize both to ensure they only contain the expected keys for comparison
+	const clean1 = cleanRecord(record1);
+	const clean2 = cleanRecord(record2);
+	return deepEqual(clean1, clean2);
+}
+
+/**
+ * Creates a clean version of a record containing only the properties in the interface.
+ * Also normalizes types (like ensuring classNum is a string).
+ */
+function cleanRecord(record: any): CommunicationRecord {
+	return {
+		grade: record.grade || '',
+		level: record.level,
+		classType: record.classType,
+		classNum: String(record.classNum || ''),
+		assignment: record.assignment,
+		dates: {
+			assigned: record.dates?.assigned || '',
+			due: record.dates?.due || '',
+			late: record.dates?.late || ''
+		},
+		studentsParsed: (record.studentsParsed || []).map((s: any) => ({
+			id: s.id,
+			name: {
+				english: s.name?.english || '',
+				chinese: s.name?.chinese || ''
+			},
+			cClass: s.cClass || '',
+			status: s.status,
+			selected: !!s.selected
+		}))
+	};
+}
+
+/**
+ * Robust deep equality check
+ */
+function deepEqual(a: any, b: any): boolean {
+	if (a === b) return true;
+	if (a && b && typeof a === 'object' && typeof b === 'object') {
+		if (Array.isArray(a) !== Array.isArray(b)) return false;
+		if (Array.isArray(a)) {
+			if (a.length !== b.length) return false;
+			for (let i = 0; i < a.length; i++) {
+				if (!deepEqual(a[i], b[i])) return false;
+			}
+			return true;
+		}
+		const keysA = Object.keys(a);
+		const keysB = Object.keys(b);
+		if (keysA.length !== keysB.length) return false;
+		for (const key of keysA) {
+			if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+			if (!deepEqual(a[key], b[key])) return false;
+		}
+		return true;
+	}
+	// Handle NaN
+	return a !== a && b !== b;
 }
 
 /**

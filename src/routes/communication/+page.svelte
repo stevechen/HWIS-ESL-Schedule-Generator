@@ -4,7 +4,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import { CommunicationStore } from '$lib/stores/communication';
 	import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
-	import { RecordManager } from '$lib/communication/recordManager.svelte';
+	import { RecordManager, areRecordsEqual } from '$lib/communication/recordManager.svelte';
 
 	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
 	import SavedRecords from '$lib/components/communication/SavedRecords.svelte';
@@ -39,7 +39,18 @@
 	});
 
 	$effect(() => {
-		recordManager.updateState(currentRecord);
+		if (state._isLoadingRecord) return;
+
+		// Sync isSaveable
+		recordManager.isSaveable =
+			!!currentRecord.classNum && currentRecord.studentsParsed.filter((s) => s.selected).length > 0;
+
+		// Sync isModified
+		if (!recordManager.lastLoadedRecord) {
+			recordManager.isModified = true;
+		} else {
+			recordManager.isModified = !areRecordsEqual(currentRecord, recordManager.lastLoadedRecord);
+		}
 	});
 
 	function handleLoadRecord(record: CommunicationRecord) {
