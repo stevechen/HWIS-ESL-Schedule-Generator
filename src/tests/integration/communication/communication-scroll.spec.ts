@@ -21,8 +21,8 @@ test.describe('Communication Controls Scrolling', () => {
 		const longStudentList = generateStudentList(30);
 
 		// Use the development helper to simulate paste
-		await page.waitForFunction(() => typeof window.setStudentsText === 'function');
-		await page.evaluate((text) => window.setStudentsText(text), longStudentList);
+		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
+		await page.evaluate((text) => (window as any).setStudentsText(text), longStudentList);
 
 		// Wait for the table to be populated
 		await expect(page.locator('table tbody tr').nth(29)).toBeVisible();

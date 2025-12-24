@@ -50,7 +50,6 @@ export class CommunicationStore {
 	private _previousSignatureImage: string | null = $state(null);
 
 	// DERIVED STATE ----------------
-
 	students: DisplayStudent[] = $derived(
 		this.studentsParsed
 			.filter((student) => student.selected) // filter out unselected

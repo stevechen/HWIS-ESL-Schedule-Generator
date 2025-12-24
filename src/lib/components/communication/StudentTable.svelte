@@ -9,11 +9,6 @@
 
 	let { store }: { store: CommunicationStore } = $props();
 
-	function handleStudentChange() {
-		// Trigger reactivity for studentsParsed if needed, though Svelte 5 state is usually enough
-		store.studentsParsed = [...store.studentsParsed];
-	}
-
 	function onGlobalPaste(e: ClipboardEvent) {
 		const text = e.clipboardData?.getData('text');
 		if (text && (text.includes('\t') || text.includes('\n'))) {
@@ -185,31 +180,22 @@
 									id="checkbox-{student.id}"
 									class="size-4 align-middle"
 									bind:checked={student.selected}
-									onchange={handleStudentChange}
 								/>
 							</td>
 							<td class="student-id">
-								<input type="text" bind:value={student.id} oninput={handleStudentChange} />
+								<input type="text" bind:value={student.id} />
 							</td>
 							<td class="english-name">
-								<input
-									type="text"
-									bind:value={student.name.english}
-									oninput={handleStudentChange}
-								/>
+								<input type="text" bind:value={student.name.english} />
 							</td>
 							<td class="chinese-name">
-								<input
-									type="text"
-									bind:value={student.name.chinese}
-									oninput={handleStudentChange}
-								/>
+								<input type="text" bind:value={student.name.chinese} />
 							</td>
 							<td class="chinese-class">
-								<input type="text" bind:value={student.cClass} oninput={handleStudentChange} />
+								<input type="text" bind:value={student.cClass} />
 							</td>
 							<td class="student-status">
-								<select bind:value={student.status} onchange={handleStudentChange}>
+								<select bind:value={student.status}>
 									<option value={STATUS_CODE.NOT_SUBMITTED}>
 										{STATUSES[STATUS_CODE.NOT_SUBMITTED].text.english}
 									</option>
