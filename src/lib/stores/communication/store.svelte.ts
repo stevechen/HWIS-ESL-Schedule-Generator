@@ -5,6 +5,7 @@ import { AssignmentCode, Levels } from '$lib/stores/communication/types';
 import { ESL_TYPE, LEVELS, ASSIGNMENT_TYPE, STATUSES } from '$lib/stores/communication/constants';
 import { parseStudentsFromText, determineGradeFromStudents } from '$lib/communication/studentParser';
 import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
+import { validatePrintReadiness, type PrintValidationState } from '$lib/communication/printValidator';
 
 const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.g9);
 const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.clil);
@@ -37,7 +38,7 @@ export class CommunicationStore {
 	assignment: AssignmentCode = $state(AssignmentCode.passport);
 
 	// Date fields
-	dates: { [key: string]: string } = $state({
+	dates: { assigned: string; due: string; late: string } = $state({
 		assigned: '',
 		due: '',
 		late: ''
@@ -63,6 +64,28 @@ export class CommunicationStore {
 						: { english: 'Unknown', chinese: '未知' }
 				};
 			})
+	);
+	
+	isAllChecked = $derived(
+		(() => {
+			let allChecked = this.studentsParsed.length > 0 && this.studentsParsed.every((student) => student.selected);
+			let anyChecked = this.studentsParsed.some((student) => student.selected);
+			return {
+				checked: allChecked,
+				indeterminate: !allChecked && anyChecked
+			};
+		})()
+	);
+
+	printValidation: PrintValidationState = $derived(
+		validatePrintReadiness({
+			classNum: this.classNum,
+			studentsParsed: this.studentsParsed,
+			isAllChecked: this.isAllChecked,
+			assignmentDates: this.dates,
+			grade: this.grade,
+			signatureImage: this.signatureImage
+		})
 	);
 
 	assignmentTypes = $derived(
@@ -138,6 +161,14 @@ export class CommunicationStore {
 		this.dates.due = dueDate;
 		this.dates.late = lateDate;
 	}
+
+	toggleAll = () => {
+		const newCheckedState = !this.isAllChecked.checked;
+		this.studentsParsed = this.studentsParsed.map((student) => ({
+			...student,
+			selected: newCheckedState
+		}));
+	};
 
 	loadRecordData = async (record: CommunicationRecord) => {
 		this._isLoadingRecord = true;

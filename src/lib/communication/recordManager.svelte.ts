@@ -7,7 +7,7 @@ export interface CommunicationRecord {
 	classType: string;
 	classNum: string;
 	assignment: AssignmentCode;
-	dates: { [key: string]: string };
+	dates: { assigned: string; due: string; late: string };
 	studentsParsed: Student[];
 }
 

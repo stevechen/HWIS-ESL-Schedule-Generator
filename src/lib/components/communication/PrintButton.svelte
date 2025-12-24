@@ -1,73 +1,31 @@
 <script lang="ts">
 	import {
-		validatePrintReadiness,
 		getPrintButtonStyle,
 		getPrintStatusMessage,
 		getPrintButtonText
 	} from '$lib/communication/printValidator';
-	import type { Student } from '$lib/stores/communication';
+	import { CommunicationStore } from '$lib/stores/communication';
 
 	// Props
 	interface Props {
-		classNum: string;
-		studentsParsed: Student[];
-		selectedStudentsCount: number;
-		assignmentDates: {
-			assigned: string;
-			due: string;
-			late: string;
-		};
-		grade: string | null;
-		signatureImage: string;
+		store: CommunicationStore;
 		onPrint: () => void;
 	}
 
-	let {
-		classNum,
-		studentsParsed,
-		selectedStudentsCount,
-		assignmentDates,
-		grade,
-		signatureImage,
-		onPrint
-	}: Props = $props();
+	let { store, onPrint }: Props = $props();
 
-	// Calculate isAllChecked for print validation
-	const isAllChecked = $derived(
-		(() => {
-			let allChecked =
-				studentsParsed.length > 0 && studentsParsed.every((student) => student.selected);
-			let anyChecked = studentsParsed.some((student) => student.selected);
-			return {
-				checked: allChecked,
-				indeterminate: !allChecked && anyChecked
-			};
-		})()
-	);
-
-	const printValidation = $derived(
-		validatePrintReadiness({
-			classNum,
-			studentsParsed,
-			isAllChecked,
-			assignmentDates,
-			grade,
-			signatureImage
-		})
-	);
-
-	const printButtonStyle = $derived(getPrintButtonStyle(printValidation));
+	const printButtonStyle = $derived(getPrintButtonStyle(store.printValidation));
 	const printStatusMessage = $derived(
-		getPrintStatusMessage(printValidation, selectedStudentsCount)
+		getPrintStatusMessage(store.printValidation, store.students.length)
 	);
-	const printButtonText = $derived(getPrintButtonText(selectedStudentsCount));
+	const printButtonText = $derived(getPrintButtonText(store.students.length));
 
 	let dialog: HTMLDialogElement;
 
 	function handlePrintClick() {
-		if (printValidation.isInvalid) return;
+		if (store.printValidation.isInvalid) return;
 
-		if (printValidation.hasCaution) {
+		if (store.printValidation.hasCaution) {
 			dialog.showModal();
 		} else {
 			onPrint();
@@ -88,8 +46,8 @@
 <div class="justify-self-end col-start-9 col-end-13 my-0 text-center">
 	<p
 		class={[
-			printValidation.isInvalid && 'text-red-400',
-			printValidation.hasCaution && 'text-orange-400',
+			store.printValidation.isInvalid && 'text-red-400',
+			store.printValidation.hasCaution && 'text-orange-400',
 			'text-center text-sm text-blue-400'
 		]}
 	>
@@ -122,7 +80,7 @@
 		</p>
 
 		<ul class="list-disc list-inside space-y-1 text-slate-200 bg-slate-800/50 p-3 rounded-lg">
-			{#each printValidation.missingItems as item}
+			{#each store.printValidation.missingItems as item}
 				<li>{item}</li>
 			{/each}
 		</ul>

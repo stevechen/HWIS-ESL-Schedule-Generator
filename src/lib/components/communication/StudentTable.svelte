@@ -2,64 +2,23 @@
 	import {
 		STATUS_CODE,
 		STATUSES,
-		type Student,
-		type DisplayStudent,
 		LEVELS,
 		ESL_TYPE,
-		Levels
+		CommunicationStore
 	} from '$lib/stores/communication';
 
-	let {
-		studentsParsed = $bindable(),
-		onPaste,
-		grade,
-		students,
-		UI_Grade,
-		UI_Level = $bindable(),
-		UI_ClassType = $bindable(),
-		UI_ClassNum = $bindable()
-	}: {
-		studentsParsed: Array<Student>;
-		onPaste: (text: string) => void;
-		grade: string;
-		students: Array<DisplayStudent>;
-		UI_Grade: string;
-		UI_Level: Levels;
-		UI_ClassType: string;
-		UI_ClassNum: string;
-	} = $props();
-
-	// Master checkbox logic - moved from main component
-	let isAllChecked = $derived(
-		(() => {
-			let allChecked = studentsParsed.every((student) => student.selected);
-			let anyChecked = studentsParsed.some((student) => student.selected);
-			return {
-				checked: allChecked,
-				indeterminate: !allChecked && anyChecked
-			};
-		})()
-	);
-
-	function handleToggleAll() {
-		const isAllChecked = studentsParsed.every((student) => student.selected);
-		const newCheckedState = !isAllChecked;
-
-		studentsParsed = studentsParsed.map((student) => ({
-			...student,
-			selected: newCheckedState
-		}));
-	}
+	let { store }: { store: CommunicationStore } = $props();
 
 	function handleStudentChange() {
-		studentsParsed = [...studentsParsed];
+		// Trigger reactivity for studentsParsed if needed, though Svelte 5 state is usually enough
+		store.studentsParsed = [...store.studentsParsed];
 	}
 
 	function onGlobalPaste(e: ClipboardEvent) {
 		const text = e.clipboardData?.getData('text');
 		if (text && (text.includes('\t') || text.includes('\n'))) {
 			e.preventDefault();
-			onPaste(text);
+			store.handlePaste(text);
 		}
 	}
 </script>
@@ -74,9 +33,9 @@
 		<svg class="fill-white mx-4 my-1 size-5" viewBox="0 0 512 512">
 			<use href="#icon-student" />
 		</svg>
-		{#if grade}
-			<span class={[!students.length && 'text-red-500', 'text-white']}
-				>{students.length} selected</span
+		{#if store.grade}
+			<span class={[!store.students.length && 'text-red-500', 'text-white']}
+				>{store.students.length} selected</span
 			>
 		{:else}
 			<span class="mr-2 ml-1 text-red-500">0 students</span>
@@ -88,16 +47,16 @@
 				<use href="#icon-spin" />
 			</svg>
 		{/if}
-		<div class={[!grade && 'hidden', 'px-2']}>
+		<div class={[!store.grade && 'hidden', 'px-2']}>
 			<p
 				id="grade"
 				class={[
-					grade &&
+					store.grade &&
 						'bg-linear-to-b from-slate-700 to-slate-500 text-white shadow-xs shadow-blue-800',
 					'rounded-full px-2'
 				]}
 			>
-				{grade}
+				{store.grade}
 			</p>
 		</div>
 
@@ -105,7 +64,13 @@
 		<div class="radio-bg">
 			{#each LEVELS as { id, label, value }}
 				<label class="radio-label" for={id}>
-					<input {id} class="appearance-none" type="radio" bind:group={UI_Level} {value} />{label}
+					<input
+						{id}
+						class="appearance-none"
+						type="radio"
+						bind:group={store.level}
+						{value}
+					/>{label}
 				</label>
 			{/each}
 		</div>
@@ -114,13 +79,13 @@
 		<div class="radio-bg">
 			{#each Object.entries(ESL_TYPE) as [type, value]}
 				<!-- only render out CLIL if class is not G9 -->
-				{#if value !== ESL_TYPE.CLIL || UI_Grade !== 'G9'}
+				{#if value !== ESL_TYPE.CLIL || store.grade !== 'G9'}
 					<label class="radio-label" for={type}
 						><input
 							id={type}
 							class="appearance-none"
 							type="radio"
-							bind:group={UI_ClassType}
+							bind:group={store.classType}
 							{value}
 							aria-label={value}
 						/>{value}</label
@@ -134,7 +99,7 @@
 			<input
 				type="number"
 				class="bg-linear-to-b from-slate-700 to-slate-500 invalid:bg-none shadow-blue-800 shadow-xs invalid:shadow-none mx-1 focus:border-blue-800 invalid:border-2 invalid:border-red-400 rounded-full invalid:rounded-sm focus:outline-hidden w-8 h-6 text-white invalid:text-red-400 text-center transition duration-400 ease-in"
-				bind:value={UI_ClassNum}
+				bind:value={store.classNum}
 				placeholder="#?"
 				max="9"
 				min="1"
@@ -167,10 +132,10 @@
 							id="master-checkbox"
 							type="checkbox"
 							class="size-4 align-middle"
-							checked={isAllChecked.checked}
-							indeterminate={isAllChecked.indeterminate}
-							onchange={handleToggleAll}
-							disabled={studentsParsed.length === 0}
+							checked={store.isAllChecked.checked}
+							indeterminate={store.isAllChecked.indeterminate}
+							onchange={store.toggleAll}
+							disabled={store.studentsParsed.length === 0}
 						/>
 					</th>
 					<th>ID</th>
@@ -181,7 +146,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#if studentsParsed.length === 0}
+				{#if store.studentsParsed.length === 0}
 					<!-- Placeholder rows to indicate where to paste -->
 					{#each Array(5) as _, i}
 						<tr
@@ -207,10 +172,10 @@
 						</tr>
 					{/each}
 				{:else}
-					{#each studentsParsed as student, i}
+					{#each store.studentsParsed as student, i}
 						<tr
 							class={[
-								Math.floor(i / 3) % 2 === 1 && 'bg-yellow-50/50',
+								Math.floor(i / 3) % 2 === 1 && 'bg-orange-50/80',
 								'h-6 [&>td]:border [&>td]:border-slate-300 [&>td]:p-0 student-row'
 							]}
 						>

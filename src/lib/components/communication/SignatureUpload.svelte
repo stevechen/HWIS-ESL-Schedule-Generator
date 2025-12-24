@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { processSignatureFile } from '$lib/communication/signatureValidator';
+	import { CommunicationStore } from '$lib/stores/communication';
 
-	let { signatureImage = $bindable() }: { signatureImage: string } = $props();
+	let { store }: { store: CommunicationStore } = $props();
 
 	let dragCounter = $state(0);
 	const isDraggingOver = $derived(dragCounter > 0);
@@ -16,7 +17,7 @@
 		}
 
 		if (result.data) {
-			signatureImage = result.data;
+			store.signatureImage = result.data;
 		}
 	}
 
@@ -58,7 +59,7 @@
 
 	function removeSignature(event: MouseEvent) {
 		event.stopPropagation();
-		signatureImage = '';
+		store.signatureImage = '';
 		// Reset the file input value so the same file can be uploaded again
 		if (fileInput) fileInput.value = '';
 	}
@@ -92,8 +93,8 @@
 	<div
 		id="signature-drop-zone"
 		class={[
-			signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
-			!signatureImage && 'z-1 mt-0',
+			store.signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+			!store.signatureImage && 'z-1 mt-0',
 			'w-full border-2 bg-no-repeat text-center transition-all duration-450',
 			isDraggingOver
 				? 'border-orange-400 bg-orange-100'
@@ -115,12 +116,12 @@
 	<!-- Signature preview and remove button -->
 	<div
 		class={[
-			signatureImage && 'has-signature z-1 mt-0',
-			!signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
+			store.signatureImage && 'has-signature z-1 mt-0',
+			!store.signatureImage && '-z-10 mt-[-50%] scale-y-0 self-start opacity-0',
 			'flex w-full items-center border-slate-300 bg-slate-50 transition-all duration-450'
 		]}
 	>
-		<img class="m-auto h-[14mm] signature-preview" src={signatureImage} alt="Signature" />
+		<img class="m-auto h-[14mm] signature-preview" src={store.signatureImage} alt="Signature" />
 		<button
 			id="remove-signature"
 			class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"

@@ -1,29 +1,17 @@
 <script lang="ts">
 	import { isValidMonthAndDay } from '$lib/utils/dateValidation';
-	import type { Student, AssignmentType } from '$lib/stores/communication/types';
-	import { AssignmentCode, DATES } from '$lib/stores/communication';
+	import { DATES, CommunicationStore } from '$lib/stores/communication';
 	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 
 	// Props
 	interface Props {
-		assignmentTypes: AssignmentType[];
-		UI_Assignment: AssignmentCode;
-		UI_Dates: { [key: string]: string };
-		studentsParsed: Array<Student>;
+		store: CommunicationStore;
 		recordManager: RecordManager;
 		currentRecord: CommunicationRecord;
 		onClearForm: () => void;
 	}
 
-	let {
-		assignmentTypes,
-		UI_Assignment = $bindable(),
-		UI_Dates = $bindable(),
-		studentsParsed,
-		recordManager,
-		currentRecord,
-		onClearForm
-	}: Props = $props();
+	let { store, recordManager, currentRecord, onClearForm }: Props = $props();
 
 	function handleSaveRecord() {
 		const result = recordManager.save(currentRecord);
@@ -38,7 +26,7 @@
 		<div class="flex items-center border-gray-500 border-b w-full">
 			<h3 class="mx-2 my-0.5 pr-10 text-white">Assignment</h3>
 			<div class="ml-auto">
-				{#if studentsParsed.length > 0}
+				{#if store.studentsParsed.length > 0}
 					<button
 						id="clear_button"
 						class="bg-gray-500 hover:bg-gray-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
@@ -66,13 +54,13 @@
 			</svg>
 
 			<div class="radio-bg">
-				{#each assignmentTypes as { code, english }}
+				{#each store.assignmentTypes as { code, english }}
 					<label class="radio-label" for={code}>
 						<input
 							id={code}
 							class="appearance-none"
 							type="radio"
-							bind:group={UI_Assignment}
+							bind:group={store.assignment}
 							value={code}
 						/>{english}</label
 					>
@@ -87,7 +75,8 @@
 			</svg>
 			{#each DATES as { key, label }}
 				{@const invalid =
-					!UI_Dates[key as keyof typeof UI_Dates] || !isValidMonthAndDay(UI_Dates[key])}
+					!store.dates[key as keyof typeof store.dates] ||
+					!isValidMonthAndDay(store.dates[key as keyof typeof store.dates])}
 				<label class="group px-2 text-white text-sm" for={key}>
 					{label}
 					<input
@@ -98,7 +87,7 @@
 						type="text"
 						name={key}
 						id={key}
-						bind:value={UI_Dates[key as keyof typeof UI_Dates]}
+						bind:value={store.dates[key as keyof typeof store.dates]}
 						maxlength="5"
 						placeholder={'Required'}
 						required

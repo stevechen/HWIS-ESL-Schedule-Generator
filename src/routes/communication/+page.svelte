@@ -59,29 +59,12 @@
 		id="controls"
 		class="print:hidden top-13.5 z-10 fixed self-start bg-black pt-2 rounded-lg w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
 	>
-		<AssignmentForm
-			assignmentTypes={state.assignmentTypes}
-			bind:UI_Assignment={state.assignment}
-			bind:UI_Dates={state.dates}
-			studentsParsed={state.studentsParsed}
-			{recordManager}
-			{currentRecord}
-			onClearForm={clearForm}
-		/>
-		<StudentTable
-			bind:studentsParsed={state.studentsParsed}
-			onPaste={(text) => state.handlePaste(text)}
-			grade={state.grade}
-			students={state.students}
-			UI_Grade={state.grade}
-			bind:UI_Level={state.level}
-			bind:UI_ClassType={state.classType}
-			bind:UI_ClassNum={state.classNum}
-		/>
+		<AssignmentForm store={state} {recordManager} {currentRecord} onClearForm={clearForm} />
+		<StudentTable store={state} />
 		<div class="flex flex-wrap justify-start items-center mb-0 p-2">
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
 				{#if state.isSignatureInitialized}
-					<SignatureUpload bind:signatureImage={state.signatureImage} />
+					<SignatureUpload store={state} />
 				{:else}
 					<!-- spin circle -->
 					<svg
@@ -92,19 +75,7 @@
 					</svg>
 				{/if}
 
-				<PrintButton
-					classNum={state.classNum}
-					studentsParsed={state.studentsParsed}
-					selectedStudentsCount={state.students.length}
-					assignmentDates={{
-						assigned: state.assignmentDetails.assigned,
-						due: state.assignmentDetails.due,
-						late: state.assignmentDetails.late
-					}}
-					grade={state.grade}
-					signatureImage={state.signatureImage}
-					onPrint={() => window.print()}
-				/>
+				<PrintButton store={state} onPrint={() => window.print()} />
 			</div>
 		</div>
 	</section>
