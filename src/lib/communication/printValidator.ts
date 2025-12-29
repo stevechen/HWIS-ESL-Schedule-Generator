@@ -1,4 +1,4 @@
-import { isValidMonthAndDay } from '$lib/utils/dateValidation';
+import { isValidMonthAndDay, compareDates } from '$lib/utils/dateValidation';
 import type { Student } from '$lib/stores/communication';
 
 export interface PrintValidationState {
@@ -51,10 +51,24 @@ export function validatePrintReadiness(input: PrintValidationInput): PrintValida
 	// Cautions (warnings)
 	if (!classNum) missingItems.push('Class number');
 	if (!grade) missingItems.push('Grade level');
-	if (!isValidMonthAndDay(assignmentDates.assigned)) missingItems.push('Assigned date');
-	if (!isValidMonthAndDay(assignmentDates.due)) missingItems.push('Due date');
-	if (!isValidMonthAndDay(assignmentDates.late)) missingItems.push('Late date');
+	
+	const isAssignedValid = isValidMonthAndDay(assignmentDates.assigned);
+	const isDueValid = isValidMonthAndDay(assignmentDates.due);
+	const isLateValid = isValidMonthAndDay(assignmentDates.late);
+
+	if (!isAssignedValid) missingItems.push('Assigned date');
+	if (!isDueValid) missingItems.push('Due date');
+	if (!isLateValid) missingItems.push('Late date');
+	
 	if (!signatureImage) missingItems.push('Signature');
+
+	// Date comparison checks
+	if (isAssignedValid && isDueValid && compareDates(assignmentDates.assigned, assignmentDates.due) >= 0) {
+		missingItems.push('Assigned date must be before Due date');
+	}
+	if (isDueValid && isLateValid && compareDates(assignmentDates.late, assignmentDates.due) <= 0) {
+		missingItems.push('Make up date must be after Due date');
+	}
 
 	// Check for incomplete student information for selected students
 	const selectedStudents = studentsParsed.filter((s) => s.selected);

@@ -64,6 +64,7 @@
 
 <!-- Warning Dialog -->
 <dialog
+	closedby="any"
 	bind:this={dialog}
 	class="m-auto p-6 rounded-xl shadow-2xl backdrop:backdrop-blur-sm bg-slate-900 text-white border border-slate-700 max-w-md w-full"
 >

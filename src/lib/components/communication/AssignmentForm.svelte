@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isValidMonthAndDay } from '$lib/utils/dateValidation';
+	import { isValidMonthAndDay, compareDates } from '$lib/utils/dateValidation';
 	import { DATES, CommunicationStore } from '$lib/stores/communication';
 	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 
@@ -74,15 +74,25 @@
 				<use href="#icon-calendar" />
 			</svg>
 			{#each DATES as { key, label }}
+				{@const assignedVal = store.dates.assigned}
+				{@const dueVal = store.dates.due}
+				{@const lateVal = store.dates.late}
+				{@const isAssignedValid = isValidMonthAndDay(assignedVal)}
+				{@const isDueValid = isValidMonthAndDay(dueVal)}
+				{@const isLateValid = isValidMonthAndDay(lateVal)}
+				{@const assignedEarlierThanDue =
+					!isAssignedValid || !isDueValid || compareDates(assignedVal, dueVal) < 0}
+				{@const lateLaterThanDue = !isLateValid || !isDueValid || compareDates(lateVal, dueVal) > 0}
 				{@const invalid =
-					!store.dates[key as keyof typeof store.dates] ||
-					!isValidMonthAndDay(store.dates[key as keyof typeof store.dates])}
-				<label class="group px-2 text-white text-sm" for={key}>
+					(key === 'assigned' && (!isAssignedValid || !assignedEarlierThanDue)) ||
+					(key === 'due' && (!isDueValid || !assignedEarlierThanDue || !lateLaterThanDue)) ||
+					(key === 'late' && (!isLateValid || !lateLaterThanDue))}
+				<label class={['group px-2 text-sm', invalid ? 'text-red-400' : 'text-white']} for={key}>
 					{label}
 					<input
 						class={[
-							invalid && 'border-2 border-red-400 text-red-400',
-							'mr-2 w-20 rounded-md border border-slate-400 text-center placeholder:text-sm invalid:border-2 invalid:border-red-400 invalid:group-first-of-type:border-orange-400 focus:border-2 focus:border-blue-800! focus:outline-hidden'
+							'mr-2 w-20 rounded-md border text-center placeholder:text-sm focus:border-2 focus:border-blue-800! focus:outline-hidden',
+							invalid ? 'border-2 border-red-400 text-red-400' : 'border-white text-white'
 						]}
 						type="text"
 						name={key}

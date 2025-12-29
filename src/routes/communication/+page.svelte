@@ -63,7 +63,7 @@
 	}
 </script>
 
-<!-- MARK: **** HTML **** -->
+<!-- MARK: *HTML* -->
 <title>White slips</title>
 <main class="flex flex-row items-start gap-2 mx-auto w-fit">
 	<section
