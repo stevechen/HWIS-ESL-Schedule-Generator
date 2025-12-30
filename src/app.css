@@ -23,6 +23,11 @@
 	.print\:hidden {
 		display: none;
 	}
+
+	/* Definitively hide Svelte Inspector in all print outputs */
+	svelte-inspector-host {
+		display: none !important;
+	}
 }
 
 .radio-bg {

@@ -95,4 +95,40 @@ describe('Record Migration', () => {
         expect(migrated.dates.due).toBe('');
         expect(migrated.dates.late).toBe('');
     });
+    it('should handle real legacy data with UI_ prefixes', () => {
+        const legacyRecord = {
+            studentsText: "...",
+            UI_Grade: "G8",
+            UI_Level: "Basic",
+            UI_ClassType: "Comm",
+            UI_ClassNum: 5,
+            UI_Assignment: "passport",
+            UI_Dates: {
+                assigned: "9/5",
+                due: "9/12",
+                late: "9/19"
+            },
+            studentsRaw: [
+               {
+                   id: "1130315",
+                   name: { english: "Alan Fan", chinese: "范育齊" },
+                   cClass: "J205",
+                   status: "0",
+                   selected: false
+               }
+            ]
+        };
+
+        const migrated = migrateRecord(legacyRecord);
+
+        expect(migrated.grade).toBe('G8');
+        expect(migrated.level).toBe('Basic');
+        expect(migrated.classType).toBe('Comm');
+        expect(migrated.classNum).toBe('5');
+        expect(migrated.assignment).toBe('passport');
+        expect(migrated.dates.assigned).toBe('9/5');
+        expect(migrated.dates.due).toBe('9/12');
+        expect(migrated.dates.late).toBe('9/19');
+        expect(migrated.studentsParsed).toHaveLength(1);
+    });
 });

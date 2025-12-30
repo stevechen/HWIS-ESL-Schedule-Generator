@@ -275,9 +275,9 @@ export function migrateRecord(record: any): CommunicationRecord {
 
 	// Migrate dates
 	const dates = {
-		assigned: record.dates?.assigned || '',
-		due: record.dates?.due || '',
-		late: record.dates?.late || ''
+		assigned: record.dates?.assigned || record.UI_Dates?.assigned || '',
+		due: record.dates?.due || record.UI_Dates?.due || '',
+		late: record.dates?.late || record.UI_Dates?.late || ''
 	};
 
 	// Migrate students
@@ -296,11 +296,11 @@ export function migrateRecord(record: any): CommunicationRecord {
 	}
 
 	return {
-		grade: record.grade || '',
-		level: record.level,
-		classType: record.classType,
-		classNum: String(record.classNum || ''),
-		assignment: record.assignment,
+		grade: record.grade || record.UI_Grade || '',
+		level: record.level || record.UI_Level,
+		classType: record.classType || record.UI_ClassType,
+		classNum: String(record.classNum || record.UI_ClassNum || ''),
+		assignment: record.assignment || record.UI_Assignment,
 		dates,
 		studentsParsed
 	};

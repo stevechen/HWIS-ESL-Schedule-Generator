@@ -22,7 +22,8 @@ export class CommunicationStore {
 	studentsParsed: Student[] = $state([]);
 
 	// Class information
-	grade = $derived(determineGradeFromStudents(this.studentsParsed));
+	// TODO: REMOVE_NEXT_YEAR - Revert to $derived(determineGradeFromStudents(this.studentsParsed)) when legacy support is dropped
+	grade = $state('');
 	level = $state(Levels.Basic);
 	classType: string = $state(ESL_TYPE.COMM);
 	classNum: string = $state('');
@@ -172,6 +173,8 @@ export class CommunicationStore {
 	loadRecordData = async (record: CommunicationRecord) => {
 		this._isLoadingRecord = true;
 		this.level = record.level as Levels;
+		// TODO: REMOVE_NEXT_YEAR - Remove this line as grade will be derived
+		this.grade = record.grade;
 		this.classType = record.classType;
 		this.classNum = record.classNum;
 		this.assignment = record.assignment as AssignmentCode;
@@ -202,6 +205,12 @@ export class CommunicationStore {
 			});
 
 			this.studentsParsed = mergedParsed;
+			// TODO: REMOVE_NEXT_YEAR - Remove this manual update
+			const calculatedGrade = determineGradeFromStudents(mergedParsed);
+			if (calculatedGrade) {
+				this.grade = calculatedGrade;
+			}
+			//--------------------------------------------------
 		} catch (e) {
 			console.error('[STORE] Paste error:', e);
 		}
@@ -213,6 +222,8 @@ export class CommunicationStore {
 	reset = () => {
 		this._isLoadingRecord = false;
 		this.studentsParsed = [];
+		// TODO: REMOVE_NEXT_YEAR - Remove manual reset
+		this.grade = '';
 		this.level = Levels.Basic;
 		this.classType = ESL_TYPE.COMM;
 		this.classNum = '';

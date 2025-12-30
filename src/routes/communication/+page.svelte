@@ -92,7 +92,9 @@
 	</section>
 
 	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
-		<SavedRecords {recordManager} onLoadRecord={handleLoadRecord} />
+		<div class="print:hidden">
+			<SavedRecords {recordManager} onLoadRecord={handleLoadRecord} />
+		</div>
 		<!-- MARK: slip preview -->
 		<h3 class="print:hidden mx-2 my-0.5">
 			Preview {state.students.length} selected communication slip{state.students.length == 1
@@ -106,6 +108,7 @@
 						<p class="print:hidden block mx-4 mt-2 text-slate-500">Slip #{i + 1}</p>
 						<Slip
 							{student}
+							index={i}
 							signatureSrc={state.signatureImage}
 							assignment={state.assignmentDetails}
 						/>
@@ -135,6 +138,11 @@
 		@page {
 			margin: 0;
 			padding: 0;
+		}
+
+		/* General safety: hide any buttons that might be lounging around outside main (like injected dev tools) */
+		:global(button:not(main button)) {
+			display: none !important;
 		}
 
 		/* Mozilla print fix for Slip layout, this breaks Chrome…… */

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { isValidMonthAndDay } from '$lib/utils/dateValidation';
 
-	let { student, signatureSrc, assignment } = $props();
+	let { student, index, signatureSrc, assignment } = $props();
 </script>
 
 <div
-	class="slip relative block h-[calc((257mm)/3)] border-gray-800 bg-white p-4 font-sans text-xs shadow-md shadow-indigo-950 *:box-border *:border-gray-500 print:shadow-none print:nth-of-type-[3n+2]:border-y print:nth-of-type-[3n+2]:border-dotted print:nth-of-type-[3n+4]:break-before-page"
+	class="slip relative block h-[calc((257mm)/3)] border-gray-800 bg-white p-4 font-sans text-xs shadow-md shadow-indigo-950 *:box-border *:border-gray-500 print:shadow-none
+	{index % 3 === 1 ? 'print:border-y print:border-dotted' : ''}
+	{index > 0 && index % 3 === 0 ? 'print:break-before-page' : ''}"
 	data-testid="communication-slip"
 >
 	<h2 class="h-[12%] w-full text-center font-semibold">
@@ -91,19 +93,6 @@
 			box-shadow:
 				var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow),
 				var(--tw-ring-shadow), var(--tw-shadow);
-		}
-
-		.print\:nth-of-type-\[3n\+2\]\:border-y:nth-of-type(3n + 2) {
-			border-top-width: 1px;
-			border-bottom-width: 1px;
-		}
-
-		.print\:nth-of-type-\[3n\+2\]\:border-dotted:nth-of-type(3n + 2) {
-			border-style: dotted;
-		}
-
-		.print\:nth-of-type-\[3n\+4\]\:break-before-page:nth-of-type(3n + 4) {
-			break-before: page;
 		}
 	}
 </style>
