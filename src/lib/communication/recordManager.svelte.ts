@@ -249,13 +249,61 @@ export function loadRecord(recordName: string): CommunicationRecord | null {
 	const settingsText = localStorage.getItem(`${RECORD_PREFIX}${recordName}`);
 	if (settingsText) {
 		try {
-			return JSON.parse(settingsText) as CommunicationRecord;
+			const rawRecord = JSON.parse(settingsText);
+			// TODO: REMOVE_NEXT_YEAR - Remove this migration call and just return rawRecord (with type check/cast)
+			return migrateRecord(rawRecord);
 		} catch (error) {
 			console.error('Failed to parse saved record:', error);
 			return null;
 		}
 	}
 	return null;
+}
+
+/**
+ * Migrates a legacy record to the current format.
+ * Legacy records (pre-9180221) used studentsRaw instead of studentsParsed,
+ * and had different date structures.
+ * 
+ * TODO: REMOVE_NEXT_YEAR - This function and its usage can be removed when legacy data support is no longer needed.
+ */
+export function migrateRecord(record: any): CommunicationRecord {
+	// If it already looks correct, return it
+	if (record.studentsParsed && !record.studentsRaw) {
+		return record as CommunicationRecord;
+	}
+
+	// Migrate dates
+	const dates = {
+		assigned: record.dates?.assigned || '',
+		due: record.dates?.due || '',
+		late: record.dates?.late || ''
+	};
+
+	// Migrate students
+	let studentsParsed = record.studentsParsed || [];
+	if (record.studentsRaw) {
+		studentsParsed = record.studentsRaw.map((s: any) => ({
+			id: s.id,
+			name: {
+				english: s.name?.english || '',
+				chinese: s.name?.chinese || ''
+			},
+			cClass: s.cClass || '',
+			status: s.status,
+			selected: !!s.selected
+		}));
+	}
+
+	return {
+		grade: record.grade || '',
+		level: record.level,
+		classType: record.classType,
+		classNum: String(record.classNum || ''),
+		assignment: record.assignment,
+		dates,
+		studentsParsed
+	};
 }
 
 /**

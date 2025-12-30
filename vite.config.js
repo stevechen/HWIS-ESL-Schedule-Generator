@@ -6,6 +6,6 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
 	plugins: [tailwindcss(), svelteInspector(), sveltekit()],
 	test: {
-		include: ['src/tests/unit/*.{test,spec}.{js,ts}']
+		include: ['src/tests/unit/**/*.{test,spec}.{js,ts}']
 	}
 });
