@@ -2,11 +2,8 @@
 	let {
 		title = 'Days',
 		days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-		checkedDays = [true, false, true, false, true]
+		checkedDays = $bindable([true, false, true, false, true])
 	} = $props();
-
-	// svelte-ignore state_referenced_locally
-	let proxy = $state(checkedDays);
 </script>
 
 <div
@@ -21,7 +18,13 @@
 				class="has-[input:checked]:bg-radial-gradient-[50%_15%,circle_closest-corner,rgba(0,0,0,0.3),rgba(0,0,0,0)] relative mt-[5px] block h-6 w-[42px] rounded-sm border-b-0 bg-[#272727] shadow-[inset_0_-3px_2px_-2px_rgba(200,200,200,0.5),0_3px_3px_-2px_rgba(0,0,0,1),inset_0_-70px_20px_-60px_rgba(255,255,255,0.2),inset_0_70px_14px_-60px_rgba(0,0,0,0.3)] transition-all duration-200 has-[input:checked]:bg-[#232323] has-[input:checked]:shadow-[inset_8px_-4px_5px_-7px_rgba(0,0,0,1),0_-5px_8px_-2px_rgba(250,250,250,0.4),0_-3px_8px_-4px_rgba(250,250,250,0.4),inset_0_3px_4px_-2px_rgba(10,10,10,1),inset_0_90px_10px_-60px_rgba(0,0,0,0.2),inset_0_-60px_40px_-60px_rgba(180,180,180,0.2)]"
 				for={day}
 			>
-				<input type="checkbox" id={day} class="peer hidden" name={day} bind:checked={proxy[i]} />
+				<input
+					type="checkbox"
+					id={day}
+					class="peer hidden"
+					name={day}
+					bind:checked={checkedDays[i]}
+				/>
 				<span
 					class="absolute top-[10%] m-auto block w-full text-center text-[#555] transition-all duration-100 select-none text-shadow-[inset_1px_1px_1px_black] peer-checked:scale-y-[0.75] peer-checked:text-[#bbb]"
 					>{day}</span
