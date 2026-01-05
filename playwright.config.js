@@ -1,7 +1,7 @@
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 const config = {
 	webServer: {
-		command: 'pnpm run dev',
+		command: 'bun run dev',
 		port: 5173,
 		reuseExistingServer: true
 	},
