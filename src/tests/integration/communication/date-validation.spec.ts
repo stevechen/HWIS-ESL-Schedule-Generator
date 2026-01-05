@@ -26,9 +26,9 @@ test.describe('Date Validation & Logic', () => {
 		const printButton = page.locator('button.print-slips');
 		await printButton.click();
 
-		const dialog = page.locator('dialog');
-		await expect(dialog).toBeVisible();
-		await expect(dialog).toContainText('Assigned date must be before Due date');
+		const popover = page.locator('#print-warning-popover');
+		await expect(popover).toBeVisible();
+		await expect(popover).toContainText('Assigned date must be before Due date');
 	});
 
 	test('should flag invalid date sequence: Make up must be later than Due', async ({ page }) => {
@@ -44,9 +44,9 @@ test.describe('Date Validation & Logic', () => {
 		const printButton = page.locator('button.print-slips');
 		await printButton.click();
 
-		const dialog = page.locator('dialog');
-		await expect(dialog).toBeVisible();
-		await expect(dialog).toContainText('Make up date must be after Due date');
+		const popover = page.locator('#print-warning-popover');
+		await expect(popover).toBeVisible();
+		await expect(popover).toContainText('Make up date must be after Due date');
 	});
 
 	test('should handle year wrap-around correctly (Dec -> Jan)', async ({ page }) => {
@@ -86,8 +86,8 @@ test.describe('Date Validation & Logic', () => {
 		const printButton = page.locator('button.print-slips');
 		await printButton.click();
 
-		const dialog = page.locator('dialog');
-		await expect(dialog).toBeVisible();
-		await expect(dialog).toContainText('Assigned date must be before Due date');
+		const popover = page.locator('#print-warning-popover');
+		await expect(popover).toBeVisible();
+		await expect(popover).toContainText('Assigned date must be before Due date');
 	});
 });
