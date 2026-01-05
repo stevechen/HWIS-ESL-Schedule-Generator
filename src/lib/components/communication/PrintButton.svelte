@@ -20,24 +20,15 @@
 	);
 	const printButtonText = $derived(getPrintButtonText(store.students.length));
 
-	let dialog: HTMLDialogElement;
-
 	function handlePrintClick() {
 		if (store.printValidation.isInvalid) return;
 
-		if (store.printValidation.hasCaution) {
-			dialog.showModal();
-		} else {
+		if (!store.printValidation.hasCaution) {
 			onPrint();
 		}
 	}
 
-	function closeDialog() {
-		dialog.close();
-	}
-
 	function printAnyway() {
-		dialog.close();
 		onPrint();
 	}
 </script>
@@ -57,16 +48,17 @@
 		class={printButtonStyle.className}
 		title={printButtonStyle.title}
 		onclick={handlePrintClick}
+		popovertarget={store.printValidation.hasCaution ? 'print-warning-popover' : undefined}
 	>
 		{printButtonText}
 	</button>
 </div>
 
-<!-- Warning Dialog -->
-<dialog
-	closedby="any"
-	bind:this={dialog}
-	class="m-auto p-6 rounded-xl shadow-2xl backdrop:backdrop-blur-sm bg-slate-900 text-white border border-slate-700 max-w-md w-full"
+<!-- Warning Popover -->
+<div
+	id="print-warning-popover"
+	popover="auto"
+	class="m-auto p-6 rounded-xl shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm bg-slate-900 text-white border border-slate-700 max-w-md w-full animate-[zoom_0.3s_cubic-bezier(0.34,1.56,0.64,1)]"
 >
 	<div class="flex flex-col gap-4">
 		<div class="flex items-center gap-3 text-orange-400">
@@ -88,38 +80,19 @@
 
 		<div class="flex justify-end gap-3 mt-4">
 			<button
-				onclick={closeDialog}
+				popovertarget="print-warning-popover"
+				popovertargetaction="hide"
 				class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-sm font-medium"
 			>
 				Cancel
 			</button>
 			<button
 				onclick={printAnyway}
+				popovertarget="print-warning-popover"
 				class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 transition-colors text-sm font-medium shadow-lg shadow-orange-900/20"
 			>
 				Print Anyway
 			</button>
 		</div>
 	</div>
-</dialog>
-
-<style>
-	dialog::backdrop {
-		background: rgba(0, 0, 0, 0.5);
-	}
-
-	dialog[open] {
-		animation: zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
-
-	@keyframes zoom {
-		from {
-			transform: scale(0.95);
-			opacity: 0;
-		}
-		to {
-			transform: scale(1);
-			opacity: 1;
-		}
-	}
-</style>
+</div>

@@ -122,7 +122,9 @@ test.describe('Communication Slip Printing', () => {
 		}
 	});
 
-	test('should show warning dialog when printing with missing info but ALLOW printing', async ({ page }) => {
+	test('should show warning dialog when printing with missing info but ALLOW printing', async ({
+		page
+	}) => {
 		await page.goto('/communication');
 		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
 		await page.evaluate((text) => (window as any).setStudentsText(text), THREE_STUDENTS);
@@ -132,31 +134,31 @@ test.describe('Communication Slip Printing', () => {
 		const printButton = page.locator('button.print-slips');
 		await printButton.click();
 
-		// Dialog should be visible
-		const dialog = page.locator('dialog');
-		await expect(dialog).toBeVisible();
-		await expect(dialog).toContainText('Missing Information');
-		await expect(dialog).toContainText('Class number');
-		await expect(dialog).toContainText('Assigned date');
+		// Popover should be visible
+		const popover = page.locator('#print-warning-popover');
+		await expect(popover).toBeVisible();
+		await expect(popover).toContainText('Missing Information');
+		await expect(popover).toContainText('Class number');
+		await expect(popover).toContainText('Assigned date');
 
 		// Click Print Anyway
 		const printAnywayButton = page.getByRole('button', { name: 'Print Anyway' });
 		await printAnywayButton.click();
 
-		// Dialog should be closed
-		await expect(dialog).not.toBeVisible();
+		// Popover should be closed
+		await expect(popover).not.toBeVisible();
 	});
 
 	test('should NOT show warning dialog when 0 slips are selected', async ({ page }) => {
 		await page.goto('/communication');
-		
+
 		// No students added/selected
 		const printButton = page.locator('button.print-slips');
 		await expect(printButton).toHaveText('Print 0 Slips');
-		
-		// Clicking should do nothing (no dialog)
+
+		// Clicking should do nothing (no popover)
 		await printButton.click();
-		const dialog = page.locator('dialog');
-		await expect(dialog).not.toBeVisible();
+		const popover = page.locator('#print-warning-popover');
+		await expect(popover).not.toBeVisible();
 	});
 });
