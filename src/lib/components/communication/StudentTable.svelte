@@ -16,6 +16,17 @@
 			store.handlePaste(text);
 		}
 	}
+
+	function focusTable(e: MouseEvent) {
+		(e.currentTarget as HTMLElement).focus();
+	}
+
+	function focusTableKey(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			(e.currentTarget as HTMLElement).focus();
+		}
+	}
 </script>
 
 <div
@@ -105,11 +116,14 @@
 
 	<!-- MARK: student table -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
 		class="mx-6 mb-2 rounded-lg border-2 border-transparent transition-all duration-300 focus:border-blue-500/80 focus:ring-4 focus:ring-blue-500/10 focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-hidden group overflow-hidden w-[calc(100%-3rem)]"
 		tabindex="0"
 		role="region"
 		aria-label="Student data table"
+		onclick={focusTable}
+		onkeydown={focusTableKey}
 	>
 		<table class="w-full table-fixed border-collapse bg-white text-sm text-slate-700">
 			<colgroup>
