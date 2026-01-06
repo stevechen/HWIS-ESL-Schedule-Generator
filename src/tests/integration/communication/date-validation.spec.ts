@@ -22,7 +22,7 @@ test.describe('Date Validation & Logic', () => {
 		await expect(page.locator('label[for="assigned"]')).toHaveClass(/text-red-400/);
 		await expect(page.locator('label[for="due"]')).toHaveClass(/text-red-400/);
 
-		// Check Print button warning
+		// Check warning popover shows correct message
 		const printButton = page.locator('button.print-slips');
 		await printButton.click();
 
@@ -40,7 +40,7 @@ test.describe('Date Validation & Logic', () => {
 		await expect(page.locator('label[for="due"]')).toHaveClass(/text-red-400/);
 		await expect(page.locator('label[for="late"]')).toHaveClass(/text-red-400/);
 
-		// Check Print button warning
+		// Check warning popover shows correct message
 		const printButton = page.locator('button.print-slips');
 		await printButton.click();
 
@@ -82,7 +82,7 @@ test.describe('Date Validation & Logic', () => {
 		await expect(page.locator('label[for="assigned"]')).toHaveClass(/text-red-400/);
 		await expect(page.locator('label[for="due"]')).toHaveClass(/text-red-400/);
 
-		// Check Print button warning
+		// Check warning popover shows correct message
 		const printButton = page.locator('button.print-slips');
 		await printButton.click();
 
