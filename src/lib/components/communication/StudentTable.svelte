@@ -147,7 +147,7 @@
 			 paste events on form elements or contenteditable elements. The overlay only exists when
 			 table is empty (no students) so it doesn't block interactions when students are present. -->
 		{#if store.studentsParsed.length === 0}
-			<!-- svelte-ignore a11y_form_field_has_label -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				bind:this={pasteArea}
 				id="student-paste-area"
