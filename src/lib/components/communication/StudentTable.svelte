@@ -9,6 +9,10 @@
 
 	let { store }: { store: CommunicationStore } = $props();
 
+	// iPad/iOS paste fix - DOM reference for contenteditable overlay (non-reactive, only used for bind:this)
+	// svelte-ignore non_reactive_update
+	let pasteArea: HTMLDivElement;
+
 	function onGlobalPaste(e: ClipboardEvent) {
 		const text = e.clipboardData?.getData('text');
 		if (text && (text.includes('\t') || text.includes('\n'))) {
@@ -17,14 +21,25 @@
 		}
 	}
 
+	// iPad/iOS paste fix - focuses table div when clicked/tapped so it becomes a valid paste target
 	function focusTable(e: MouseEvent) {
 		(e.currentTarget as HTMLElement).focus();
 	}
 
+	// iPad/iOS paste fix - keyboard accessibility support for focus handler (Enter/Space keys)
 	function focusTableKey(e: KeyboardEvent) {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
 			(e.currentTarget as HTMLElement).focus();
+		}
+	}
+
+	// iPad/iOS paste fix - handle paste events from contenteditable overlay
+	function handlePasteAreaPaste(e: ClipboardEvent) {
+		e.preventDefault();
+		const text = e.clipboardData?.getData('text');
+		if (text && (text.includes('\t') || text.includes('\n'))) {
+			store.handlePaste(text);
 		}
 	}
 </script>
@@ -103,7 +118,9 @@
 		<!-- MARK: class-number -->
 		<div>
 			<input
+				id="class-number"
 				type="number"
+				name="class-number"
 				class="bg-linear-to-b from-slate-700 to-slate-500 invalid:bg-none shadow-blue-800 shadow-xs invalid:shadow-none mx-1 focus:border-blue-800 invalid:border-2 invalid:border-red-400 rounded-full invalid:rounded-sm focus:outline-hidden w-8 h-6 text-white invalid:text-red-400 text-center transition duration-400 ease-in"
 				bind:value={store.classNum}
 				placeholder="#?"
@@ -117,14 +134,32 @@
 	<!-- MARK: student table -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div
-		class="mx-6 mb-2 rounded-lg border-2 border-transparent transition-all duration-300 focus:border-blue-500/80 focus:ring-4 focus:ring-blue-500/10 focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-hidden group overflow-hidden w-[calc(100%-3rem)]"
+		class="mx-6 mb-2 rounded-lg border-2 border-transparent transition-all duration-300 focus:border-blue-500/80 focus:ring-4 focus:ring-blue-500/10 focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-hidden group overflow-hidden w-[calc(100%-3rem)] relative"
 		tabindex="0"
 		role="region"
 		aria-label="Student data table"
 		onclick={focusTable}
 		onkeydown={focusTableKey}
 	>
+		<!-- iPad/iOS paste fix: Contenteditable overlay enables paste on iOS Safari which only allows
+			 paste events on form elements or contenteditable elements. The overlay only exists when
+			 table is empty (no students) so it doesn't block interactions when students are present. -->
+		{#if store.studentsParsed.length === 0}
+			<!-- svelte-ignore a11y_form_field_has_label -->
+			<div
+				bind:this={pasteArea}
+				id="student-paste-area"
+				contenteditable="true"
+				class="absolute inset-0 z-20 outline-hidden"
+				onpaste={handlePasteAreaPaste}
+				oninput={(e) => {
+					e.preventDefault();
+					(e.target as HTMLElement).innerText = '';
+				}}
+			></div>
+		{/if}
 		<table class="w-full table-fixed border-collapse bg-white text-sm text-slate-700">
 			<colgroup>
 				<col class="w-10" />
@@ -197,19 +232,43 @@
 								/>
 							</td>
 							<td class="student-id">
-								<input type="text" bind:value={student.id} />
+								<input
+									type="text"
+									id="student-id-{student.id}"
+									name="student-id-{student.id}"
+									bind:value={student.id}
+								/>
 							</td>
 							<td class="english-name">
-								<input type="text" bind:value={student.name.english} />
+								<input
+									type="text"
+									id="student-name-en-{student.id}"
+									name="student-name-en-{student.id}"
+									bind:value={student.name.english}
+								/>
 							</td>
 							<td class="chinese-name">
-								<input type="text" bind:value={student.name.chinese} />
+								<input
+									type="text"
+									id="student-name-cn-{student.id}"
+									name="student-name-cn-{student.id}"
+									bind:value={student.name.chinese}
+								/>
 							</td>
 							<td class="chinese-class">
-								<input type="text" bind:value={student.cClass} />
+								<input
+									type="text"
+									id="student-class-{student.id}"
+									name="student-class-{student.id}"
+									bind:value={student.cClass}
+								/>
 							</td>
 							<td class="student-status">
-								<select bind:value={student.status}>
+								<select
+									id="student-status-{student.id}"
+									name="student-status-{student.id}"
+									bind:value={student.status}
+								>
 									<option value={STATUS_CODE.NOT_SUBMITTED}>
 										{STATUSES[STATUS_CODE.NOT_SUBMITTED].text.english}
 									</option>
