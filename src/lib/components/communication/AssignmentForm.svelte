@@ -27,18 +27,14 @@
 			<h3 class="mx-2 my-0.5 pr-10 text-white">Assignment</h3>
 			<div class="ml-auto">
 				{#if store.studentsParsed.length > 0}
-					<button
-						id="clear_button"
-						class="bg-gray-500 hover:bg-gray-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
-						onclick={onClearForm}
-					>
+					<button id="clear_button" class="btn btn-secondary btn-focus mx-1" onclick={onClearForm}>
 						Clear
 					</button>
 				{/if}
 				{#if recordManager.isSaveable && recordManager.isModified}
 					<button
 						id="save_button"
-						class="bg-blue-500 hover:bg-blue-600 mx-1 px-2 py-1 rounded font-bold text-white text-xs"
+						class="btn btn-primary btn-focus mx-1"
 						onclick={handleSaveRecord}
 					>
 						Save
@@ -91,7 +87,7 @@
 					{label}
 					<input
 						class={[
-							'mr-2 w-20 rounded-md border text-center placeholder:text-sm focus:border-2 focus:border-blue-800! focus:outline-hidden',
+							'mr-2 w-20 rounded-md border text-center placeholder:text-sm input-focus',
 							invalid ? 'border-2 border-red-400 text-red-400' : 'border-white text-white'
 						]}
 						type="text"

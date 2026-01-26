@@ -69,7 +69,7 @@
 		</div>
 
 		<p class="text-slate-300">
-			The following information is missing. You can still print, but the slips may be incomplete:
+			Info missing or possibly incorrect. Still printable, but the slips may be incomplete:
 		</p>
 
 		<ul class="list-disc list-inside space-y-1 text-slate-200 bg-slate-800/50 p-3 rounded-lg">
@@ -82,14 +82,14 @@
 			<button
 				popovertarget="print-warning-popover"
 				popovertargetaction="hide"
-				class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-sm font-medium"
+				class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-sm font-medium btn-focus"
 			>
 				Cancel
 			</button>
 			<button
 				onclick={printAnyway}
 				popovertarget="print-warning-popover"
-				class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 transition-colors text-sm font-medium shadow-lg shadow-orange-900/20"
+				class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 transition-colors text-sm font-medium shadow-lg shadow-orange-900/20 btn-focus"
 			>
 				Print Anyway
 			</button>

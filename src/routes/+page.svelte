@@ -210,7 +210,7 @@
 				<button
 					id="download_button"
 					type="button"
-					class="hover:bg-gray-200 p-1 rounded focus:outline-none download-btn"
+					class="hover:bg-gray-200 p-1 rounded btn-focus download-btn"
 					title="Download as CSV"
 					onclick={() => downloadCsv()}
 				>
@@ -232,7 +232,7 @@
 				<button
 					id="copy_button"
 					type="button"
-					class="hover:bg-gray-200 p-1 rounded focus:outline-none copy-btn"
+					class="hover:bg-gray-200 p-1 rounded btn-focus copy-btn"
 					title="Copy to clipboard (for spreadsheet programs)"
 					onclick={copyOutputToClipboard}
 				>

@@ -39,13 +39,13 @@
 }
 
 /* Hide number input spinners across all browsers */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
 	-webkit-appearance: none;
 	margin: 0;
 }
 
-input[type="number"] {
+input[type='number'] {
 	appearance: textfield;
 	-moz-appearance: textfield;
 }
@@ -58,5 +58,30 @@ input[type="number"] {
 		@apply h-6 w-full cursor-pointer border-none bg-transparent text-center focus:outline-hidden px-1;
 		appearance: none;
 		-webkit-appearance: none;
+	}
+}
+
+@layer components {
+	.btn {
+		@apply px-2 py-1 rounded font-bold text-white text-xs transition-colors duration-200;
+	}
+	.btn-primary {
+		@apply bg-blue-500 hover:bg-blue-600;
+	}
+	.btn-secondary {
+		@apply bg-gray-500 hover:bg-gray-600;
+	}
+	.btn-danger {
+		@apply bg-red-500 hover:bg-red-600;
+	}
+	.btn-sm {
+		@apply px-2 py-1 text-xs;
+	}
+
+	.input-focus {
+		@apply focus:border-2 focus:border-blue-800 focus:outline-hidden;
+	}
+	.btn-focus {
+		@apply focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
 	}
 }

@@ -107,7 +107,7 @@
 		</p>
 		<button
 			id="browse"
-			class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs my-2 ml-28 px-4 py-1 rounded-lg text-white animate-pulse hover:animate-none hover:pointer"
+			class="btn btn-primary btn-focus my-2 ml-28 shadow-blue-800 shadow-xs animate-pulse hover:animate-none"
 			onclick={handleBrowseClick}
 			aria-label="browse image">Browse…</button
 		>
@@ -124,7 +124,7 @@
 		<img class="m-auto h-[14mm] signature-preview" src={store.signatureImage} alt="Signature" />
 		<button
 			id="remove-signature"
-			class="bg-blue-400 hover:bg-blue-500 shadow-blue-800 shadow-xs mr-4 p-1.5 rounded-lg size-9 hover:pointer"
+			class="btn btn-primary btn-focus mr-4 p-1.5 shadow-blue-800 shadow-xs size-9"
 			onclick={removeSignature}
 			aria-label="remove-signature"
 		>

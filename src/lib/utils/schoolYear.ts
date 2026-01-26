@@ -4,9 +4,9 @@ export function getSchoolYearAndSemesterPrefix(currentDate: Date = new Date()): 
 
 	// Semester 1: August (7) to January (0)
 	// Semester 2: February (1) to July (6)
-	
-	if (currentMonth >= 1 && currentMonth <= 6) {
-		// February to July -> Semester 2 of (Previous Year - Current Year)
+
+	if (currentMonth >= 0 && currentMonth <= 6) {
+		// January to July -> Semester 2 of (Previous Year - Current Year)
 		return `${currentYear - 1}-${currentYear}-2`;
 	} else {
 		// August to January -> Semester 1

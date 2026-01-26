@@ -121,7 +121,7 @@
 				id="class-number"
 				type="number"
 				name="class-number"
-				class="bg-linear-to-b from-slate-700 to-slate-500 invalid:bg-none shadow-blue-800 shadow-xs invalid:shadow-none mx-1 focus:border-blue-800 invalid:border-2 invalid:border-red-400 rounded-full invalid:rounded-sm focus:outline-hidden w-8 h-6 text-white invalid:text-red-400 text-center transition duration-400 ease-in"
+				class="bg-linear-to-b from-slate-700 to-slate-500 invalid:bg-none shadow-blue-800 shadow-xs invalid:shadow-none mx-1 invalid:border-2 invalid:border-red-400 rounded-full invalid:rounded-sm w-8 h-6 text-white invalid:text-red-400 text-center transition duration-400 ease-in input-focus"
 				bind:value={store.classNum}
 				placeholder="#?"
 				max="9"
