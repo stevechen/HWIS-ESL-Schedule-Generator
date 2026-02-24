@@ -8,6 +8,7 @@ export const schoolEvents = `
 2026-06-10		Passport Check	Comm
 2026-06-09		Passport Check	Comm
 2026-06-08		Passport Check	Comm
+2026-06-02	Off	Graduation Ceremony	G9
 2026-05-22		CLIL Workbook Check	CLIL
 2026-05-21		CLIL Workbook Check	CLIL
 2026-05-20		CLIL Workbook Check	CLIL
