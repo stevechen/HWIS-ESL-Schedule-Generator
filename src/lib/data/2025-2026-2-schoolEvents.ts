@@ -2,7 +2,7 @@ export const schoolEvents = `
 2026-06-30	Exam		
 2026-06-29	Exam		
 2026-06-26	Exam		
-2026-06-219	Off	Dragon Boat Festival	
+2026-06-19	Off	Dragon Boat Festival	
 2026-06-12		Passport Check	Comm
 2026-06-11		Passport Check	Comm
 2026-06-10		Passport Check	Comm
