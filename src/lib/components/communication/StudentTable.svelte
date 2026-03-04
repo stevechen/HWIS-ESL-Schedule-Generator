@@ -23,6 +23,17 @@
 
 	// iPad/iOS paste fix - focuses table div when clicked/tapped so it becomes a valid paste target
 	function focusTable(e: MouseEvent) {
+		// Don't steal focus from interactive elements (inputs, selects, checkboxes)
+		const target = e.target as HTMLElement;
+		if (
+			target.tagName === 'INPUT' ||
+			target.tagName === 'SELECT' ||
+			target.tagName === 'TEXTAREA' ||
+			target.tagName === 'BUTTON' ||
+			target.tagName === 'LABEL'
+		) {
+			return;
+		}
 		(e.currentTarget as HTMLElement).focus();
 	}
 
@@ -136,7 +147,7 @@
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div
-		class="mx-6 mb-2 rounded-lg border-2 border-transparent transition-all duration-300 focus:border-blue-500/80 focus:ring-4 focus:ring-blue-500/10 focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-hidden group overflow-hidden w-[calc(100%-3rem)] relative"
+		class="group relative focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] mx-6 mb-2 border-2 border-transparent focus:border-blue-500/80 rounded-lg outline-hidden focus:ring-4 focus:ring-blue-500/10 w-[calc(100%-3rem)] overflow-hidden transition-all duration-300"
 		tabindex="0"
 		role="region"
 		aria-label="Student data table"
@@ -152,7 +163,7 @@
 				bind:this={pasteArea}
 				id="student-paste-area"
 				contenteditable="true"
-				class="absolute inset-0 z-20 outline-hidden"
+				class="z-20 absolute inset-0 outline-hidden"
 				onpaste={handlePasteAreaPaste}
 				oninput={(e) => {
 					e.preventDefault();
@@ -160,7 +171,7 @@
 				}}
 			></div>
 		{/if}
-		<table class="w-full table-fixed border-collapse bg-white text-sm text-slate-700">
+		<table class="bg-white w-full text-slate-700 text-sm border-collapse table-fixed">
 			<colgroup>
 				<col class="w-10" />
 				<col class="w-17" />
@@ -169,8 +180,8 @@
 				<col class="w-12" />
 				<col class="w-42" />
 			</colgroup>
-			<thead class="bg-slate-200 text-xs font-semibold">
-				<tr class="h-6 [&>th]:border [&>th]:border-slate-300">
+			<thead class="bg-slate-200 font-semibold text-xs">
+				<tr class="[&>th]:border [&>th]:border-slate-300 h-6">
 					<th>
 						<input
 							id="master-checkbox"
@@ -204,7 +215,7 @@
 							<td class="relative overflow-visible">
 								{#if i === 2}
 									<div
-										class="absolute inset-y-0 left-[-112px] right-[-300px] flex items-center justify-center whitespace-nowrap px-4 text-slate-400 transition-colors group-focus:font-medium group-focus:text-blue-500 pointer-events-none"
+										class="right-[-300px] left-[-112px] absolute inset-y-0 flex justify-center items-center px-4 group-focus:font-medium text-slate-400 group-focus:text-blue-500 whitespace-nowrap transition-colors pointer-events-none"
 									>
 										Paste students from spreadsheet here (ID, English Name, Chinese Name, Class)
 									</div>
@@ -228,7 +239,7 @@
 									type="checkbox"
 									id="checkbox-{student.id}"
 									class="size-4 align-middle"
-									bind:checked={student.selected}
+									bind:checked={store.studentsParsed[i].selected}
 								/>
 							</td>
 							<td class="student-id">
@@ -236,7 +247,7 @@
 									type="text"
 									id="student-id-{student.id}"
 									name="student-id-{student.id}"
-									bind:value={student.id}
+									bind:value={store.studentsParsed[i].id}
 								/>
 							</td>
 							<td class="english-name">
@@ -244,7 +255,7 @@
 									type="text"
 									id="student-name-en-{student.id}"
 									name="student-name-en-{student.id}"
-									bind:value={student.name.english}
+									bind:value={store.studentsParsed[i].name.english}
 								/>
 							</td>
 							<td class="chinese-name">
@@ -252,7 +263,7 @@
 									type="text"
 									id="student-name-cn-{student.id}"
 									name="student-name-cn-{student.id}"
-									bind:value={student.name.chinese}
+									bind:value={store.studentsParsed[i].name.chinese}
 								/>
 							</td>
 							<td class="chinese-class">
@@ -260,14 +271,14 @@
 									type="text"
 									id="student-class-{student.id}"
 									name="student-class-{student.id}"
-									bind:value={student.cClass}
+									bind:value={store.studentsParsed[i].cClass}
 								/>
 							</td>
 							<td class="student-status">
 								<select
 									id="student-status-{student.id}"
 									name="student-status-{student.id}"
-									bind:value={student.status}
+									bind:value={store.studentsParsed[i].status}
 								>
 									<option value={STATUS_CODE.NOT_SUBMITTED}>
 										{STATUSES[STATUS_CODE.NOT_SUBMITTED].text.english}
