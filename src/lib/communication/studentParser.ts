@@ -49,7 +49,7 @@ export function parseStudentsFromText(data: string): Student[] {
  * Determines grade from pasted text using Chinese class number
  * Matches J1xx to J3xx patterns and converts to G7-G9
  */
-export function determineGradeFromText(pastedText: string): string {
+function determineGradeFromText(pastedText: string): string {
 	const gradeMatch = pastedText.match(/J1\d{2}|J2\d{2}|J3\d{2}/);
 	if (gradeMatch) {
 		// only matches the first record since the rest should be in the same grade

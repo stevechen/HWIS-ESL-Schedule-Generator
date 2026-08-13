@@ -22,7 +22,7 @@ const DEFAULT_IMAGE_LOAD_TIMEOUT = 5000;
  * @param allowedTypes - Array of allowed MIME types
  * @returns ValidationResult with isValid and optional error message
  */
-export function validateFileType(
+function validateFileType(
 	file: File,
 	allowedTypes: string[] = ['image/jpeg', 'image/png']
 ): ValidationResult {
@@ -64,7 +64,7 @@ export function validateFileType(
  * @param timeout - Timeout in milliseconds (default: 5000ms)
  * @returns Promise resolving to ValidationResult
  */
-export function validateImageDimensions(
+function validateImageDimensions(
 	file: File,
 	minHeight: number = Limit.height,
 	timeout: number = DEFAULT_IMAGE_LOAD_TIMEOUT
@@ -124,7 +124,7 @@ export function validateImageDimensions(
  * @param file - The file to convert
  * @returns Promise resolving to the data URL string
  */
-export function fileToDataURL(file: File): Promise<string> {
+function fileToDataURL(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 

@@ -199,7 +199,7 @@ const capitalizeWords = (str: string): string => str.replace(/\b\w/g, (char) => 
 /**
  * Generates a unique record name based on the record's content and existing names.
  */
-export function generateRecordName(record: CommunicationRecord, existingNames: string[]): string {
+function generateRecordName(record: CommunicationRecord, existingNames: string[]): string {
 	let datePart = record.dates.due;
 	if (isValidMonthAndDay(record.dates.due)) {
 		const [month, day] = record.dates.due.split('/');
@@ -210,7 +210,7 @@ export function generateRecordName(record: CommunicationRecord, existingNames: s
 	const selectedStudentCount = record.studentsParsed.filter((student) => student.selected).length;
 
 	const baseRecordName = capitalizeWords(
-		`${datePart}-${record.grade} ${record.level} ${record.classType} ${record.classNum}-${record.assignment}-${selectedStudentCount} students`
+		`${datePart}-${record.grade} ${record.level} ${record.classNum} ${record.classType}-${record.assignment}-${selectedStudentCount} students`
 	);
 
 	// Make the name unique by appending a counter if needed
@@ -227,7 +227,7 @@ export function generateRecordName(record: CommunicationRecord, existingNames: s
 /**
  * Saves a communication record to localStorage and updates the index.
  */
-export function saveRecord(record: CommunicationRecord): string {
+function saveRecord(record: CommunicationRecord): string {
 	const existingNames = getRecordIndex();
 	const recordName = generateRecordName(record, existingNames);
 
@@ -245,7 +245,7 @@ export function saveRecord(record: CommunicationRecord): string {
 /**
  * Loads a communication record from localStorage
  */
-export function loadRecord(recordName: string): CommunicationRecord | null {
+function loadRecord(recordName: string): CommunicationRecord | null {
 	const settingsText = localStorage.getItem(`${RECORD_PREFIX}${recordName}`);
 	if (settingsText) {
 		try {
@@ -309,7 +309,7 @@ export function migrateRecord(record: any): CommunicationRecord {
 /**
  * Deletes a communication record from localStorage and the index.
  */
-export function deleteRecord(recordName: string): void {
+function deleteRecord(recordName: string): void {
 	localStorage.removeItem(`${RECORD_PREFIX}${recordName}`);
 	const index = getRecordIndex();
 	const newIndex = index.filter((name) => name !== recordName);
@@ -319,7 +319,7 @@ export function deleteRecord(recordName: string): void {
 /**
  * Gets all saved record names, sorted by most recent first.
  */
-export function getSavedRecordNames(): string[] {
+function getSavedRecordNames(): string[] {
 	return getRecordIndex().sort().reverse();
 }
 
@@ -401,7 +401,7 @@ function deepEqual(a: any, b: any): boolean {
 /**
  * Gets the most recent record name, or null if no records exist
  */
-export function getMostRecentRecordName(): string | null {
+function getMostRecentRecordName(): string | null {
 	const recordNames = getSavedRecordNames();
 	return recordNames.length > 0 ? recordNames[0] : null;
 }
@@ -409,6 +409,6 @@ export function getMostRecentRecordName(): string | null {
 /**
  * Checks if a record with the given name exists by checking the index.
  */
-export function recordExists(recordName: string): boolean {
+function recordExists(recordName: string): boolean {
 	return getRecordIndex().includes(recordName);
 }
