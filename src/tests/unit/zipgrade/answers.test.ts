@@ -7,7 +7,7 @@ import {
 	applyAnswers,
 	sortLetters,
 	type AnswerSet
-} from '$lib/scantron/answers';
+} from '$lib/zipgrade/answers';
 
 describe('createEmptyAnswers', () => {
 	it('creates 65 empty answer sets', () => {

@@ -7,7 +7,7 @@
 	const NAV_ITEM = [
 		{ title: 'Schedule', url: '/' },
 		{ title: 'White Slip', url: '/communication' },
-		{ title: 'Scantron', url: '/scantron' },
+		{ title: 'ZipGrade', url: '/zipgrade' },
 		{ title: 'Sonic', url: '/sonic' }
 	];
 </script>

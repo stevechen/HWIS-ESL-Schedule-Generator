@@ -13,9 +13,15 @@ export function sheetWidthAt(zoom: number): number {
 	return Math.round((PAGE_SIZE.widthPt * zoom) / 100);
 }
 
-/** Whether a teacher should be able to edit answers at this zoom level. */
-export function canEditAt(zoom: number): boolean {
-	return zoom >= MIN_EDIT_ZOOM;
+/**
+ * Whether a teacher should be able to edit answers at this zoom level.
+ *
+ * Touch devices (phones, tablets) can always edit: fit-width is the only view
+ * that shows the whole sheet, so gating on zoom would lock them out. The
+ * non-touch gate exists to prevent accidental taps on a tiny sheet.
+ */
+export function canEditAt(zoom: number, isTouch = false): boolean {
+	return isTouch || zoom >= MIN_EDIT_ZOOM;
 }
 
 /** Move one preset in the given direction, clamped to the ends. */
@@ -27,7 +33,7 @@ export function stepZoom(current: number, direction: 1 | -1): number {
 	return ZOOM_PRESETS[next];
 }
 
-const ZOOM_STORAGE_KEY = 'scantronZoom';
+const ZOOM_STORAGE_KEY = 'zipgradeZoom';
 
 /** Restore the persisted zoom level, falling back to the default for bad input. */
 export function loadZoom(storage: Pick<Storage, 'getItem'>): number {

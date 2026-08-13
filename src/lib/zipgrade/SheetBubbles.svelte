@@ -5,7 +5,7 @@
 		PAGE_SIZE,
 		QUESTION_POSITIONS,
 		type AnswerChoice
-	} from '$lib/scantron/layout';
+	} from '$lib/zipgrade/layout';
 
 	interface Props {
 		/** Selected letters per question (answers[q - 1]). */
@@ -26,8 +26,8 @@
 
 <div class="relative h-full w-full">
 	<img
-		src="/Scantron.svg"
-		alt="Scantron answer sheet"
+		src="/ZipGrade.svg"
+		alt="ZipGrade answer sheet"
 		class="points-none layer"
 		draggable="false"
 		{onload}
@@ -80,6 +80,9 @@
 		inset: 0;
 		width: 100%;
 		height: 100%;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		user-select: none;
 	}
 
 	.points-none {
@@ -97,6 +100,8 @@
 		stroke: transparent;
 		stroke-width: 1.5;
 		transition: stroke 0.1s ease;
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
 	}
 
 	.bubble-hit:hover,

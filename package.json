@@ -54,6 +54,7 @@
 	"dependencies": {
 		"@sveltejs/vite-plugin-svelte-inspector": "^5.0.1",
 		"date-fns": "^4.1.0",
+		"pdf-lib": "^1.17.1",
 		"xlsx": "^0.18.5"
 	},
 	"optionalDependencies": {}

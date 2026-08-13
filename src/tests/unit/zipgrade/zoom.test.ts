@@ -7,7 +7,7 @@ import {
 	sheetWidthAt,
 	loadZoom,
 	saveZoom
-} from '$lib/scantron/zoom';
+} from '$lib/zipgrade/zoom';
 
 function makeStorage(initial: Record<string, string> = {}): Storage {
 	const map = new Map(Object.entries(initial));
@@ -63,6 +63,12 @@ describe('editability at a zoom level', () => {
 			expect(canEditAt(zoom)).toBe(true);
 		}
 	});
+
+	it('enables editing on touch devices at any zoom', () => {
+		for (const zoom of [100, 150, 200, 300]) {
+			expect(canEditAt(zoom, true)).toBe(true);
+		}
+	});
 });
 
 describe('sheet width at a zoom level', () => {
@@ -83,15 +89,15 @@ describe('zoom persistence', () => {
 	});
 
 	it('restores a stored preset', () => {
-		expect(loadZoom(makeStorage({ scantronZoom: '250' }))).toBe(250);
+		expect(loadZoom(makeStorage({ zipgradeZoom: '250' }))).toBe(250);
 	});
 
 	it('falls back to the default for a non-preset value', () => {
-		expect(loadZoom(makeStorage({ scantronZoom: '123' }))).toBe(DEFAULT_ZOOM);
+		expect(loadZoom(makeStorage({ zipgradeZoom: '123' }))).toBe(DEFAULT_ZOOM);
 	});
 
 	it('falls back to the default for garbage', () => {
-		expect(loadZoom(makeStorage({ scantronZoom: 'abc' }))).toBe(DEFAULT_ZOOM);
+		expect(loadZoom(makeStorage({ zipgradeZoom: 'abc' }))).toBe(DEFAULT_ZOOM);
 	});
 
 	it('falls back to the default when storage throws', () => {
@@ -106,7 +112,7 @@ describe('zoom persistence', () => {
 	it('persists the current zoom', () => {
 		const storage = makeStorage();
 		saveZoom(storage, 250);
-		expect(storage.getItem('scantronZoom')).toBe('250');
+		expect(storage.getItem('zipgradeZoom')).toBe('250');
 	});
 
 	it('swallows storage failures when saving', () => {

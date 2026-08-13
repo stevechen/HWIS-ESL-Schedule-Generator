@@ -10,9 +10,9 @@ import {
 } from './answers';
 import type { ParsedAnswers } from './parser';
 
-const STORAGE_KEY = 'scantronAnswers';
+const STORAGE_KEY = 'zipgradeAnswers';
 
-export class ScantronStore {
+export class ZipGradeStore {
 	/** answers[q - 1] holds the selected letters for question q ([] = unanswered). */
 	answers: AnswerSet = $state(createEmptyAnswers());
 
@@ -26,7 +26,7 @@ export class ScantronStore {
 				const saved = localStorage.getItem(STORAGE_KEY);
 				if (saved) this.answers = normalizeAnswers(JSON.parse(saved));
 			} catch (error) {
-				console.error('[ScantronStore] Failed to load answers:', error);
+				console.error('[ZipGradeStore] Failed to load answers:', error);
 			}
 		});
 
@@ -36,7 +36,7 @@ export class ScantronStore {
 			try {
 				localStorage.setItem(STORAGE_KEY, JSON.stringify(this.answers));
 			} catch (error) {
-				console.error('[ScantronStore] Failed to save answers:', error);
+				console.error('[ZipGradeStore] Failed to save answers:', error);
 			}
 		});
 	}

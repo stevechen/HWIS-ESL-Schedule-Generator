@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parsePlainText, parseDelimited, parseRows } from '$lib/scantron/parser';
+import { parsePlainText, parseDelimited, parseRows } from '$lib/zipgrade/parser';
 
 describe('parsePlainText (token sequence)', () => {
 	it('maps comma-separated tokens to consecutive questions', () => {

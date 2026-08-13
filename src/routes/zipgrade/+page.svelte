@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { ScantronStore } from '$lib/scantron/store.svelte';
-	import { PAGE_SIZE, QUESTION_COUNT } from '$lib/scantron/layout';
-	import SheetBubbles from '$lib/scantron/SheetBubbles.svelte';
+	import { ZipGradeStore } from '$lib/zipgrade/store.svelte';
+	import { PAGE_SIZE, QUESTION_COUNT } from '$lib/zipgrade/layout';
+	import SheetBubbles from '$lib/zipgrade/SheetBubbles.svelte';
+	import { downloadAnswerKeyPdf } from '$lib/zipgrade/pdf';
 	import {
 		canEditAt,
 		DEFAULT_ZOOM,
@@ -11,24 +12,26 @@
 		saveZoom,
 		sheetWidthAt,
 		stepZoom
-	} from '$lib/scantron/zoom';
+	} from '$lib/zipgrade/zoom';
 	import {
 		parsePlainText,
 		parseDelimited,
 		parseRows,
 		type ParseResult
-	} from '$lib/scantron/parser';
+	} from '$lib/zipgrade/parser';
 
-	const scantron = new ScantronStore();
+	const zipgrade = new ZipGradeStore();
 
 	let pasteText = $state('');
 	let status = $state('');
 	let zoom = $state(DEFAULT_ZOOM);
 	let zoomLoaded = $state(false);
+	let isTouch = $state(false);
+	let downloading = $state(false);
 
 	const sheetWidth = $derived(sheetWidthAt(zoom));
-	const editable = $derived(canEditAt(zoom));
-	const progressPercent = $derived((scantron.answeredCount / QUESTION_COUNT) * 100);
+	const editable = $derived(canEditAt(zoom, isTouch));
+	const progressPercent = $derived((zipgrade.answeredCount / QUESTION_COUNT) * 100);
 
 	function flash(message: string) {
 		status = message;
@@ -43,7 +46,7 @@
 			return;
 		}
 		const count = Object.values(result.answers).filter((set) => set.length > 0).length;
-		scantron.apply(result.answers);
+		zipgrade.apply(result.answers);
 		flash(
 			count === 0
 				? 'No answers found in the file.'
@@ -91,12 +94,26 @@
 	}
 
 	function handleClear() {
-		scantron.clear();
+		zipgrade.clear();
 		flash('Cleared all answers.');
+	}
+
+	async function handleDownloadPdf() {
+		if (downloading) return;
+		downloading = true;
+		try {
+			await downloadAnswerKeyPdf(zipgrade.answers);
+		} catch (error) {
+			console.error('PDF download failed:', error);
+			flash('PDF download failed. Check the console for details.');
+		} finally {
+			downloading = false;
+		}
 	}
 
 	onMount(() => {
 		if (!browser) return;
+		isTouch = window.matchMedia('(pointer: coarse)').matches;
 		zoom = loadZoom(localStorage);
 		zoomLoaded = true;
 	});
@@ -110,14 +127,14 @@
 <main class="mx-auto flex max-w-6xl flex-col gap-4 p-4 font-sans text-sm">
 	<div class="flex items-baseline justify-between">
 		<div>
-			<h1 class="text-lg font-bold text-slate-800">Scantron Answer Key</h1>
+			<h1 class="text-lg font-bold text-slate-800">ZipGrade Answer Key</h1>
 			<p class="text-xs text-slate-500">
-				Fill the answers on Oxford Discovery HWHS (2054), then print the ready-to-use sheet.
+				Quickly build the answer key for ZipGrade to scan for grading your students.
 			</p>
 		</div>
 		<div class="text-right">
 			<p class="text-slate-700">
-				<span class="font-bold">{scantron.answeredCount}</span> / {QUESTION_COUNT} answered
+				<span class="font-bold">{zipgrade.answeredCount}</span> / {QUESTION_COUNT} answered
 			</p>
 			<div class="mt-1 h-2 w-40 overflow-hidden rounded-full bg-slate-200">
 				<div class="h-full rounded-full bg-blue-600" style="width: {progressPercent}%"></div>
@@ -156,7 +173,10 @@
 			<span class="text-xs text-slate-500">Fit-width view — zoom in to edit answers.</span>
 		{/if}
 		<span class="ml-auto flex items-center gap-2">
-			<a href="/scantron/print" class="btn btn-primary btn-sm text-center no-underline">
+			<button type="button" class="btn btn-secondary btn-sm" onclick={handleDownloadPdf} disabled={downloading}>
+				{downloading ? 'Generating…' : 'Download PDF'}
+			</button>
+			<a href="/zipgrade/print" class="btn btn-primary btn-sm text-center no-underline">
 				Print answer sheet
 			</a>
 			<button type="button" class="btn btn-danger btn-sm" onclick={handleClear}>
@@ -205,11 +225,11 @@
 		<div class="overflow-auto">
 			<div class="mx-auto max-w-full" style="width: {sheetWidth}px">
 				<div style="aspect-ratio: {PAGE_SIZE.widthPt} / {PAGE_SIZE.heightPt}">
-				<SheetBubbles
-					answers={scantron.answers}
-					interactive={editable}
-					onToggle={(n, letter) => scantron.toggle(n, letter)}
-				/>
+					<SheetBubbles
+						answers={zipgrade.answers}
+						interactive={editable}
+						onToggle={(n, letter) => zipgrade.toggle(n, letter)}
+					/>
 				</div>
 			</div>
 		</div>

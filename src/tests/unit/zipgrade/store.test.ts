@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { ScantronStore } from '$lib/scantron/store.svelte';
+import { ZipGradeStore } from '$lib/zipgrade/store.svelte';
 
-describe('ScantronStore', () => {
+describe('ZipGradeStore', () => {
 	it('starts empty', () => {
-		const store = new ScantronStore();
+		const store = new ZipGradeStore();
 		expect(store.answeredCount).toBe(0);
 		expect(store.answers).toHaveLength(65);
 		expect(store.answers.every((set) => set.length === 0)).toBe(true);
 	});
 
 	it('toggles letters for a question, preserving multiple answers', () => {
-		const store = new ScantronStore();
+		const store = new ZipGradeStore();
 		store.toggle(1, 'A');
 		expect(store.answers[0]).toEqual(['A']);
 		store.toggle(1, 'C');
@@ -21,7 +21,7 @@ describe('ScantronStore', () => {
 	});
 
 	it('does not affect other questions when toggling', () => {
-		const store = new ScantronStore();
+		const store = new ZipGradeStore();
 		store.toggle(65, 'E');
 		expect(store.answers[64]).toEqual(['E']);
 		expect(store.answers[0]).toEqual([]);
@@ -29,7 +29,7 @@ describe('ScantronStore', () => {
 	});
 
 	it('applies parsed answers by question number', () => {
-		const store = new ScantronStore();
+		const store = new ZipGradeStore();
 		store.toggle(1, 'A');
 		store.apply({ 2: ['C'], 3: ['B', 'D'] });
 		expect(store.answers[0]).toEqual(['A']);
@@ -39,7 +39,7 @@ describe('ScantronStore', () => {
 	});
 
 	it('keeps existing answers for questions not provided in apply', () => {
-		const store = new ScantronStore();
+		const store = new ZipGradeStore();
 		store.toggle(5, 'B');
 		store.apply({ 2: ['A'] });
 		expect(store.answers[4]).toEqual(['B']);
@@ -47,7 +47,7 @@ describe('ScantronStore', () => {
 	});
 
 	it('clears all answers', () => {
-		const store = new ScantronStore();
+		const store = new ZipGradeStore();
 		store.toggle(1, 'A');
 		store.toggle(40, 'C');
 		store.clear();
