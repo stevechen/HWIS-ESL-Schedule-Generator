@@ -205,11 +205,11 @@
 		<div class="overflow-auto">
 			<div class="mx-auto max-w-full" style="width: {sheetWidth}px">
 				<div style="aspect-ratio: {PAGE_SIZE.widthPt} / {PAGE_SIZE.heightPt}">
-					<SheetBubbles
-						answers={scantron.answers}
-						interactive={editable}
-						onToggle={scantron.toggle}
-					/>
+				<SheetBubbles
+					answers={scantron.answers}
+					interactive={editable}
+					onToggle={(n, letter) => scantron.toggle(n, letter)}
+				/>
 				</div>
 			</div>
 		</div>
