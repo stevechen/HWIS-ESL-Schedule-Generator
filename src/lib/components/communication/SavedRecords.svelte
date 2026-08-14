@@ -1,32 +1,26 @@
 <script lang="ts">
-	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
+	import { CommunicationStore } from '$lib/stores/communication';
 
 	// Props
 	interface Props {
-		recordManager: RecordManager;
-		onLoadRecord: (record: CommunicationRecord) => void;
+		store: CommunicationStore;
 	}
 
-	let { recordManager, onLoadRecord }: Props = $props();
+	let { store }: Props = $props();
 
 	function handleLoadRecord(recordName: string) {
-		const result = recordManager.load(recordName);
-		if (result.success && result.record) {
-			onLoadRecord(result.record);
-		} else {
+		const result = store.loadRecord(recordName);
+		if (!result.success) {
 			alert(result.error || 'Failed to load record.');
 		}
 	}
 
 	function handleDeleteRecord(recordName: string) {
-		const result = recordManager.delete(recordName);
-		if (!result.success) {
-			alert(result.error || 'Failed to delete record.');
-		}
+		store.deleteRecord(recordName);
 	}
 </script>
 
-{#if recordManager.savedRecords.length > 0}
+{#if store.savedRecords.length > 0}
 	<div class="print:hidden">
 		<!-- MARK: saved records -->
 		<details
@@ -35,16 +29,16 @@
 			<summary
 				class="relative bg-gray-200 hover:bg-gray-100 group-open:bg-blue-500 group-open:hover:bg-blue-500 px-3 py-2 rounded-t-sm group-open:outline group-open:outline-blue-600 text-slate-500 hover:text-slate-600 group-open:hover:text-white group-open:text-white transition-all duration-200 ease-in-out cursor-pointer"
 			>
-				Saved Records ({recordManager.savedRecords.length})
+				Saved Records ({store.savedRecords.length})
 			</summary>
 			<ul
 				id="records_list"
 				class="opacity-0 group-open:opacity-100 mx-0 max-h-0 group-open:max-h-screen overflow-hidden transition-all duration-300 ease-in-out list-none"
 			>
-				{#each recordManager.savedRecords as recordName}
+				{#each store.savedRecords as recordName}
 					<li class="record">
 						<div
-							class="flex justify-between items-center pl-2 {recordManager.lastLoadedRecordName ===
+							class="flex justify-between items-center pl-2 {store.lastLoadedRecordName ===
 							recordName
 								? 'bg-blue-300 hover:bg-blue-400'
 								: 'hover:bg-blue-200'}"

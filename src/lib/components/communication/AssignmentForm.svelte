@@ -1,20 +1,17 @@
 <script lang="ts">
 	import { isValidMonthAndDay, compareDates } from '$lib/utils/dateValidation';
 	import { DATES, CommunicationStore } from '$lib/stores/communication';
-	import { RecordManager, type CommunicationRecord } from '$lib/communication/recordManager.svelte';
 
 	// Props
 	interface Props {
 		store: CommunicationStore;
-		recordManager: RecordManager;
-		currentRecord: CommunicationRecord;
 		onClearForm: () => void;
 	}
 
-	let { store, recordManager, currentRecord, onClearForm }: Props = $props();
+	let { store, onClearForm }: Props = $props();
 
 	function handleSaveRecord() {
-		const result = recordManager.save(currentRecord);
+		const result = store.saveRecord();
 		if (!result.success) {
 			alert(result.error || 'Failed to save record. Please try again.');
 		}
@@ -31,7 +28,7 @@
 						Clear
 					</button>
 				{/if}
-				{#if recordManager.isSaveable && recordManager.isModified}
+				{#if store.isSaveable && store.isModified}
 					<button
 						id="save_button"
 						class="btn btn-primary btn-focus mx-1"

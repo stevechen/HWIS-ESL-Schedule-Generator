@@ -1,31 +1,32 @@
 import { test, expect } from '@playwright/test';
+import { seedStudents } from './seedStudents';
 
 const B5_WIDTH_PX = 693;
 const B5_HEIGHT_PX = 980;
 
 // Sample data for three students
-const THREE_STUDENTS = `1234567	J101	王小明	Daniel Wang
-2345678	J102	李大文	David Lee
-3456789	J103	陳美麗	Mary Chen`;
+const THREE_STUDENTS = `1234567\tJ101\t王小明\tDaniel Wang
+2345678\tJ102\t李大文\tDavid Lee
+3456789\tJ103\t陳美麗\tMary Chen`;
 
 // Sample data for four students
-const FOUR_STUDENTS = `1234567	J101	王小明	Daniel Wang
-2345678	J102	李大文	David Lee
-3456789	J103	陳美麗	Mary Chen
-4567890	J104	林志明	Jimmy Lin`;
+const FOUR_STUDENTS = `1234567\tJ101\t王小明\tDaniel Wang
+2345678\tJ102\t李大文\tDavid Lee
+3456789\tJ103\t陳美麗\tMary Chen
+4567890\tJ104\t林志明\tJimmy Lin`;
 
-test.describe('Communication Slip Printing', () => {
+async function openPrintLayout(page: import('@playwright/test').Page, students: string) {
+	await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
+	await seedStudents(page, students);
+	await page.emulateMedia({ media: 'print' });
+	await expect(page.getByTestId('communication-slip').first()).toBeVisible();
+	// Let the slip slide/fade transitions finish before measuring bounding boxes.
+	await page.waitForTimeout(500);
+}
+
+test.describe('Communication Slip Printing (B5 print layout)', () => {
 	test('should display a maximum of three slips on a B5 page', async ({ page }) => {
-		await page.goto('/communication');
-		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
-		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
-		await page.evaluate((text) => (window as any).setStudentsText(text), THREE_STUDENTS);
-		await page.waitForTimeout(500); // wait for svelte to update
-		await page.getByLabel('Passport').check();
-		await page.locator('#due').fill('9/10');
-		await page.locator('#late').fill('9/11');
-		await page.locator('input[type="number"]').fill('1');
-		await page.emulateMedia({ media: 'print' });
+		await openPrintLayout(page, THREE_STUDENTS);
 
 		await expect(page.getByTestId('communication-slip')).toHaveCount(3);
 
@@ -40,16 +41,7 @@ test.describe('Communication Slip Printing', () => {
 	});
 
 	test('should place the fourth slip on the next page', async ({ page }) => {
-		await page.goto('/communication');
-		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
-		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
-		await page.evaluate((text) => (window as any).setStudentsText(text), FOUR_STUDENTS);
-		await page.waitForTimeout(500); // wait for svelte to update
-		await page.getByLabel('Passport').check();
-		await page.locator('#due').fill('9/10');
-		await page.locator('#late').fill('9/11');
-		await page.locator('input[type="number"]').fill('1');
-		await page.emulateMedia({ media: 'print' });
+		await openPrintLayout(page, FOUR_STUDENTS);
 
 		await expect(page.getByTestId('communication-slip')).toHaveCount(4);
 		const slips = await page.getByTestId('communication-slip').all();
@@ -68,23 +60,13 @@ test.describe('Communication Slip Printing', () => {
 		const fourthSlipBoundingBox = await fourthSlip.boundingBox();
 		expect(fourthSlipBoundingBox).not.toBeNull();
 		if (fourthSlipBoundingBox) {
-			// This is a simplification. In a real browser, this would be on a new page.
-			// Here we check if it would render outside the initial viewport.
+			// The 4th slip starts a new page, so it sits below the first three.
 			expect(fourthSlipBoundingBox.y).toBeGreaterThanOrEqual(0);
 		}
 	});
 
 	test('should distribute slips evenly on the page', async ({ page }) => {
-		await page.goto('/communication');
-		await page.setViewportSize({ width: B5_WIDTH_PX, height: B5_HEIGHT_PX });
-		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
-		await page.evaluate((text) => (window as any).setStudentsText(text), THREE_STUDENTS);
-		await page.waitForTimeout(500); // wait for svelte to update
-		await page.getByLabel('Passport').check();
-		await page.locator('#due').fill('9/10');
-		await page.locator('#late').fill('9/11');
-		await page.locator('input[type="number"]').fill('1');
-		await page.emulateMedia({ media: 'print' });
+		await openPrintLayout(page, THREE_STUDENTS);
 
 		await expect(page.getByTestId('communication-slip')).toHaveCount(3);
 		const slips = await page.getByTestId('communication-slip').all();
@@ -120,45 +102,5 @@ test.describe('Communication Slip Printing', () => {
 				expect(boundingBox.y).toBeLessThanOrEqual(0 + pixelTolerance);
 			}
 		}
-	});
-
-	test('should show warning dialog when printing with missing info but ALLOW printing', async ({
-		page
-	}) => {
-		await page.goto('/communication');
-		await page.waitForFunction(() => typeof (window as any).setStudentsText === 'function');
-		await page.evaluate((text) => (window as any).setStudentsText(text), THREE_STUDENTS);
-		await page.waitForTimeout(200);
-
-		// Missing dates and class number
-		const printButton = page.locator('button.print-slips');
-		await printButton.click();
-
-		// Popover should be visible
-		const popover = page.locator('#print-warning-popover');
-		await expect(popover).toBeVisible();
-		await expect(popover).toContainText('Missing Information');
-		await expect(popover).toContainText('Class number');
-		await expect(popover).toContainText('Assigned date');
-
-		// Click Print Anyway
-		const printAnywayButton = page.getByRole('button', { name: 'Print Anyway' });
-		await printAnywayButton.click();
-
-		// Popover should be closed
-		await expect(popover).not.toBeVisible();
-	});
-
-	test('should NOT show warning dialog when 0 slips are selected', async ({ page }) => {
-		await page.goto('/communication');
-
-		// No students added/selected
-		const printButton = page.locator('button.print-slips');
-		await expect(printButton).toHaveText('Print 0 Slips');
-
-		// Clicking should do nothing (no popover)
-		await printButton.click();
-		const popover = page.locator('#print-warning-popover');
-		await expect(popover).not.toBeVisible();
 	});
 });

@@ -3,9 +3,19 @@ import { browser } from '$app/environment';
 import type { Student, DisplayStudent } from '$lib/stores/communication/types';
 import { AssignmentCode, Levels } from '$lib/stores/communication/types';
 import { ESL_TYPE, LEVELS, ASSIGNMENT_TYPE, STATUSES } from '$lib/stores/communication/constants';
-import { parseStudentsFromText, determineGradeFromStudents } from '$lib/communication/studentParser';
-import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
-import { validatePrintReadiness, type PrintValidationState } from '$lib/communication/printValidator';
+import {
+	parseStudentsFromText,
+	determineGradeFromStudents
+} from '$lib/communication/studentParser';
+import {
+	RecordManager,
+	areRecordsEqual,
+	type CommunicationRecord
+} from '$lib/communication/recordManager.svelte';
+import {
+	validatePrintReadiness,
+	type PrintValidationState
+} from '$lib/communication/printValidator';
 
 const G9_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.g9);
 const CLIL_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.clil);
@@ -65,10 +75,11 @@ export class CommunicationStore {
 				};
 			})
 	);
-	
+
 	isAllChecked = $derived(
 		(() => {
-			let allChecked = this.studentsParsed.length > 0 && this.studentsParsed.every((student) => student.selected);
+			let allChecked =
+				this.studentsParsed.length > 0 && this.studentsParsed.every((student) => student.selected);
 			let anyChecked = this.studentsParsed.some((student) => student.selected);
 			return {
 				checked: allChecked,
@@ -87,6 +98,41 @@ export class CommunicationStore {
 			signatureImage: this.signatureImage
 		})
 	);
+
+	// Record lifecycle -----------------------------------------------
+	// The store owns the record lifecycle so the route no longer assembles
+	// `currentRecord`, the save-state effect, or `clearForm`/`handleLoadRecord`.
+	private _recordManager = new RecordManager();
+
+	get savedRecords() {
+		return this._recordManager.savedRecords;
+	}
+
+	get lastLoadedRecordName() {
+		return this._recordManager.lastLoadedRecordName;
+	}
+
+	get lastLoadedRecord() {
+		return this._recordManager.lastLoadedRecord;
+	}
+
+	get isSaveable() {
+		return this._recordManager.isSaveable;
+	}
+
+	get isModified() {
+		return this._recordManager.isModified;
+	}
+
+	currentRecord = $derived({
+		grade: this.grade,
+		level: this.level,
+		classType: this.classType,
+		classNum: this.classNum,
+		assignment: this.assignment,
+		dates: this.dates,
+		studentsParsed: this.studentsParsed
+	});
 
 	assignmentTypes = $derived(
 		this.grade === 'G9'
@@ -147,6 +193,18 @@ export class CommunicationStore {
 				}
 			}
 		});
+
+		// Sync save-button state from the assembled record. Gated on the load
+		// flag so loading a record doesn't immediately mark it "modified".
+		$effect(() => {
+			if (this._isLoadingRecord) return;
+			const record = this.currentRecord;
+			this._recordManager.isSaveable =
+				!!record.classNum && record.studentsParsed.filter((s) => s.selected).length > 0;
+			this._recordManager.isModified = !this._recordManager.lastLoadedRecord
+				? true
+				: !areRecordsEqual(record, this._recordManager.lastLoadedRecord);
+		});
 	}
 
 	/**
@@ -180,9 +238,9 @@ export class CommunicationStore {
 		this.assignment = record.assignment as AssignmentCode;
 		this.dates = record.dates;
 		this.studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
-		
+
 		await tick(); // Wait for effect to run (blocked by _isLoadingRecord=true)
-		
+
 		this._isLoadingRecord = false;
 	};
 
@@ -240,5 +298,38 @@ export class CommunicationStore {
 			late: ''
 		};
 		this.initializeDates();
+	};
+
+	/**
+	 * Persists the current record.
+	 */
+	saveRecord() {
+		return this._recordManager.save(this.currentRecord);
+	}
+
+	/**
+	 * Loads a named record into the form.
+	 */
+	loadRecord = (recordName: string) => {
+		const result = this._recordManager.load(recordName);
+		if (result.success && result.record) {
+			this.loadRecordData(result.record);
+		}
+		return result;
+	};
+
+	/**
+	 * Deletes a named record.
+	 */
+	deleteRecord(recordName: string) {
+		return this._recordManager.delete(recordName);
+	}
+
+	/**
+	 * Clears the form and the record loader state.
+	 */
+	clearAll = () => {
+		this.reset();
+		this._recordManager.clearLoadedRecord();
 	};
 }

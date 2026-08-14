@@ -1,10 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
 	import { fade, slide } from 'svelte/transition';
 	import { CommunicationStore } from '$lib/stores/communication';
-	import type { CommunicationRecord } from '$lib/communication/recordManager.svelte';
-	import { RecordManager, areRecordsEqual } from '$lib/communication/recordManager.svelte';
 
 	import AssignmentForm from '$lib/components/communication/AssignmentForm.svelte';
 	import SavedRecords from '$lib/components/communication/SavedRecords.svelte';
@@ -15,52 +11,6 @@
 	import IconLib from '$lib/components/communication/IconLib.svelte';
 
 	const state = new CommunicationStore();
-
-	// Development helper for playwright tests
-	onMount(() => {
-		if (browser && import.meta.env.DEV) {
-			window.setStudentsText = (value: string) => {
-				state.handlePaste(value);
-			};
-		}
-	});
-
-	//#region Record Management -------------------------------------------
-	const recordManager = new RecordManager();
-
-	const currentRecord: CommunicationRecord = $derived({
-		grade: state.grade,
-		level: state.level,
-		classType: state.classType,
-		classNum: state.classNum,
-		assignment: state.assignment,
-		dates: state.dates,
-		studentsParsed: state.studentsParsed
-	});
-
-	$effect(() => {
-		if (state._isLoadingRecord) return;
-
-		// Sync isSaveable
-		recordManager.isSaveable =
-			!!currentRecord.classNum && currentRecord.studentsParsed.filter((s) => s.selected).length > 0;
-
-		// Sync isModified
-		if (!recordManager.lastLoadedRecord) {
-			recordManager.isModified = true;
-		} else {
-			recordManager.isModified = !areRecordsEqual(currentRecord, recordManager.lastLoadedRecord);
-		}
-	});
-
-	function handleLoadRecord(record: CommunicationRecord) {
-		state.loadRecordData(record);
-	}
-
-	function clearForm() {
-		state.reset();
-		recordManager.clearLoadedRecord();
-	}
 </script>
 
 <!-- MARK: *HTML* -->
@@ -70,7 +20,7 @@
 		id="controls"
 		class="print:hidden top-13.5 z-10 fixed self-start bg-black pt-2 rounded-lg w-[41em] max-h-[calc(100dvh-2.5rem)] overflow-y-auto font-sans"
 	>
-		<AssignmentForm store={state} {recordManager} {currentRecord} onClearForm={clearForm} />
+		<AssignmentForm store={state} onClearForm={state.clearAll} />
 		<StudentTable store={state} />
 		<div class="flex flex-wrap justify-start items-center mb-0 p-2">
 			<div class="*:self-center grid grid-cols-12 mx-5 my-0 w-full">
@@ -93,7 +43,7 @@
 
 	<section id="slips" class="box-border flex flex-col print:m-0 ml-[42em] print:p-0 py-2">
 		<div class="print:hidden">
-			<SavedRecords {recordManager} onLoadRecord={handleLoadRecord} />
+			<SavedRecords store={state} />
 		</div>
 		<!-- MARK: slip preview -->
 		<h3 class="print:hidden mx-2 my-0.5">
