@@ -4,6 +4,10 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
+// The svelte inspector toggle button (top-right by default) overlays page
+// buttons and intercepts clicks during browser-mode component tests.
+process.env.SVELTE_INSPECTOR_OPTIONS = 'false';
+
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 

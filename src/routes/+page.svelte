@@ -1,75 +1,43 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getDates } from '$lib/utils/getAllClassDays';
-	import { getClassDaysByType } from '$lib/utils/getClassDaysByType';
 	import Switches from '$lib/components/Switches.svelte';
 	import { fade, draw } from 'svelte/transition';
-	import { ClassTypeCode, classControl, getGradeForClassType } from '$lib/config/classTypes';
+	import { ClassTypeCode, classControl } from '$lib/config/classTypes';
 	import type { ClassType } from '$lib/config/classTypes';
 	import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
+	import { deriveSchedule } from '$lib/schedule';
+
+	interface Props {
+		schoolEventsText?: string | null;
+	}
+
+	let { schoolEventsText = null }: Props = $props();
 
 	let classType: ClassType = $state(ClassTypeCode.CLIL); //default
-
-	const grade = $derived(getGradeForClassType(classType));
-
-	const schoolYearAndSemesterPrefix = $derived(getSchoolYearAndSemesterPrefix());
-
-	const scheduleName = $derived.by(() => {
-		const [year1, year2, semester] = schoolYearAndSemesterPrefix.split('-');
-		const shortYear = `${year1.slice(-2)}-${year2.slice(-2)}`;
-		const semesterText = `S${semester}`;
-		const gradeText = grade === 'G7/8' ? `Junior ${classType}` : grade;
-		return `${shortYear} ${semesterText} ${gradeText} schedule`;
-	});
 
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 	let checkedDaysState = $state([true, false, true, false, true]); //default
 
 	let eventsText = $state('Loading...');
 
-	let checkedDays = $derived(
-		checkedDaysState
-			.map((isChecked, index) => (isChecked ? index + 1 : null)) //return day number if the checkbox is checked
-			.filter((index): index is number => index !== null) // filter out null values created by unchecked checkboxes)
-	);
+	const schedule = $derived(deriveSchedule(eventsText, classType, checkedDaysState));
 
-	let output = $derived.by(() => {
-		if (!eventsText || eventsText === 'Loading...') {
-			return 'Loading data...';
+	onMount(() => {
+		if (schoolEventsText) {
+			eventsText = schoolEventsText;
+			return;
 		}
-		try {
-			const allClassDays = getDates(eventsText);
-			const classDays = getClassDaysByType(allClassDays, checkedDays, classType, grade);
-			return ['#\tDate\tDescription\tNote']
-				.concat(classDays.map((r) => [r.countdown, r.date, r.description, r.note].join('\t')))
-				.join('\n');
-		} catch (error) {
-			console.error('Error processing data:', error);
-			return 'Error processing data. Check console for details.';
-		}
-	});
 
-	let outputTable = $derived.by(() => {
-		if (!output || typeof output !== 'string' || output === 'Loading data...') {
-			return { header: [], rows: [] };
-		}
-		const lines = output.split('\n');
-		const header = lines[0].split('\t');
-		const rows = lines.slice(1).map((line) => line.split('\t'));
-		return { header, rows };
-	});
-
-	onMount(async () => {
 		const yearAndSemester = getSchoolYearAndSemesterPrefix();
 
-		let loadedData = await loadSchoolEvents(yearAndSemester);
-
-		if (loadedData) {
-			eventsText = loadedData;
-		} else {
-			eventsText = 'Failed to load data';
-			console.error('Failed to load any school events data');
-		}
+		loadSchoolEvents(yearAndSemester).then((loadedData) => {
+			if (loadedData) {
+				eventsText = loadedData;
+			} else {
+				eventsText = 'Failed to load data';
+				console.error('Failed to load any school events data');
+			}
+		});
 	});
 
 	//#region Load data
@@ -112,13 +80,9 @@
 					throw new Error('Output table not found');
 				}
 			} else {
-				if (typeof output === 'string') {
-					await navigator.clipboard.writeText(output);
-					toastMessage = 'Copied!';
-					toastType = 'success';
-				} else {
-					throw new Error('Output is not a string');
-				}
+				await navigator.clipboard.writeText(schedule.output);
+				toastMessage = 'Copied!';
+				toastType = 'success';
 			}
 		} catch (err) {
 			console.error('Failed to copy:', err);
@@ -135,33 +99,31 @@
 
 	//#region download-csv
 	function downloadCsv() {
-		if (typeof output === 'string') {
-			try {
-				const csvContent = output.replace(/\t/g, ','); // Replace tabs with commas
-				const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-				const link = document.createElement('a');
-				if (link.download !== undefined) {
-					// feature detection
-					const url = URL.createObjectURL(blob);
-					link.setAttribute('href', url);
-					link.setAttribute('download', `${scheduleName}.csv`);
-					link.style.visibility = 'hidden';
-					document.body.appendChild(link);
-					link.click();
-					toastMessage = 'Downloaded!';
-					toastType = 'success';
-				}
-			} catch (err) {
-				console.error('Failed to download:', err);
-				toastMessage = 'Failed!';
-				toastType = 'error';
-			} finally {
-				showToast = true;
-				setTimeout(() => {
-					showToast = false;
-					toastMessage = '';
-				}, 1000);
+		try {
+			const csvContent = schedule.output.replace(/\t/g, ','); // Replace tabs with commas
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+			const link = document.createElement('a');
+			if (link.download !== undefined) {
+				// feature detection
+				const url = URL.createObjectURL(blob);
+				link.setAttribute('href', url);
+				link.setAttribute('download', `${schedule.name}.csv`);
+				link.style.visibility = 'hidden';
+				document.body.appendChild(link);
+				link.click();
+				toastMessage = 'Downloaded!';
+				toastType = 'success';
 			}
+		} catch (err) {
+			console.error('Failed to download:', err);
+			toastMessage = 'Failed!';
+			toastType = 'error';
+		} finally {
+			showToast = true;
+			setTimeout(() => {
+				showToast = false;
+				toastMessage = '';
+			}, 1000);
 		}
 	}
 </script>
@@ -189,7 +151,7 @@
 				{/each}
 			</div>
 			<!-- MARK: **** Days **** -->
-			<Switches title="Days" days={WEEKDAYS} checkedDays={checkedDaysState} />
+			<Switches title="Days" days={WEEKDAYS} bind:checkedDays={checkedDaysState} />
 		</div>
 		<!-- MARK: **** Events **** -->
 		<div id="schoolEvents">
@@ -205,7 +167,7 @@
 	<!-- MARK: **** Output **** -->
 	<section id="output" class="flex flex-col ml-92">
 		<div class="relative flex items-center gap-2">
-			<h3 class="text-slate-700">{scheduleName}</h3>
+			<h3 class="text-slate-700">{schedule.name}</h3>
 			<div class="relative ml-auto">
 				<button
 					id="download_button"
@@ -280,13 +242,13 @@
 			>
 				<thead>
 					<tr class="bg-blue-700 text-white">
-						{#each outputTable.header as header_item}
+						{#each schedule.rows.header as header_item}
 							<th class="p-2 border-blue-600 border-t-gray-200 border-r border-l">{header_item}</th>
 						{/each}
 					</tr>
 				</thead>
 				<tbody>
-					{#each outputTable.rows as row}
+					{#each schedule.rows.rows as row}
 						{@const isOff = row[0].trim() === '' && row[2] === 'Off'}
 						{@const isExam = row[2].trim() === 'Exam'}
 						<tr class="border-gray-600 border-b">
@@ -304,7 +266,7 @@
 				</tbody>
 			</table>
 		</div>
-		<div id="csv-output" style="display:none;">{output}</div>
+		<div id="csv-output" style="display:none;">{schedule.output}</div>
 	</section>
 </main>
 
