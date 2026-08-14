@@ -4,6 +4,7 @@ import {
 	buildScheduleName,
 	loadSchoolEventsText,
 	scheduleError,
+	isMissingModuleError,
 	LOADING_OUTPUT,
 	ERROR_OUTPUT,
 	type ScheduleResult
@@ -92,6 +93,41 @@ describe('loadSchoolEventsText (data seam)', () => {
 	it('returns null when no data file exists for the prefix', async () => {
 		const importer = async () => null;
 		expect(await loadSchoolEventsText('2030-2031-1', importer)).toBeNull();
+	});
+
+	it('propagates a genuine load failure rather than treating it as missing', async () => {
+		const boom = new Error('data file evaluation failed');
+		const importer = async () => {
+			throw boom;
+		};
+		await expect(loadSchoolEventsText('2026-2027-1', importer)).rejects.toBe(boom);
+	});
+});
+
+describe('isMissingModuleError', () => {
+	it('recognizes a Vite resolution failure (ERR_LOAD_URL)', () => {
+		const err = Object.assign(new Error('Failed to load url'), { code: 'ERR_LOAD_URL' });
+		expect(isMissingModuleError(err)).toBe(true);
+	});
+
+	it('recognizes a missing browser dynamic import', () => {
+		const err = new Error('Failed to fetch dynamically imported module: http://localhost/x');
+		expect(isMissingModuleError(err)).toBe(true);
+	});
+
+	it('recognizes a resolution message mentioning the file', () => {
+		const err = new Error('Failed to resolve import "...". Does the file exist?');
+		expect(isMissingModuleError(err)).toBe(true);
+	});
+
+	it('does not treat a runtime evaluation failure as missing', () => {
+		expect(isMissingModuleError(new Error('boom: 2026-2027-1-schoolEvents.ts crashed'))).toBe(
+			false
+		);
+	});
+
+	it('does not treat a non-object rejection as missing', () => {
+		expect(isMissingModuleError('boom')).toBe(false);
 	});
 });
 

@@ -27,14 +27,16 @@
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 	let checkedDaysState = $state([true, false, true, false, true]); //default
 
-	// null eventsText = not yet loaded; a missing data file flips loadError.
+	// null eventsText = not yet loaded; a missing or failed data file flips loadError.
 	let eventsText = $state<string | null>(null);
 	let loadError = $state(false);
 	const prefix = $state(getSchoolYearAndSemesterPrefix());
 
+	const name = $derived(buildScheduleName(classType, prefix));
+
 	const schedule = $derived(
 		loadError
-			? scheduleError(buildScheduleName(classType, prefix))
+			? scheduleError(name)
 			: deriveSchedule(eventsText, classType, checkedDaysState, prefix)
 	);
 
@@ -48,14 +50,19 @@
 			return;
 		}
 
-		loadSchoolEventsText(prefix).then((loadedData) => {
-			if (loadedData === null) {
+		loadSchoolEventsText(prefix)
+			.then((loadedData) => {
+				if (loadedData === null) {
+					loadError = true;
+					console.error('Failed to load any school events data');
+				} else {
+					eventsText = loadedData;
+				}
+			})
+			.catch((err) => {
 				loadError = true;
-				console.error('Failed to load any school events data');
-			} else {
-				eventsText = loadedData;
-			}
-		});
+				console.error('Failed to load school events data:', err);
+			});
 	});
 
 	// #region copy-to-clipboard

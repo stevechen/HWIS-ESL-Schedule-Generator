@@ -41,7 +41,7 @@ export function scheduleLoading(name: string): ScheduleResult {
 	return { status: 'loading', output: LOADING_OUTPUT, rows: emptyTable(), name };
 }
 
-/** The schedule module's error result — used when the data file for a prefix is missing. */
+/** The schedule module's error result — used when the data file for a prefix is missing or fails to load. */
 export function scheduleError(name: string): ScheduleResult {
 	return { status: 'error', output: ERROR_OUTPUT, rows: emptyTable(), name };
 }
@@ -88,15 +88,41 @@ export function deriveSchedule(
 /**
  * Loads the school-events text for a school-year prefix. Resolves the data
  * file (injectable at a seam: real modules in production, a fixture in tests),
- * drops blank lines, and returns `null` when no file exists for the prefix.
+ * drops blank lines, and returns `null` only when no file exists for the
+ * prefix. A file that exists but fails to load is not treated as missing —
+ * the importer's error propagates to the caller.
  */
 export type SchoolEventsImporter = (prefix: string) => Promise<{ schoolEvents: string } | null>;
+
+/**
+ * Best-effort test for a *missing* dynamic import, as opposed to a module
+ * that exists but fails when evaluated. Vite marks a failed resolution with
+ * the `ERR_LOAD_URL` code (SSR); the browser client instead rejects with
+ * "Failed to fetch dynamically imported module", which the browser produces
+ * for both a missing file and a module that fails to transform — so in the
+ * browser path this can only be best-effort. The route surfaces an error
+ * schedule for either case; this predicate only sharpens the log.
+ */
+const MISSING_MODULE_MESSAGES = [
+	'Failed to fetch dynamically imported module',
+	'Failed to resolve import',
+	'Failed to load url',
+	'Does the file exist?'
+];
+export function isMissingModuleError(error: unknown): boolean {
+	if (error && typeof error === 'object' && 'code' in error) {
+		if ((error as { code?: unknown }).code === 'ERR_LOAD_URL') return true;
+	}
+	const message = error instanceof Error ? error.message : String(error);
+	return MISSING_MODULE_MESSAGES.some((needle) => message.includes(needle));
+}
 
 async function defaultImporter(prefix: string): Promise<{ schoolEvents: string } | null> {
 	try {
 		return await import(`$lib/data/${prefix}-schoolEvents.ts`);
-	} catch {
-		return null;
+	} catch (error) {
+		if (isMissingModuleError(error)) return null;
+		throw error;
 	}
 }
 
