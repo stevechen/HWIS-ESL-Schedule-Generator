@@ -1,6 +1,6 @@
 # Domain model — HWIS Class Scheduler
 
-A scheduling + communication-record tool for a Hong Kong international school teacher. Built in Svelte 5 + SvelteKit, bundled by Vite, tested with Vitest (node unit + browser-mode component) and Playwright (e2e).
+A scheduling + communication-record tool for a Hong Wen International School teacher. Built in Svelte 5 + SvelteKit, bundled by Vite, tested with Vitest (node unit + browser-mode component) and Playwright (e2e).
 
 ## Core domain concepts
 
