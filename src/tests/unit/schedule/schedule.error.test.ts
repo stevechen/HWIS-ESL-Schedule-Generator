@@ -9,7 +9,12 @@ vi.mock('$lib/utils/getAllClassDays', () => ({
 
 describe('deriveSchedule error branch', () => {
 	it('returns a renderable error object when parsing throws', () => {
-		const result = deriveSchedule('anything', 'CLIL', [true, false, true, false, true]);
+		const result = deriveSchedule(
+			'anything',
+			'CLIL',
+			[true, false, true, false, true],
+			'2026-2027-1'
+		);
 		expect(result.status).toBe('error');
 		expect(result.output).toBe(ERROR_OUTPUT);
 		expect(result.rows).toEqual({ header: [], rows: [] });

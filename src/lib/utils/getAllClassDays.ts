@@ -24,13 +24,13 @@ interface SchoolEvents {
  */
 export const getDates = (schoolEvents: string): SchoolEvents[] => {
 	// Split and filter out empty lines
-	let lines = schoolEvents
+	const lines = schoolEvents
 		.split('\n')
 		.map((line) => line.trim())
 		.filter((line) => line !== '');
 
 	// Filter out lines with missing or invalid date
-	let validLines = lines.filter((line) => {
+	const validLines = lines.filter((line) => {
 		const dateStr = line.split('\t')[0];
 		// Must have a non-empty date string
 		if (!dateStr) return false;
@@ -42,15 +42,15 @@ export const getDates = (schoolEvents: string): SchoolEvents[] => {
 
 	if (validLines.length === 0) return [];
 
-	let dates = validLines.map((line) => line.split('\t')[0]);
-	let startDate = dates.reduce((a, b) => (a < b ? a : b));
-	let endDate = parseISO(dates.reduce((a, b) => (a > b ? a : b)));
+	const dates = validLines.map((line) => line.split('\t')[0]);
+	const startDate = dates.reduce((a, b) => (a < b ? a : b));
+	const endDate = parseISO(dates.reduce((a, b) => (a > b ? a : b)));
 
-	let dateArray = [];
+	const dateArray = [];
 	let processDate = parseISO(startDate);
-	let eventMap = new Map(
+	const eventMap = new Map(
 		validLines.map((item) => {
-			let fields = item.split('\t');
+			const fields = item.split('\t');
 			// Always use formatted yyyy-MM-dd as key for consistency
 			let dateKey = '';
 			try {
@@ -65,20 +65,20 @@ export const getDates = (schoolEvents: string): SchoolEvents[] => {
 	while (processDate <= endDate) {
 		let weekday = getDay(processDate);
 		if (!isSunday(processDate)) {
-			let dateStr = format(processDate, 'yyyy-MM-dd');
-			let eventData = eventMap.get(dateStr) || ['', '', ''];
+			const dateStr = format(processDate, 'yyyy-MM-dd');
+			const eventData = eventMap.get(dateStr) || ['', '', ''];
 			// Try to find a Saturday make up date in specialDays
 			// Make up date is marked by having 'Make up' in the description field and a date at the beginning of note field
 			if (isSaturday(processDate)) {
-				let noteField = typeof eventData[1] === 'string' ? eventData[1] : '';
-				let noteDate = noteField.match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
+				const noteField = typeof eventData[1] === 'string' ? eventData[1] : '';
+				const noteDate = noteField.match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
 				// If there's a date in the note field
 				if (noteDate && noteDate[0]) {
 					// Change the weekday to the weekday of the date in the note field
 					weekday = getDay(noteDate[0]);
 
 					// Format the date with the day of the week
-					let formattedDate = format(noteDate[0], 'yyyy-MM-dd(EEE)');
+					const formattedDate = format(noteDate[0], 'yyyy-MM-dd(EEE)');
 
 					// Replace the date in the note with the formatted date
 					eventData[1] = noteField.replace(noteDate[0], formattedDate);

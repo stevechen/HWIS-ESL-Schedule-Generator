@@ -20,7 +20,10 @@ export interface BubblePixel {
 }
 
 /** Filled-bubble circles for the given answers, in canvas pixels. */
-export function filledBubblesInPixels(answers: AnswerSet, scale: number = PDF_SCALE): BubblePixel[] {
+export function filledBubblesInPixels(
+	answers: AnswerSet,
+	scale: number = PDF_SCALE
+): BubblePixel[] {
 	const bubbles: BubblePixel[] = [];
 	for (const q of QUESTION_POSITIONS) {
 		for (const letter of answers[q.n - 1] ?? []) {
@@ -67,7 +70,10 @@ const FILE_NAME = 'hwis-answer-key.pdf';
 export async function downloadAnswerKeyPdf(answers: AnswerSet): Promise<void> {
 	const canvas = await renderSheetToCanvas(answers);
 	const pngBlob = await new Promise<Blob>((resolve, reject) => {
-		canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('PDF export failed.'))), 'image/png');
+		canvas.toBlob(
+			(blob) => (blob ? resolve(blob) : reject(new Error('PDF export failed.'))),
+			'image/png'
+		);
 	});
 
 	const pdfDoc = await PDFDocument.create();

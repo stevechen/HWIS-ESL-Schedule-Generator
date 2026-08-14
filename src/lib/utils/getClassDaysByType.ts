@@ -65,7 +65,7 @@ export const getClassDaysByType = (
 	});
 
 	// get all exam days
-	let examDays = days.filter((day) => day.description === 'Exam');
+	const examDays = days.filter((day) => day.description === 'Exam');
 
 	// Defensive check: if no exam days found, we cannot proceed with exam calculation
 	if (examDays.length === 0) {
@@ -96,12 +96,16 @@ export const getClassDaysByType = (
 				//compare first exam date with all sorted Comm class days
 				for (let index = startIndex; index < classDays.length; index++) {
 					const classDay = classDays[index];
-					let classDate = parseISO(classDay.date);
+					const classDate = parseISO(classDay.date);
 					// mark the oral exam day if it's earlier than the exam day and it's not an off day
 					if (classDate < examStartDate && !isOffDay(classDay.description)) {
-						type === 'H' && !isFinalExam
-							? (classDays[index].description = '') // H classes don't need 'Oral Exam' on the first 2 terms
-							: (classDays[index].description = 'Oral Exam'); // mark matching day as 'Oral Exam'
+						if (type === 'H' && !isFinalExam) {
+							// H classes don't need 'Oral Exam' on the first 2 terms
+							classDays[index].description = '';
+						} else {
+							// mark matching day as 'Oral Exam'
+							classDays[index].description = 'Oral Exam';
+						}
 						daysMarked++;
 					}
 
@@ -119,14 +123,14 @@ export const getClassDaysByType = (
 
 	// stores each term's class days count and off days count
 	// not using the off days count currently, might come in handy
-	let classCounts = [
+	const classCounts = [
 		{ term: 1, classes: 0, offs: 0 },
 		{ term: 2, classes: 0, offs: 0 },
 		{ term: 3, classes: 0, offs: 0 }
 	];
 
 	classDays.forEach((day) => {
-		let thisDay = parseISO(day.date);
+		const thisDay = parseISO(day.date);
 
 		let termIndex = undefined;
 		if (examDays.length >= 1 && thisDay < parseISO(examDays[0].date)) {
@@ -146,15 +150,17 @@ export const getClassDaysByType = (
 		}
 
 		if (termIndex !== undefined) {
-			!isOffDay(day.description)
-				? classCounts[termIndex].classes++
-				: classCounts[termIndex].offs++;
+			if (!isOffDay(day.description)) {
+				classCounts[termIndex].classes++;
+			} else {
+				classCounts[termIndex].offs++;
+			}
 		}
 	});
 
 	// Adding countdown
 	// Find the index of the closest non-off class day before the first exam day
-	let zeroIndex = classDays.findIndex(
+	const zeroIndex = classDays.findIndex(
 		(day) =>
 			examDays.length > 0 &&
 			parseISO(day.date) < parseISO(examDays[0].date) &&

@@ -90,7 +90,6 @@ const positions = [];
 for (const [col, [qStart, qEnd]] of COLUMN_LETTERS.entries()) {
 	// Column x offsets: the 15 circles of a row are A..E of each column, and
 	// each column is 5 letters wide.
-	let letter = 0;
 	for (let row = 0; row < 22; row++) {
 		const q = qStart + row;
 		if (q > qEnd) break;
@@ -107,7 +106,6 @@ for (const [col, [qStart, qEnd]] of COLUMN_LETTERS.entries()) {
 			E: colCircles[4]
 		};
 		positions.push(entry);
-		letter++;
 	}
 }
 positions.sort((a, b) => a.n - b.n);

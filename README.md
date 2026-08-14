@@ -5,6 +5,7 @@ A SvelteKit application for managing class schedules and communication slips at 
 ## Features
 
 ### 📅 Class Schedule Generator
+
 - Generate class schedules for different grade levels (G7/8 CLIL, G7/8 Comm, G9, H10)
 - Filter by weekdays (Mon/Tue/Wed/Thu/Fri)
 - Automatic day countdown to exams
@@ -13,6 +14,7 @@ A SvelteKit application for managing class schedules and communication slips at 
 - Export schedules as CSV or copy to clipboard
 
 ### 📝 Communication Slip Manager
+
 - Create parent communication slips for assignments
 - Support for multiple assignment types (Passport, Workbook, Recording, Exam, Speech)
 - Batch process multiple students
@@ -21,6 +23,7 @@ A SvelteKit application for managing class schedules and communication slips at 
 - Print-ready formatting (B5/JIS-B5)
 
 ### 🎵 Frequency Generator
+
 - Simple audio frequency generator tool
 - Adjustable frequency with slider and stepper controls
 - Persistent settings across sessions
@@ -31,7 +34,7 @@ A SvelteKit application for managing class schedules and communication slips at 
 - **Language**: TypeScript
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) 4.x
 - **Date Handling**: [date-fns](https://date-fns.org/)
-- **Testing**: 
+- **Testing**:
   - [Vitest](https://vitest.dev/) for unit tests
   - [Playwright](https://playwright.dev/) for E2E tests
 - **Package Manager**: [Bun](https://bun.sh/) 1.3.3
@@ -176,6 +179,7 @@ bun run check
 ### Type Safety
 
 The project uses TypeScript with strict mode enabled. Key type definitions are in:
+
 - `/src/lib/stores/communication/types.ts`
 - `/src/lib/communication/recordManager.svelte.ts`
 

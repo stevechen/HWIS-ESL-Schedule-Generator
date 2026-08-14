@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { PDF_SCALE, canvasSizeForPdf, filledBubblesInPixels } from '$lib/zipgrade/pdf';
-import { createEmptyAnswers, type AnswerSet } from '$lib/zipgrade/answers';
+import { createEmptyAnswers } from '$lib/zipgrade/answers';
 import { BUBBLE_RADIUS, PAGE_SIZE, QUESTION_POSITIONS } from '$lib/zipgrade/layout';
 
 describe('PDF_SCALE', () => {

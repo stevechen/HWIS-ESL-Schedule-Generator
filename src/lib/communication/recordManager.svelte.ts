@@ -1,5 +1,5 @@
 import { isValidMonthAndDay } from '$lib/utils/dateValidation';
-import type { Student, Levels, AssignmentCode } from '$lib/stores/communication';
+import type { Student, Levels, AssignmentCode, StatusCode } from '$lib/stores/communication';
 
 export interface CommunicationRecord {
 	grade: string;
@@ -14,16 +14,12 @@ export interface CommunicationRecord {
 export interface RecordManagerState {
 	savedRecords: string[];
 	lastLoaded: { name: string; record: CommunicationRecord } | null;
-	isModified: boolean;
-	isSaveable: boolean;
 }
 
 export class RecordManager {
 	private state = $state<RecordManagerState>({
 		savedRecords: [],
-		lastLoaded: null,
-		isModified: false,
-		isSaveable: false
+		lastLoaded: null
 	});
 
 	constructor() {
@@ -44,22 +40,6 @@ export class RecordManager {
 		return this.state.lastLoaded?.name ?? null;
 	}
 
-	get isModified() {
-		return this.state.isModified;
-	}
-
-	set isModified(value: boolean) {
-		this.state.isModified = value;
-	}
-
-	get isSaveable() {
-		return this.state.isSaveable;
-	}
-
-	set isSaveable(value: boolean) {
-		this.state.isSaveable = value;
-	}
-
 	/**
 	 * Refreshes the list of saved records from storage
 	 */
@@ -75,7 +55,6 @@ export class RecordManager {
 			this.refreshSavedRecords();
 
 			this.state.lastLoaded = { name: recordName, record: JSON.parse(JSON.stringify(record)) };
-			this.state.isModified = false;
 
 			return { success: true, recordName };
 		} catch (error) {
@@ -95,7 +74,6 @@ export class RecordManager {
 
 		if (record) {
 			this.state.lastLoaded = { name: recordName, record: JSON.parse(JSON.stringify(record)) };
-			this.state.isModified = false;
 			return { success: true, record };
 		}
 
@@ -110,7 +88,6 @@ export class RecordManager {
 			// Check if we're deleting the currently loaded record
 			if (this.state.lastLoaded?.name === recordName) {
 				this.state.lastLoaded = null;
-				this.state.isModified = true;
 			}
 
 			deleteRecord(recordName);
@@ -147,7 +124,6 @@ export class RecordManager {
 	 */
 	clearLoadedRecord() {
 		this.state.lastLoaded = null;
-		this.state.isModified = true;
 	}
 }
 
@@ -261,46 +237,77 @@ function loadRecord(recordName: string): CommunicationRecord | null {
 }
 
 /**
+ * Loose shape of a stored record — the current format or a legacy (pre-9180221)
+ * one. Legacy records stored string values where the current types use enums.
+ */
+interface LegacyRecord {
+	studentsParsed?: Student[];
+	studentsRaw?: LegacyStudent[];
+	dates?: { assigned?: string; due?: string; late?: string };
+	UI_Dates?: { assigned?: string; due?: string; late?: string };
+	grade?: string;
+	UI_Grade?: string;
+	level?: string;
+	UI_Level?: string;
+	classType?: string;
+	UI_ClassType?: string;
+	classNum?: string | number;
+	UI_ClassNum?: string | number;
+	assignment?: string;
+	UI_Assignment?: string;
+}
+
+interface LegacyStudent {
+	id: string;
+	name?: { english?: string; chinese?: string };
+	cClass?: string;
+	status?: string;
+	selected?: boolean;
+}
+
+/**
  * Migrates a legacy record to the current format.
  * Legacy records (pre-9180221) used studentsRaw instead of studentsParsed,
  * and had different date structures.
- * 
+ *
  * TODO: REMOVE_NEXT_YEAR - This function and its usage can be removed when legacy data support is no longer needed.
  */
-export function migrateRecord(record: any): CommunicationRecord {
+export function migrateRecord(record: unknown): CommunicationRecord {
+	const legacy = record as LegacyRecord;
+
 	// If it already looks correct, return it
-	if (record.studentsParsed && !record.studentsRaw) {
-		return record as CommunicationRecord;
+	if (legacy.studentsParsed && !legacy.studentsRaw) {
+		return legacy as CommunicationRecord;
 	}
 
 	// Migrate dates
 	const dates = {
-		assigned: record.dates?.assigned || record.UI_Dates?.assigned || '',
-		due: record.dates?.due || record.UI_Dates?.due || '',
-		late: record.dates?.late || record.UI_Dates?.late || ''
+		assigned: legacy.dates?.assigned || legacy.UI_Dates?.assigned || '',
+		due: legacy.dates?.due || legacy.UI_Dates?.due || '',
+		late: legacy.dates?.late || legacy.UI_Dates?.late || ''
 	};
 
 	// Migrate students
-	let studentsParsed = record.studentsParsed || [];
-	if (record.studentsRaw) {
-		studentsParsed = record.studentsRaw.map((s: any) => ({
+	let studentsParsed = legacy.studentsParsed || [];
+	if (legacy.studentsRaw) {
+		studentsParsed = legacy.studentsRaw.map((s) => ({
 			id: s.id,
 			name: {
 				english: s.name?.english || '',
 				chinese: s.name?.chinese || ''
 			},
 			cClass: s.cClass || '',
-			status: s.status,
+			status: s.status as StatusCode,
 			selected: !!s.selected
 		}));
 	}
 
 	return {
-		grade: record.grade || record.UI_Grade || '',
-		level: record.level || record.UI_Level,
-		classType: record.classType || record.UI_ClassType,
-		classNum: String(record.classNum || record.UI_ClassNum || ''),
-		assignment: record.assignment || record.UI_Assignment,
+		grade: legacy.grade || legacy.UI_Grade || '',
+		level: (legacy.level || legacy.UI_Level || '') as Levels,
+		classType: legacy.classType || legacy.UI_ClassType || '',
+		classNum: String(legacy.classNum || legacy.UI_ClassNum || ''),
+		assignment: (legacy.assignment || legacy.UI_Assignment || '') as AssignmentCode,
 		dates,
 		studentsParsed
 	};
@@ -346,7 +353,7 @@ export function areRecordsEqual(
  * Creates a clean version of a record containing only the properties in the interface.
  * Also normalizes types (like ensuring classNum is a string).
  */
-function cleanRecord(record: any): CommunicationRecord {
+function cleanRecord(record: CommunicationRecord): CommunicationRecord {
 	return {
 		grade: record.grade || '',
 		level: record.level,
@@ -358,7 +365,7 @@ function cleanRecord(record: any): CommunicationRecord {
 			due: record.dates?.due || '',
 			late: record.dates?.late || ''
 		},
-		studentsParsed: (record.studentsParsed || []).map((s: any) => ({
+		studentsParsed: (record.studentsParsed || []).map((s) => ({
 			id: s.id,
 			name: {
 				english: s.name?.english || '',
@@ -374,23 +381,27 @@ function cleanRecord(record: any): CommunicationRecord {
 /**
  * Robust deep equality check
  */
-function deepEqual(a: any, b: any): boolean {
+function deepEqual(a: unknown, b: unknown): boolean {
 	if (a === b) return true;
 	if (a && b && typeof a === 'object' && typeof b === 'object') {
 		if (Array.isArray(a) !== Array.isArray(b)) return false;
 		if (Array.isArray(a)) {
-			if (a.length !== b.length) return false;
-			for (let i = 0; i < a.length; i++) {
-				if (!deepEqual(a[i], b[i])) return false;
+			const arrA: unknown[] = a;
+			const arrB: unknown[] = b as unknown[];
+			if (arrA.length !== arrB.length) return false;
+			for (let i = 0; i < arrA.length; i++) {
+				if (!deepEqual(arrA[i], arrB[i])) return false;
 			}
 			return true;
 		}
-		const keysA = Object.keys(a);
-		const keysB = Object.keys(b);
+		const objA = a as Record<string, unknown>;
+		const objB = b as Record<string, unknown>;
+		const keysA = Object.keys(objA);
+		const keysB = Object.keys(objB);
 		if (keysA.length !== keysB.length) return false;
 		for (const key of keysA) {
-			if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
-			if (!deepEqual(a[key], b[key])) return false;
+			if (!Object.prototype.hasOwnProperty.call(objB, key)) return false;
+			if (!deepEqual(objA[key], objB[key])) return false;
 		}
 		return true;
 	}
@@ -404,11 +415,4 @@ function deepEqual(a: any, b: any): boolean {
 function getMostRecentRecordName(): string | null {
 	const recordNames = getSavedRecordNames();
 	return recordNames.length > 0 ? recordNames[0] : null;
-}
-
-/**
- * Checks if a record with the given name exists by checking the index.
- */
-function recordExists(recordName: string): boolean {
-	return getRecordIndex().includes(recordName);
 }

@@ -1,8 +1,9 @@
-import { untrack, tick } from 'svelte';
+import { untrack } from 'svelte';
+import { SvelteDate } from 'svelte/reactivity';
 import { browser } from '$app/environment';
 import type { Student, DisplayStudent } from '$lib/stores/communication/types';
 import { AssignmentCode, Levels } from '$lib/stores/communication/types';
-import { ESL_TYPE, LEVELS, ASSIGNMENT_TYPE, STATUSES } from '$lib/stores/communication/constants';
+import { ESL_TYPE, ASSIGNMENT_TYPE, STATUSES } from '$lib/stores/communication/constants';
 import {
 	parseStudentsFromText,
 	determineGradeFromStudents
@@ -26,8 +27,6 @@ const COMM_ASSIGNMENT_TYPES = ASSIGNMENT_TYPE.filter((type) => type.comm);
  * Handles student data, assignment details, dates, and signature image
  */
 export class CommunicationStore {
-	// Loading flag
-	_isLoadingRecord = $state(false);
 	// Student data
 	studentsParsed: Student[] = $state([]);
 
@@ -78,9 +77,9 @@ export class CommunicationStore {
 
 	isAllChecked = $derived(
 		(() => {
-			let allChecked =
+			const allChecked =
 				this.studentsParsed.length > 0 && this.studentsParsed.every((student) => student.selected);
-			let anyChecked = this.studentsParsed.some((student) => student.selected);
+			const anyChecked = this.studentsParsed.some((student) => student.selected);
 			return {
 				checked: allChecked,
 				indeterminate: !allChecked && anyChecked
@@ -116,14 +115,6 @@ export class CommunicationStore {
 		return this._recordManager.lastLoadedRecord;
 	}
 
-	get isSaveable() {
-		return this._recordManager.isSaveable;
-	}
-
-	get isModified() {
-		return this._recordManager.isModified;
-	}
-
 	currentRecord = $derived({
 		grade: this.grade,
 		level: this.level,
@@ -133,6 +124,20 @@ export class CommunicationStore {
 		dates: this.dates,
 		studentsParsed: this.studentsParsed
 	});
+
+	// Save-state is derived reactively from the assembled record and the
+	// last-loaded record — no effect choreography, no timing. Components bind
+	// directly to store fields, so this must be derived, not recomputed at
+	// mutation sites.
+	isSaveable = $derived(
+		!!this.currentRecord.classNum &&
+			this.currentRecord.studentsParsed.filter((s) => s.selected).length > 0
+	);
+
+	isModified = $derived(
+		!this._recordManager.lastLoadedRecord ||
+			!areRecordsEqual(this.currentRecord, this._recordManager.lastLoadedRecord)
+	);
 
 	assignmentTypes = $derived(
 		this.grade === 'G9'
@@ -193,27 +198,15 @@ export class CommunicationStore {
 				}
 			}
 		});
-
-		// Sync save-button state from the assembled record. Gated on the load
-		// flag so loading a record doesn't immediately mark it "modified".
-		$effect(() => {
-			if (this._isLoadingRecord) return;
-			const record = this.currentRecord;
-			this._recordManager.isSaveable =
-				!!record.classNum && record.studentsParsed.filter((s) => s.selected).length > 0;
-			this._recordManager.isModified = !this._recordManager.lastLoadedRecord
-				? true
-				: !areRecordsEqual(record, this._recordManager.lastLoadedRecord);
-		});
 	}
 
 	/**
 	 * Initialize default dates - due date is today, late date is 7 days later
 	 */
 	private initializeDates() {
-		const today = new Date();
+		const today = new SvelteDate();
 		const dueDate = `${today.getMonth() + 1}/${today.getDate()}`;
-		const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+		const sevenDaysLater = new SvelteDate(Date.now() + 7 * 24 * 60 * 60 * 1000);
 		const lateDate = `${sevenDaysLater.getMonth() + 1}/${sevenDaysLater.getDate()}`;
 
 		this.dates.due = dueDate;
@@ -228,8 +221,7 @@ export class CommunicationStore {
 		}));
 	};
 
-	loadRecordData = async (record: CommunicationRecord) => {
-		this._isLoadingRecord = true;
+	loadRecordData = (record: CommunicationRecord) => {
 		this.level = record.level as Levels;
 		// TODO: REMOVE_NEXT_YEAR - Remove this line as grade will be derived
 		this.grade = record.grade;
@@ -238,10 +230,6 @@ export class CommunicationStore {
 		this.assignment = record.assignment as AssignmentCode;
 		this.dates = record.dates;
 		this.studentsParsed = JSON.parse(JSON.stringify(record.studentsParsed));
-
-		await tick(); // Wait for effect to run (blocked by _isLoadingRecord=true)
-
-		this._isLoadingRecord = false;
 	};
 
 	handlePaste = (text: string) => {
@@ -278,7 +266,6 @@ export class CommunicationStore {
 	 * Reset all store values to defaults
 	 */
 	reset = () => {
-		this._isLoadingRecord = false;
 		this.studentsParsed = [];
 		// TODO: REMOVE_NEXT_YEAR - Remove manual reset
 		this.grade = '';

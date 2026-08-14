@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { QUESTION_COUNT, type AnswerChoice } from './layout';
+import { type AnswerChoice } from './layout';
 import {
 	applyAnswers,
 	countAnswered,

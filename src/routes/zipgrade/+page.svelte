@@ -4,7 +4,8 @@
 	import { ZipGradeStore } from '$lib/zipgrade/store.svelte';
 	import { PAGE_SIZE, QUESTION_COUNT } from '$lib/zipgrade/layout';
 	import SheetBubbles from '$lib/zipgrade/SheetBubbles.svelte';
-	import { downloadAnswerKeyPdf } from '$lib/zipgrade/pdf';
+	import { AnswerKeyPdfDownloader } from '$lib/zipgrade/downloadPdf.svelte';
+	import { resolve } from '$app/paths';
 	import {
 		canEditAt,
 		DEFAULT_ZOOM,
@@ -21,13 +22,13 @@
 	} from '$lib/zipgrade/parser';
 
 	const zipgrade = new ZipGradeStore();
+	const pdf = new AnswerKeyPdfDownloader();
 
 	let pasteText = $state('');
 	let status = $state('');
 	let zoom = $state(DEFAULT_ZOOM);
 	let zoomLoaded = $state(false);
 	let isTouch = $state(false);
-	let downloading = $state(false);
 
 	const sheetWidth = $derived(sheetWidthAt(zoom));
 	const editable = $derived(canEditAt(zoom, isTouch));
@@ -98,19 +99,6 @@
 		flash('Cleared all answers.');
 	}
 
-	async function handleDownloadPdf() {
-		if (downloading) return;
-		downloading = true;
-		try {
-			await downloadAnswerKeyPdf(zipgrade.answers);
-		} catch (error) {
-			console.error('PDF download failed:', error);
-			flash('PDF download failed. Check the console for details.');
-		} finally {
-			downloading = false;
-		}
-	}
-
 	onMount(() => {
 		if (!browser) return;
 		isTouch = window.matchMedia('(pointer: coarse)').matches;
@@ -173,16 +161,24 @@
 			<span class="text-xs text-slate-500">Fit-width view — zoom in to edit answers.</span>
 		{/if}
 		<span class="ml-auto flex items-center gap-2">
-			<button type="button" class="btn btn-secondary btn-sm" onclick={handleDownloadPdf} disabled={downloading}>
-				{downloading ? 'Generating…' : 'Download PDF'}
+			<button
+				type="button"
+				class="btn btn-secondary btn-sm"
+				onclick={() => pdf.run(zipgrade.answers)}
+				disabled={pdf.busy}
+			>
+				{pdf.busy ? 'Generating…' : 'Download PDF'}
 			</button>
-			<a href="/zipgrade/print" class="btn btn-primary btn-sm text-center no-underline">
+			<a href={resolve('/zipgrade/print')} class="btn btn-primary btn-sm text-center no-underline">
 				Print answer sheet
 			</a>
 			<button type="button" class="btn btn-danger btn-sm" onclick={handleClear}>
 				Clear all answers
 			</button>
 		</span>
+		{#if pdf.error}
+			<p class="text-xs text-red-600">{pdf.error}</p>
+		{/if}
 	</div>
 
 	<!-- Import -->

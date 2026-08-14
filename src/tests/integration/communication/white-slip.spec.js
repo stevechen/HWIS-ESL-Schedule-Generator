@@ -1,5 +1,3 @@
-/* global Event, window, document, localStorage */
-
 import { test, expect } from '@playwright/test';
 import { seedStudents } from './seedStudents';
 import fs from 'fs/promises';

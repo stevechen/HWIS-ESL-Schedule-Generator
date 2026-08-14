@@ -35,7 +35,7 @@
 				id="records_list"
 				class="opacity-0 group-open:opacity-100 mx-0 max-h-0 group-open:max-h-screen overflow-hidden transition-all duration-300 ease-in-out list-none"
 			>
-				{#each store.savedRecords as recordName}
+				{#each store.savedRecords as recordName (recordName)}
 					<li class="record">
 						<div
 							class="flex justify-between items-center pl-2 {store.lastLoadedRecordName ===

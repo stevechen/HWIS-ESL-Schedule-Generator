@@ -15,9 +15,7 @@
 	let { store, onPrint }: Props = $props();
 
 	const printButtonStyle = $derived(getPrintButtonStyle(store.printValidation));
-	const printStatusMessage = $derived(
-		getPrintStatusMessage(store.printValidation, store.students.length)
-	);
+	const printStatusMessage = $derived(getPrintStatusMessage(store.printValidation));
 	const printButtonText = $derived(getPrintButtonText(store.students.length));
 
 	function handlePrintClick() {
@@ -73,7 +71,7 @@
 		</p>
 
 		<ul class="list-disc list-inside space-y-1 text-slate-200 bg-slate-800/50 p-3 rounded-lg">
-			{#each store.printValidation.missingItems as item}
+			{#each store.printValidation.missingItems as item, i (i)}
 				<li>{item}</li>
 			{/each}
 		</ul>

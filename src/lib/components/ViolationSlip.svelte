@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { isValidMonthAndDay } from '$lib/utils/dateValidation';
-
 	// Marked Interfaces
 	interface Student {
 		id: string;
@@ -86,10 +84,10 @@
 			Times recorded
 		</h3>
 
-		{#each Array(3) as _, i}
+		{#each [1, 2, 3] as n (n)}
 			<div class="w-1/2 border-r border-gray-500 last-of-type:border-none">
-				<h3 class="">{i + 1}</h3>
-				<p class="text-center text-2xl">{times >= i + 1 ? '✓' : ''}</p>
+				<h3 class="">{n}</h3>
+				<p class="text-center text-2xl">{times >= n ? '✓' : ''}</p>
 			</div>
 		{/each}
 	</div>

@@ -10,7 +10,7 @@
 	class="my-2 box-border flex h-max w-max items-center justify-center rounded-lg bg-linear-[270deg,#444,#222] px-3 py-[2px] shadow-[0px_0px_3px_1px_rgba(0,0,0,1),inset_0_8px_3px_-8px_rgba(255,255,255,1)]"
 >
 	<h3 class="mr-4 text-sm text-white">{title}</h3>
-	{#each days as day, i}
+	{#each days as day, i (i)}
 		<div
 			class="group back m-[0_1px] box-border block h-[38px] w-[46px] rounded-[4px] bg-black bg-linear-[0deg,transparent_30%,transparent_70%,0deg,rgba(150,150,150,0)_30%,rgba(150,150,150,0.1)_50%,rgba(150,150,150,0)_70%] px-[2px] py-px text-sm shadow-[10px_10px_10px_-5px_rgba(0,0,0,0.3),-10px_10px_10px_-5px_rgba(0,0,0,0.3),0_10px_10px_0px_rgba(0,0,0,0.3),inset_0_-1px_0_0_#444] transition-all duration-200 hover:*:cursor-pointer has-[input:checked]:p-[2px] has-[input:checked]:shadow-[10px_10px_10px_-2px_rgba(0,0,0,0.1),-10px_10px_10px_-2px_rgba(0,0,0,0.1),0_10px_10px_0px_rgba(0,0,0,0.2),inset_0_1px_2px_0_rgba(0,0,0,0.6)]"
 		>

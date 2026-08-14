@@ -1,7 +1,6 @@
 import { getDates } from '$lib/utils/getAllClassDays';
 import { getClassDaysByType } from '$lib/utils/getClassDaysByType';
 import { getGradeForClassType, type ClassType } from '$lib/config/classTypes';
-import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
 
 export const LOADING_OUTPUT = 'Loading data...';
 export const ERROR_OUTPUT = 'Error processing data. Check console for details.';
@@ -37,20 +36,33 @@ export function buildScheduleName(
 
 const emptyTable = (): ScheduleTable => ({ header: [], rows: [] });
 
+/** The schedule module's loading result, keyed to a prefix so the name is stable. */
+export function scheduleLoading(name: string): ScheduleResult {
+	return { status: 'loading', output: LOADING_OUTPUT, rows: emptyTable(), name };
+}
+
+/** The schedule module's error result — used when the data file for a prefix is missing. */
+export function scheduleError(name: string): ScheduleResult {
+	return { status: 'error', output: ERROR_OUTPUT, rows: emptyTable(), name };
+}
+
 /**
  * Derives the schedule CSV output, the parsed table, and the schedule name
- * from raw school-events text. Returns a discriminated result the route
- * renders: loading, error, or success.
+ * from raw school-events text and a school-year prefix. The prefix is an
+ * explicit parameter so the module is a pure function of its inputs — the
+ * same inputs yield the same name regardless of the clock. Returns a
+ * discriminated result the route renders: loading, error, or success.
  */
 export function deriveSchedule(
 	eventsText: string | null,
 	classType: ClassType,
-	checkedDays: boolean[]
+	checkedDays: boolean[],
+	prefix: string
 ): ScheduleResult {
-	const name = buildScheduleName(classType, getSchoolYearAndSemesterPrefix());
+	const name = buildScheduleName(classType, prefix);
 
 	if (!eventsText || eventsText === 'Loading...') {
-		return { status: 'loading', output: LOADING_OUTPUT, rows: emptyTable(), name };
+		return scheduleLoading(name);
 	}
 
 	try {
@@ -69,6 +81,33 @@ export function deriveSchedule(
 		return { status: 'success', output, rows: { header, rows }, name };
 	} catch (error) {
 		console.error('Error processing data:', error);
-		return { status: 'error', output: ERROR_OUTPUT, rows: emptyTable(), name };
+		return scheduleError(name);
 	}
+}
+
+/**
+ * Loads the school-events text for a school-year prefix. Resolves the data
+ * file (injectable at a seam: real modules in production, a fixture in tests),
+ * drops blank lines, and returns `null` when no file exists for the prefix.
+ */
+export type SchoolEventsImporter = (prefix: string) => Promise<{ schoolEvents: string } | null>;
+
+async function defaultImporter(prefix: string): Promise<{ schoolEvents: string } | null> {
+	try {
+		return await import(`$lib/data/${prefix}-schoolEvents.ts`);
+	} catch {
+		return null;
+	}
+}
+
+export async function loadSchoolEventsText(
+	prefix: string,
+	importer: SchoolEventsImporter = defaultImporter
+): Promise<string | null> {
+	const module = await importer(prefix);
+	if (!module) return null;
+	return module.schoolEvents
+		.split('\n')
+		.filter((line) => line.trim() !== '')
+		.join('\n');
 }

@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Page from '../../../src/routes/+page.svelte';
 import { deriveSchedule } from '$lib/schedule';
+import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
 
 // Registers page.getByCSS for id/class selectors.
 import '../../components/communication/css-locator';
@@ -15,7 +16,12 @@ const FIXTURE = `2026-09-01\t\tCLIL WB Check\tCLIL
 // 2026-09-01 = Tue, 09-02 = Wed, 09-03 = Thu, 09-04 = Fri.
 // Default checked days (Mon, Wed, Fri) -> only 09-02 and 09-04 remain.
 const DEFAULT_CHECKED_DAYS = [true, false, true, false, true];
-const DEFAULT_RESULT = deriveSchedule(FIXTURE, 'CLIL', DEFAULT_CHECKED_DAYS);
+const DEFAULT_RESULT = deriveSchedule(
+	FIXTURE,
+	'CLIL',
+	DEFAULT_CHECKED_DAYS,
+	getSchoolYearAndSemesterPrefix()
+);
 
 // #csv-output also contains the dates, so scope text lookups to the table.
 const table = () => page.getByCSS('#output_table');
@@ -61,7 +67,12 @@ describe('schedule page — day filter', () => {
 describe('schedule page — class type', () => {
 	it('updates the title and table when the class type changes', async () => {
 		render(Page, { props: { schoolEventsText: FIXTURE } });
-		const commResult = deriveSchedule(FIXTURE, 'Comm', DEFAULT_CHECKED_DAYS);
+		const commResult = deriveSchedule(
+			FIXTURE,
+			'Comm',
+			DEFAULT_CHECKED_DAYS,
+			getSchoolYearAndSemesterPrefix()
+		);
 		// CLIL keeps the event note attribute (both Wed and Fri rows carry it).
 		await expect.element(table().getByText('Passport Check').first()).toBeInTheDocument();
 		await page.getByText('G7/8 Comm', { exact: true }).click();

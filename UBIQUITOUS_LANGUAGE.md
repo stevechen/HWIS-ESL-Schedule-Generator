@@ -2,32 +2,32 @@
 
 ## Schedule domain
 
-| Term | Definition | Aliases to avoid |
-| ---- | ---------- | ---------------- |
-| **School year** | The live academic period (e.g. `2025-2026-2`) that drives which data file the schedule page loads. | Term, semester |
-| **School events** | A plain-text TSV of class/meet-day rows that the schedule renders; the source data passed into the schedule derivation. | Events, data file |
-| **Class type** | One of `CLIL` \| `Comm` \| `G9` \| `H` — the radio-bound selector that re-derives the displayed table, CSV, and download filename. | Class, subject |
-| **Class day** | A single class/meet row derived from school events: countdown, date, weekday, description, note. | Day, record |
-| **Checked days** | A 5-element boolean set (Mon…Fri) selecting which weekdays appear in the schedule. | Filters, days |
-| **Schedule name** | The computed download filename stem `"<shortYear> S<semester> <classType> schedule"`. | Filename, title |
+| Term              | Definition                                                                                                                         | Aliases to avoid  |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| **School year**   | The live academic period (e.g. `2025-2026-2`) that drives which data file the schedule page loads.                                 | Term, semester    |
+| **School events** | A plain-text TSV of class/meet-day rows that the schedule renders; the source data passed into the schedule derivation.            | Events, data file |
+| **Class type**    | One of `CLIL` \| `Comm` \| `G9` \| `H` — the radio-bound selector that re-derives the displayed table, CSV, and download filename. | Class, subject    |
+| **Class day**     | A single class/meet row derived from school events: countdown, date, weekday, description, note.                                   | Day, record       |
+| **Checked days**  | A 5-element boolean set (Mon…Fri) selecting which weekdays appear in the schedule.                                                 | Filters, days     |
+| **Schedule name** | The computed download filename stem `"<shortYear> S<semester> <classType> schedule"`.                                              | Filename, title   |
 
 ## Communication domain
 
-| Term | Definition | Aliases to avoid |
-| ---- | ---------- | ---------------- |
-| **Communication record** | A saved white slip: assignment, dates (assigned/due/late), student set, signature, and grade/class context, persisted in localStorage. | Record, saved record |
-| **Student** | A row in the student table: name, class, status code, with an optional selection flag; resolved to statuses on slips. | Row, entry |
-| **White Slip** | The printed bilingual (Traditional Chinese + English) communication slip rendered per student. | Slip, printout |
-| **Assignment** | A code from the assignment set (`basic`, `workbook`, `passport`, `oral`, …) that drives the bilingual slip content. | Type, assignment type |
-| **Signature** | A base64 data-URL image uploaded once, persisted, and shown on each slip. | Sig, teacher signature |
+| Term                     | Definition                                                                                                                             | Aliases to avoid       |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **Communication record** | A saved white slip: assignment, dates (assigned/due/late), student set, signature, and grade/class context, persisted in localStorage. | Record, saved record   |
+| **Student**              | A row in the student table: name, class, status code, with an optional selection flag; resolved to statuses on slips.                  | Row, entry             |
+| **White Slip**           | The printed bilingual (Traditional Chinese + English) communication slip rendered per student.                                         | Slip, printout         |
+| **Assignment**           | A code from the assignment set (`basic`, `workbook`, `passport`, `oral`, …) that drives the bilingual slip content.                    | Type, assignment type  |
+| **Signature**            | A base64 data-URL image uploaded once, persisted, and shown on each slip.                                                              | Sig, teacher signature |
 
 ## ZipGrade domain
 
-| Term | Definition | Aliases to avoid |
-| ---- | ---------- | ---------------- |
+| Term               | Definition                                                                                            | Aliases to avoid              |
+| ------------------ | ----------------------------------------------------------------------------------------------------- | ----------------------------- |
 | **ZipGrade sheet** | The multiple-choice answer sheet: 65 questions × 5 bubbles (A–E), with editor and static print forms. | Sheet, scantron, answer sheet |
-| **Answer** | A single question's selected letters (e.g. `['A','C']`), stored per question index 1…65. | Bubble |
-| **Bubble** | The on-sheet circle for one (question, letter) pair; clicking toggles one letter of an answer. | Toggle |
+| **Answer**         | A single question's selected letters (e.g. `['A','C']`), stored per question index 1…65.              | Bubble                        |
+| **Bubble**         | The on-sheet circle for one (question, letter) pair; clicking toggles one letter of an answer.        | Toggle                        |
 
 ## Relationships
 

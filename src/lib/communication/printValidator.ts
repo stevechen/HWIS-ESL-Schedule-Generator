@@ -26,14 +26,7 @@ export interface PrintValidationInput {
  * Returns validation state with error/caution messages
  */
 export function validatePrintReadiness(input: PrintValidationInput): PrintValidationState {
-	const {
-		classNum,
-		studentsParsed,
-		isAllChecked,
-		assignmentDates,
-		grade,
-		signatureImage
-	} = input;
+	const { classNum, studentsParsed, isAllChecked, assignmentDates, grade, signatureImage } = input;
 
 	const missingItems: string[] = [];
 
@@ -51,7 +44,7 @@ export function validatePrintReadiness(input: PrintValidationInput): PrintValida
 	// Cautions (warnings)
 	if (!classNum) missingItems.push('Class number');
 	if (!grade) missingItems.push('Grade level');
-	
+
 	const isAssignedValid = isValidMonthAndDay(assignmentDates.assigned);
 	const isDueValid = isValidMonthAndDay(assignmentDates.due);
 	const isLateValid = isValidMonthAndDay(assignmentDates.late);
@@ -59,11 +52,15 @@ export function validatePrintReadiness(input: PrintValidationInput): PrintValida
 	if (!isAssignedValid) missingItems.push('Assigned date');
 	if (!isDueValid) missingItems.push('Due date');
 	if (!isLateValid) missingItems.push('Late date');
-	
+
 	if (!signatureImage) missingItems.push('Signature');
 
 	// Date comparison checks
-	if (isAssignedValid && isDueValid && compareDates(assignmentDates.assigned, assignmentDates.due) >= 0) {
+	if (
+		isAssignedValid &&
+		isDueValid &&
+		compareDates(assignmentDates.assigned, assignmentDates.due) >= 0
+	) {
 		missingItems.push('Assigned date must be before Due date');
 	}
 	if (isDueValid && isLateValid && compareDates(assignmentDates.late, assignmentDates.due) <= 0) {
@@ -87,7 +84,6 @@ export function validatePrintReadiness(input: PrintValidationInput): PrintValida
 	};
 }
 
-
 /**
  * Gets the appropriate print button styling based on validation state
  */
@@ -96,7 +92,7 @@ export function getPrintButtonStyle(validation: PrintValidationState): {
 	title: string;
 } {
 	const baseClasses = 'print-slips my-2 px-4 py-1 rounded-lg text-white shadow-sm';
-	
+
 	if (validation.isInvalid) {
 		return {
 			className: `${baseClasses} animate-none! cursor-default bg-red-500 shadow-red-800`,
@@ -120,11 +116,11 @@ export function getPrintButtonStyle(validation: PrintValidationState): {
 /**
  * Gets the print status message for display
  */
-export function getPrintStatusMessage(validation: PrintValidationState, studentCount: number): string {
+export function getPrintStatusMessage(validation: PrintValidationState): string {
 	if (validation.isInvalid || validation.hasCaution) {
 		return 'Missing Info!';
 	}
-	
+
 	return `Single Sided  B5/JIS-B5`;
 }
 

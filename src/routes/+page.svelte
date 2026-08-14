@@ -5,12 +5,21 @@
 	import { ClassTypeCode, classControl } from '$lib/config/classTypes';
 	import type { ClassType } from '$lib/config/classTypes';
 	import { getSchoolYearAndSemesterPrefix } from '$lib/utils/schoolYear';
-	import { deriveSchedule } from '$lib/schedule';
+	import {
+		deriveSchedule,
+		loadSchoolEventsText,
+		scheduleError,
+		buildScheduleName
+	} from '$lib/schedule';
 
 	interface Props {
 		schoolEventsText?: string | null;
 	}
 
+	// Test-injection seam: page components normally only receive `data`/`errors`,
+	// but the component tests pass the raw events text directly so they don't have
+	// to mock the dynamic file import.
+	// eslint-disable-next-line svelte/valid-prop-names-in-kit-pages
 	let { schoolEventsText = null }: Props = $props();
 
 	let classType: ClassType = $state(ClassTypeCode.CLIL); //default
@@ -18,9 +27,20 @@
 	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 	let checkedDaysState = $state([true, false, true, false, true]); //default
 
-	let eventsText = $state('Loading...');
+	// null eventsText = not yet loaded; a missing data file flips loadError.
+	let eventsText = $state<string | null>(null);
+	let loadError = $state(false);
+	const prefix = $state(getSchoolYearAndSemesterPrefix());
 
-	const schedule = $derived(deriveSchedule(eventsText, classType, checkedDaysState));
+	const schedule = $derived(
+		loadError
+			? scheduleError(buildScheduleName(classType, prefix))
+			: deriveSchedule(eventsText, classType, checkedDaysState, prefix)
+	);
+
+	const eventsDisplay = $derived(
+		loadError ? 'Failed to load data' : (eventsText ?? 'Loading data...')
+	);
 
 	onMount(() => {
 		if (schoolEventsText) {
@@ -28,32 +48,15 @@
 			return;
 		}
 
-		const yearAndSemester = getSchoolYearAndSemesterPrefix();
-
-		loadSchoolEvents(yearAndSemester).then((loadedData) => {
-			if (loadedData) {
-				eventsText = loadedData;
-			} else {
-				eventsText = 'Failed to load data';
+		loadSchoolEventsText(prefix).then((loadedData) => {
+			if (loadedData === null) {
+				loadError = true;
 				console.error('Failed to load any school events data');
+			} else {
+				eventsText = loadedData;
 			}
 		});
 	});
-
-	//#region Load data
-	async function loadSchoolEvents(fileNamePrefix: string) {
-		try {
-			const module = await import(`$lib/data/${fileNamePrefix}-schoolEvents.ts`);
-			const data = module.schoolEvents
-				.split('\n')
-				.filter((line: string) => line.trim() !== '')
-				.join('\n');
-			return data;
-		} catch (error) {
-			console.error(`Failed to load ${fileNamePrefix}-schoolEvents.ts`, error);
-			return null;
-		}
-	}
 
 	// #region copy-to-clipboard
 	let toastMessage = $state('');
@@ -143,7 +146,7 @@
 			<div id="types" class="radio-bg">
 				<!-- MARK: ****  Type **** -->
 				<h3 class="mr-2 px-2 font-sans text-white">Type</h3>
-				{#each classControl as { code, key, label }}
+				{#each classControl as { code, key, label } (key)}
 					<label class="radio-label" for={key}>
 						<input type="radio" class="hidden" id={key} bind:group={classType} value={code} />
 						{label}
@@ -159,7 +162,7 @@
 			<textarea
 				rows="30"
 				class="flex-1 grayscale-50 border border-gray-500 border-dotted min-w-[27.5em] h-full overflow-hidden font-mono text-gray-300 text-xs"
-				bind:value={eventsText}
+				value={eventsDisplay}
 				readonly
 			></textarea>
 		</div>
@@ -242,17 +245,17 @@
 			>
 				<thead>
 					<tr class="bg-blue-700 text-white">
-						{#each schedule.rows.header as header_item}
+						{#each schedule.rows.header as header_item, i (i)}
 							<th class="p-2 border-blue-600 border-t-gray-200 border-r border-l">{header_item}</th>
 						{/each}
 					</tr>
 				</thead>
 				<tbody>
-					{#each schedule.rows.rows as row}
+					{#each schedule.rows.rows as row, i (i)}
 						{@const isOff = row[0].trim() === '' && row[2] === 'Off'}
 						{@const isExam = row[2].trim() === 'Exam'}
 						<tr class="border-gray-600 border-b">
-							{#each row as cell, i}
+							{#each row as cell, i (i)}
 								<td
 									class={[
 										isOff && i !== 3 && 'text-gray-400',

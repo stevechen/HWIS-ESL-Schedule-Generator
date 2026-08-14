@@ -47,7 +47,7 @@
 			</svg>
 
 			<div class="radio-bg">
-				{#each store.assignmentTypes as { code, english }}
+				{#each store.assignmentTypes as { code, english } (code)}
 					<label class="radio-label" for={code}>
 						<input
 							id={code}
@@ -66,7 +66,7 @@
 			<svg class="fill-white my-1 mr-4 ml-5 size-4" viewBox="0 0 612 612">
 				<use href="#icon-calendar" />
 			</svg>
-			{#each DATES as { key, label }}
+			{#each DATES as { key, label } (key)}
 				{@const assignedVal = store.dates.assigned}
 				{@const dueVal = store.dates.due}
 				{@const lateVal = store.dates.late}
@@ -92,7 +92,7 @@
 						id={key}
 						bind:value={store.dates[key as keyof typeof store.dates]}
 						maxlength="5"
-						placeholder={'Required'}
+						placeholder="Required"
 						required
 					/>
 				</label>

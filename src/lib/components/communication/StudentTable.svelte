@@ -94,7 +94,7 @@
 
 		<!-- MARK: ESL-level -->
 		<div class="radio-bg">
-			{#each LEVELS as { id, label, value }}
+			{#each LEVELS as { id, label, value } (id)}
 				<label class="radio-label" for={id}>
 					<input
 						{id}
@@ -109,7 +109,7 @@
 
 		<!-- MARK: ESL-type -->
 		<div class="radio-bg">
-			{#each Object.entries(ESL_TYPE) as [type, value]}
+			{#each Object.entries(ESL_TYPE) as [type, value] (type)}
 				<!-- only render out CLIL if class is not G9 -->
 				{#if value !== ESL_TYPE.CLIL || store.grade !== 'G9'}
 					<label class="radio-label" for={type}
@@ -143,7 +143,6 @@
 	</fieldset>
 
 	<!-- MARK: student table -->
-	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div
@@ -158,7 +157,6 @@
 			 paste events on form elements or contenteditable elements. The overlay only exists when
 			 table is empty (no students) so it doesn't block interactions when students are present. -->
 		{#if store.studentsParsed.length === 0}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				bind:this={pasteArea}
 				id="student-paste-area"
@@ -203,17 +201,17 @@
 			<tbody>
 				{#if store.studentsParsed.length === 0}
 					<!-- Placeholder rows to indicate where to paste -->
-					{#each Array(5) as _, i}
+					{#each [0, 1, 2, 3, 4] as n (n)}
 						<tr
 							class={[
-								Math.floor(i / 3) % 2 === 1 && 'bg-blue-50',
+								Math.floor(n / 3) % 2 === 1 && 'bg-blue-50',
 								'h-6 opacity-40 [&>td]:border [&>td]:border-slate-300'
 							]}
 						>
 							<td></td>
 							<td></td>
 							<td class="relative overflow-visible">
-								{#if i === 2}
+								{#if n === 2}
 									<div
 										class="right-[-300px] left-[-112px] absolute inset-y-0 flex justify-center items-center px-4 group-focus:font-medium text-slate-400 group-focus:text-blue-500 whitespace-nowrap transition-colors pointer-events-none"
 									>
@@ -227,7 +225,7 @@
 						</tr>
 					{/each}
 				{:else}
-					{#each store.studentsParsed as student, i}
+					{#each store.studentsParsed as student, i (student.id)}
 						<tr
 							class={[
 								Math.floor(i / 3) % 2 === 1 && 'bg-orange-50/80',

@@ -2,9 +2,15 @@ import globals from 'globals'; // <--- Import 'globals' package
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint'; // <--- Renamed import to 'tseslint'
 import svelte from 'eslint-plugin-svelte';
+import svelteParser from 'svelte-eslint-parser';
 import prettier from 'eslint-config-prettier';
 
 export default [
+	{
+		// Skip build artifacts and editor backups.
+		ignores: ['.svelte-kit/**', '.vercel/**', '.history/**']
+	},
+
 	// Standard ESLint recommended rules
 	js.configs.recommended,
 
@@ -32,11 +38,7 @@ export default [
 			},
 			// Specify the TypeScript parser explicitly here for global settings
 			// This is especially important for files not explicitly handled by a 'files' config
-			parser: tseslint.parser,
-			parserOptions: {
-				project: './tsconfig.json', // Ensure this points to your tsconfig
-				extraFileExtensions: ['.svelte']
-			}
+			parser: tseslint.parser
 		},
 		// General rules can go here if you have any
 		rules: {
@@ -48,7 +50,7 @@ export default [
 		files: ['**/*.svelte'],
 		languageOptions: {
 			// Svelte files need the Svelte parser, which in turn uses the TS parser
-			parser: svelte.parsers.svelte, // <--- Use svelte.parsers.svelte
+			parser: svelteParser,
 			parserOptions: {
 				parser: tseslint.parser // This ensures TypeScript parsing within Svelte files
 			}

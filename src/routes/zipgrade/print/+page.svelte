@@ -2,37 +2,23 @@
 	import { ZipGradeStore } from '$lib/zipgrade/store.svelte';
 	import { PAGE_SIZE } from '$lib/zipgrade/layout';
 	import SheetBubbles from '$lib/zipgrade/SheetBubbles.svelte';
-	import { downloadAnswerKeyPdf } from '$lib/zipgrade/pdf';
+	import { AnswerKeyPdfDownloader } from '$lib/zipgrade/downloadPdf.svelte';
+	import { resolve } from '$app/paths';
 
 	const zipgrade = new ZipGradeStore();
+	const pdf = new AnswerKeyPdfDownloader();
 	let ready = $state(false);
-	let downloading = $state(false);
-	let error = $state('');
-
-	async function handleDownloadPdf() {
-		if (downloading) return;
-		downloading = true;
-		error = '';
-		try {
-			await downloadAnswerKeyPdf(zipgrade.answers);
-		} catch (downloadError) {
-			console.error('PDF download failed:', downloadError);
-			error = 'PDF download failed. Check the console for details.';
-		} finally {
-			downloading = false;
-		}
-	}
 </script>
 
 <div class="flex items-center gap-3 p-3 print:hidden">
-	<a href="/zipgrade" class="btn btn-secondary btn-sm no-underline">← Back to answers</a>
+	<a href={resolve('/zipgrade')} class="btn btn-secondary btn-sm no-underline">← Back to answers</a>
 	<button
 		type="button"
 		class="btn btn-secondary btn-sm"
-		onclick={handleDownloadPdf}
-		disabled={downloading}
+		onclick={() => pdf.run(zipgrade.answers)}
+		disabled={pdf.busy}
 	>
-		{downloading ? 'Generating…' : 'Download PDF'}
+		{pdf.busy ? 'Generating…' : 'Download PDF'}
 	</button>
 	<button
 		type="button"
@@ -42,8 +28,8 @@
 	>
 		Print
 	</button>
-	{#if error}
-		<p class="text-xs text-red-600">{error}</p>
+	{#if pdf.error}
+		<p class="text-xs text-red-600">{pdf.error}</p>
 	{:else}
 		<p class="text-xs text-slate-500">
 			Sheet is {PAGE_SIZE.widthMm} × {PAGE_SIZE.heightMm} mm — load it in the manual / bypass tray.

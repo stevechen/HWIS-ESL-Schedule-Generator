@@ -30,7 +30,7 @@ A scheduling + communication-record tool for a Hong Kong international school te
 
 ## Architecture / test terms
 
-These are the *design vocabulary* (from `/codebase-design`); use them for architectural suggestions, not domain nouns.
+These are the _design vocabulary_ (from `/codebase-design`); use them for architectural suggestions, not domain nouns.
 
 - **Module** — a unit of interface + implementation: the `CommunicationStore`, the `ZipGradeStore`, `RecordManager`, the schedule route component, the `compareDates`/`getDates` utilities.
 - **Interface** — what a caller/test must know: the store methods (`handlePaste`, `toggle`, `apply`, `reset`, `loadRecordData`), the record lifecycle (`isSaveable`/`isModified`, clear flow).
