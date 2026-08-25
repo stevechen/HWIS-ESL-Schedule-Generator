@@ -64,6 +64,44 @@ describe('deriveSchedule', () => {
 		expect(monWedFri.rows.rows.length).toBe(1);
 	});
 
+	it('displays a repeated reminder on the latest selected class day in its range', () => {
+		const events = `2026-09-01\t\tUnit 1 test due\tCLIL
+2026-09-04\t\tUnit 1 test due\tCLIL`;
+		const result = deriveSchedule(events, 'CLIL', DEFAULT_CHECKED_DAYS, FIXED_PREFIX);
+
+		expect(result.rows.rows).toContainEqual(['0', '2026-09-04', '', 'Unit 1 test due']);
+		expect(result.rows.rows).not.toContainEqual(['0', '2026-09-01', '', 'Unit 1 test due']);
+	});
+
+	it('keeps multiple same-day events in one spreadsheet row without duplicates', () => {
+		const events = `2026-09-04\tExam
+2026-09-04\t\tUnit 1 test due\tCLIL
+2026-09-01\t\tUnit 1 test due\tCLIL`;
+		const result = deriveSchedule(events, 'CLIL', DEFAULT_CHECKED_DAYS, FIXED_PREFIX);
+
+		expect(result.rows.rows).toContainEqual(['', '2026-09-04', 'Exam', 'Unit 1 test due']);
+		expect(result.output).not.toContain('Unit 1 test due; Unit 1 test due');
+	});
+
+	it('moves a reminder away from an off day to the latest eligible selected day', () => {
+		const events = `2026-09-14\t\tUnit 1 test due\tCLIL
+2026-09-16\tOff\tHoliday
+2026-09-16\t\tUnit 1 test due\tCLIL`;
+		const result = deriveSchedule(events, 'CLIL', DEFAULT_CHECKED_DAYS, FIXED_PREFIX);
+
+		expect(result.rows.rows).toContainEqual(['0', '2026-09-14', '', 'Unit 1 test due']);
+		expect(result.rows.rows).not.toContainEqual(['0', '2026-09-16', 'Off', 'Unit 1 test due']);
+	});
+
+	it('shows a CLIL reminder on Wednesday when its source dates are Monday and Thursday', () => {
+		const events = `2026-12-24\t\tUnit 5 test due\tCLIL
+2026-12-21\t\tUnit 5 test due\tCLIL
+2026-12-23\tG9 Mock Exam\t\tG9`;
+		const result = deriveSchedule(events, 'CLIL', DEFAULT_CHECKED_DAYS, FIXED_PREFIX);
+
+		expect(result.rows.rows).toContainEqual(['0', '2026-12-23', '', 'Unit 5 test due']);
+	});
+
 	it('returns a stable empty state for null eventsText', () => {
 		const result = deriveSchedule(null, 'CLIL', DEFAULT_CHECKED_DAYS, FIXED_PREFIX);
 		expect(result.status).toBe('loading');

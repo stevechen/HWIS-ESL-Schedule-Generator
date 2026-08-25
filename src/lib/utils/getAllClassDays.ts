@@ -1,13 +1,46 @@
 import { parseISO, format, getDay, add, isSunday, isSaturday } from 'date-fns';
 
-interface SchoolEvents {
+export interface SchoolEvent {
+	date: string;
+	description: string;
+	note: string;
+	type: string;
+}
+
+export interface SchoolEvents {
 	countdown: number | null;
 	date: string;
 	weekday: number;
 	description: string;
 	note: string;
 	type: string;
+	events: SchoolEvent[];
 }
+
+const REMINDER_PATTERN = /(passport|recording|\b(?:wb|workbook)\b|\bunit\s+\d+\s+test\b)/i;
+
+export const normalizeEventText = (value: string): string =>
+	value
+		.replace(/\s+/g, ' ')
+		.trim()
+		.toLowerCase()
+		.replace(/homewor\b/g, 'homework')
+		.replace(/\bwb\b/g, 'workbook');
+
+export const isAssignmentReminder = (event: SchoolEvent): boolean =>
+	REMINDER_PATTERN.test(`${event.description} ${event.note}`);
+
+export const getReminderKey = (event: SchoolEvent): string =>
+	`${normalizeEventText(event.type)}|${normalizeEventText(event.description)}|${normalizeEventText(event.note)}`;
+
+export const mergeEventValues = (values: string[]): string =>
+	[...new Set(values.map((value) => value.trim()).filter(Boolean))].join('; ');
+
+const summarizeEvents = (events: SchoolEvent[]) => ({
+	description: mergeEventValues(events.map((event) => event.description)),
+	note: mergeEventValues(events.map((event) => event.note)),
+	type: events[0]?.type ?? ''
+});
 
 /**
  * Parses a string of school event data and returns an array of date objects for each valid school day.
@@ -42,48 +75,33 @@ export const getDates = (schoolEvents: string): SchoolEvents[] => {
 
 	if (validLines.length === 0) return [];
 
-	const dates = validLines.map((line) => line.split('\t')[0]);
+	const rawEvents: SchoolEvent[] = validLines.map((line) => {
+		const [date, description = '', note = '', type = ''] = line.split('\t');
+		return { date: format(parseISO(date), 'yyyy-MM-dd'), description, note, type };
+	});
+	const dates = rawEvents.map((event) => event.date);
 	const startDate = dates.reduce((a, b) => (a < b ? a : b));
 	const endDate = parseISO(dates.reduce((a, b) => (a > b ? a : b)));
-
-	const dateArray = [];
+	const dateArray: SchoolEvents[] = [];
 	let processDate = parseISO(startDate);
-	const eventMap = new Map(
-		validLines.map((item) => {
-			const fields = item.split('\t');
-			// Always use formatted yyyy-MM-dd as key for consistency
-			let dateKey = '';
-			try {
-				dateKey = format(parseISO(fields[0]), 'yyyy-MM-dd');
-			} catch {
-				dateKey = fields[0];
-			}
-			return [dateKey, fields.slice(1)];
-		})
-	);
 
 	while (processDate <= endDate) {
 		let weekday = getDay(processDate);
 		if (!isSunday(processDate)) {
 			const dateStr = format(processDate, 'yyyy-MM-dd');
-			const eventData = eventMap.get(dateStr) || ['', '', ''];
-			// Try to find a Saturday make up date in specialDays
-			// Make up date is marked by having 'Make up' in the description field and a date at the beginning of note field
+			const sourceEvents = rawEvents.filter((event) => event.date === dateStr);
+			const eventData = sourceEvents.map((event) => ({ ...event }));
+
 			if (isSaturday(processDate)) {
-				const noteField = typeof eventData[1] === 'string' ? eventData[1] : '';
+				const noteField = eventData.map((event) => event.note).find((note) => note) ?? '';
 				const noteDate = noteField.match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
-				// If there's a date in the note field
 				if (noteDate && noteDate[0]) {
-					// Change the weekday to the weekday of the date in the note field
 					weekday = getDay(noteDate[0]);
-
-					// Format the date with the day of the week
 					const formattedDate = format(noteDate[0], 'yyyy-MM-dd(EEE)');
-
-					// Replace the date in the note with the formatted date
-					eventData[1] = noteField.replace(noteDate[0], formattedDate);
+					for (const event of eventData) {
+						event.note = event.note.replace(noteDate[0], formattedDate);
+					}
 				} else {
-					// Skip this iteration if there's no matching Saturday in specialDays
 					processDate = add(processDate, { days: 1 });
 					continue;
 				}
@@ -92,10 +110,9 @@ export const getDates = (schoolEvents: string): SchoolEvents[] => {
 			dateArray.push({
 				countdown: 0,
 				date: dateStr,
-				weekday: weekday,
-				description: typeof eventData[0] === 'string' ? eventData[0] : '',
-				note: typeof eventData[1] === 'string' ? eventData[1] : '',
-				type: typeof eventData[2] === 'string' ? eventData[2] : ''
+				weekday,
+				...summarizeEvents(eventData),
+				events: eventData
 			});
 		}
 		processDate = add(processDate, { days: 1 });

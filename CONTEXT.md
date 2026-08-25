@@ -6,7 +6,11 @@ A scheduling + communication-record tool for a Hong Wen International School tea
 
 **School year** — the live school-year prefix (e.g. `2025-2026-2`) drives the data file loaded by the schedule page. Computed from today's date by `getSchoolYearAndSemesterPrefix`. Data files live in `src/lib/data/`.
 
-**School events (TSV)** — the raw schedule data: a plain-text table of class/meet-day rows (countdown, date, weekday, description, note). Parsed by `getDates` into `ClassDay[]` and sliced by `getClassDaysByType`.
+**School events (TSV)** — the raw schedule data: a plain-text table of class/meet-day rows (countdown, date, weekday, description, note). Parsed by `getDates` into `ClassDay[]` and sliced by `getClassDaysByType`. A source event may occur on multiple dates; recognized assignment reminders use those dates as an inclusive range rather than as separate displayed events.
+
+**Assignment reminder** — a recognized Passport, Recording, Workbook, or Unit test due event. When repeated, its source dates define an inclusive reminder range. The reminder is displayed once on the latest selected, non-`Off` class day in that range.
+
+**Reminder range** — the inclusive date interval formed by two or more occurrences of the same assignment reminder. Range handling applies to recognized assignment reminders only; exams and other school events remain date-specific.
 
 **Class type** — one of `CLIL` | `Comm` | `G9` | `H`. The schedule page toggles the selected class type (radio bound to `classType: ClassType`), which re-derives the displayed table and CSV and the download filename. `getGradeForClassType` maps class type → grade text.
 

@@ -1,4 +1,11 @@
 import { parseISO, compareDesc } from 'date-fns';
+import {
+	getReminderKey,
+	isAssignmentReminder,
+	mergeEventValues,
+	type SchoolEvent,
+	type SchoolEvents
+} from '$lib/utils/getAllClassDays';
 
 // Helper to determine if a day is an 'Off' day
 function isOffDay(desc: string): boolean {
@@ -15,14 +22,79 @@ function isOffDay(desc: string): boolean {
  * - add a class countdown column
  */
 
-interface Day {
-	countdown: number | null;
-	date: string;
-	weekday: number;
-	description: string;
-	note: string;
-	type: string;
-}
+type Day = SchoolEvents;
+
+const isEligibleReminderDay = (day: Day): boolean =>
+	!day.events.some(
+		(event) => isOffDay(event.description) || event.description.toLowerCase().includes('no class')
+	);
+
+const applyReminderRanges = (days: Day[], weekdays: number[]): Day[] => {
+	const groups = new Map<string, { day: Day; event: SchoolEvent }[]>();
+	for (const day of days) {
+		for (const event of day.events) {
+			if (!isAssignmentReminder(event)) continue;
+			const key = getReminderKey(event);
+			const group = groups.get(key) ?? [];
+			if (!group.some((candidate) => candidate.day.date === day.date)) group.push({ day, event });
+			groups.set(key, group);
+		}
+	}
+
+	const rangedKeys = new Set(
+		[...groups.entries()].filter(([, group]) => group.length > 1).map(([key]) => key)
+	);
+	if (rangedKeys.size === 0) return days;
+
+	const targetByKey = new Map<string, string>();
+	for (const [key, group] of groups) {
+		if (!rangedKeys.has(key)) continue;
+		const start = group.reduce(
+			(earliest, candidate) => (candidate.day.date < earliest ? candidate.day.date : earliest),
+			group[0].day.date
+		);
+		const end = group.reduce(
+			(latest, candidate) => (candidate.day.date > latest ? candidate.day.date : latest),
+			group[0].day.date
+		);
+		const target = days
+			.filter(
+				(day) =>
+					day.date >= start &&
+					day.date <= end &&
+					weekdays.includes(day.weekday) &&
+					isEligibleReminderDay(day)
+			)
+			.sort((a, b) => b.date.localeCompare(a.date))[0];
+		if (target) targetByKey.set(key, target.date);
+	}
+
+	return days.map((day) => {
+		const keptEvents = day.events.filter(
+			(event) => !rangedKeys.has(getReminderKey(event)) || event.type === ''
+		);
+		const movedEvents = [...targetByKey.entries()]
+			.filter(([, target]) => target === day.date)
+			.flatMap(([key]) => {
+				const source = groups.get(key)?.[0];
+				return source ? [source.event] : [];
+			});
+		const events = [...keptEvents, ...movedEvents].filter(
+			(event, index, all) =>
+				all.findIndex(
+					(candidate) =>
+						candidate.description === event.description && candidate.note === event.note
+				) === index
+		);
+		return {
+			...day,
+			description: mergeEventValues(events.map((event) => event.description)),
+			note: mergeEventValues(events.map((event) => event.note)),
+			type: events[0]?.type ?? '',
+			events
+		};
+	});
+};
 
 export const getClassDaysByType = (
 	days: Day[],
@@ -32,7 +104,8 @@ export const getClassDaysByType = (
 ): Day[] => {
 	//This should NOT happen
 	if (type === '' && grade === '') alert('Error: No type and no grade are selected!');
-	const GENERIC_CLASS_DAYS = days.filter((day) => weekdays.includes(day.weekday));
+	const daysWithReminderRanges = applyReminderRanges(days, weekdays);
+	const GENERIC_CLASS_DAYS = daysWithReminderRanges.filter((day) => weekdays.includes(day.weekday));
 
 	let graduationDay: object | null = null;
 
@@ -44,19 +117,18 @@ export const getClassDaysByType = (
 
 	// compose days w/wo attributes base on the selected class type
 	let classDays = GENERIC_CLASS_DAYS.map((classDay) => {
-		const SHOULD_ADD_ATTRIBUTES =
-			classDay.type === '' || //generic event
-			type === classDay.type || //matched type
-			(type === 'G9' && classDay.type === 'Comm') //G9 should include Comm events
-				? true
-				: false;
+		const visibleEvents = classDay.events.filter(
+			(event) =>
+				event.type === '' || type === event.type || (type === 'G9' && event.type === 'Comm')
+		);
 
-		if (!SHOULD_ADD_ATTRIBUTES) {
-			classDay.description = '';
-			classDay.note = '';
-		}
-
-		return classDay;
+		return {
+			...classDay,
+			events: visibleEvents,
+			description: mergeEventValues(visibleEvents.map((event) => event.description)),
+			note: mergeEventValues(visibleEvents.map((event) => event.note)),
+			type: visibleEvents[0]?.type ?? ''
+		};
 	}).filter((classDay) => {
 		return (
 			classDay && //remove nulls
