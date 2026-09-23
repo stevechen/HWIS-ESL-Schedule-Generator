@@ -41,7 +41,7 @@ export const schoolEvents = `
 2026-09-18		Passport 1 due	Comm
 2026-09-14		Passport 1 due	Comm
 2026-09-28	Off	Teacher's Day
-2026-09-16	Off	Moon Festival
+2026-09-25	Off	Moon Festival
 2026-09-16	Moon Festival BBQ
 2026-09-09	G9 Mock Exam		G9
 2026-09-08	G9 Mock Exam		G9
