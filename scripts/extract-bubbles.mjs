@@ -3,12 +3,14 @@
 //
 // Usage: bun scripts/extract-bubbles.mjs
 //
+// static/ZipGrade.svg is itself generated from the printed template PDF -- run
+// "bun scripts/build-sheet.mjs" first if the PDF has changed.
+//
 // The template renders each answer bubble as a closed 4-segment cubic path
 // (stroke-width 0.5, gray). This script reads those paths, applies each
 // element's PDF->SVG matrix transform, takes the bounding-box centre as the
-// circle centre, clusters them into the 3 question columns (x) and 65 rows
-// (y), and emits the table. Run it again whenever the ZipGrade template
-// changes.
+// circle centre, clusters them into the 3 question columns (x) and 22 rows (y),
+// and emits the table. Run it again whenever the ZipGrade template changes.
 
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -46,21 +48,24 @@ for (const m of paths) {
 	}
 }
 
-// Sanity: 65 questions * 5 letters + 5 calibration dots at the bottom.
-if (circles.length !== 330) {
-	throw new Error(`expected 330 circles, found ${circles.length}`);
+// Sanity: 65 questions * 5 letters = 325 bubbles, laid out as 22 rows.
+// (Earlier revisions of the template also printed 5 calibration dots below the
+// last row; the current template does not, so there is nothing to discard here.)
+const EXPECTED_QUESTIONS = 65;
+const EXPECTED_ROWS = 22;
+if (circles.length !== EXPECTED_QUESTIONS * 5) {
+	throw new Error(`expected ${EXPECTED_QUESTIONS * 5} circles, found ${circles.length}`);
 }
 
-// Cluster by row (y). Calibration dots sit alone at y~616 — drop them.
+// Cluster by row (y).
 const rows = new Map();
 for (const c of circles) {
 	const key = Math.round(c.cy);
-	if (key > 610) continue;
 	if (!rows.has(key)) rows.set(key, []);
 	rows.get(key).push(c);
 }
-if (rows.size !== 22) {
-	throw new Error(`expected 22 answer rows, found ${rows.size}`);
+if (rows.size !== EXPECTED_ROWS) {
+	throw new Error(`expected ${EXPECTED_ROWS} answer rows, found ${rows.size}`);
 }
 
 const rowKeys = [...rows.keys()].sort((a, b) => a - b);
@@ -115,7 +120,7 @@ const lines = [];
 lines.push(`export const ANSWER_CHOICES = ['A', 'B', 'C', 'D', 'E'] as const;`);
 lines.push(`export type AnswerChoice = (typeof ANSWER_CHOICES)[number];`);
 lines.push(``);
-lines.push(`export const QUESTION_COUNT = 65;`);
+lines.push(`export const QUESTION_COUNT = ${EXPECTED_QUESTIONS};`);
 lines.push(``);
 lines.push(
 	`/** Size of the ZipGrade template page, in PDF points (matches static/ZipGrade.svg). */`
@@ -128,8 +133,8 @@ lines.push(`\theightMm: 250.02`);
 lines.push(`} as const;`);
 lines.push(``);
 lines.push(`/**`);
-lines.push(` * Radius of a filled answer bubble in SVG units (= PDF points). The template's`);
-lines.push(` * calibration dots are r=6 and the letters are ~4.7pt wide with 15pt horizontal`);
+lines.push(` * Radius of a filled answer bubble in SVG units (= PDF points). The printed`);
+lines.push(` * bubbles are r=6 and the letters are ~4.7pt wide with 15pt horizontal`);
 lines.push(` * and 20pt vertical spacing, so r=6.2 covers a letter without touching neighbours.`);
 lines.push(` */`);
 lines.push(`export const BUBBLE_RADIUS = 6.2;`);
@@ -146,8 +151,9 @@ lines.push(``);
 lines.push(`/**`);
 lines.push(` * Center of each answer bubble on the sheet, in SVG coordinates (x from the`);
 lines.push(` * left edge, y from the top edge, matching static/ZipGrade.svg). Extracted`);
-lines.push(` * from the printed circle outlines in the template — regenerate with`);
-lines.push(` * "bun scripts/extract-bubbles.mjs" if the ZipGrade sheet changes.`);
+lines.push(` * from the printed circle outlines in the template -- regenerate the SVG from`);
+lines.push(` * the template PDF with "bun scripts/build-sheet.mjs", then this table with`);
+lines.push(` * "bun scripts/extract-bubbles.mjs", whenever the ZipGrade sheet changes.`);
 lines.push(` */`);
 lines.push(`export const QUESTION_POSITIONS: QuestionPositions[] = [`);
 for (const p of positions) {

@@ -6,6 +6,7 @@
 		QUESTION_POSITIONS,
 		type AnswerChoice
 	} from '$lib/zipgrade/layout';
+	import { SHEET_URL } from '$lib/zipgrade/sheetUrl';
 
 	interface Props {
 		/** Selected letters per question (answers[q - 1]). */
@@ -26,7 +27,7 @@
 
 <div class="relative h-full w-full">
 	<img
-		src="/ZipGrade.svg"
+		src={SHEET_URL}
 		alt="ZipGrade answer sheet"
 		class="points-none layer"
 		draggable="false"

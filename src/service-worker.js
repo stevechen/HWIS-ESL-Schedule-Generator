@@ -9,6 +9,13 @@ const ASSETS = [
 	...files // everything in `static`
 ];
 
+/**
+ * Pathname of the printed answer sheet. Requests for it are cache-keyed on the
+ * full URL (query string included) so a regenerated sheet is never served from
+ * a stale cache entry; see the fetch handler.
+ */
+const SHEET_PATHNAME = '/ZipGrade.svg';
+
 self.addEventListener('install', (event) => {
 	// Create a new cache and add all files to it
 	async function addFilesToCache() {
@@ -38,9 +45,18 @@ self.addEventListener('fetch', (event) => {
 		const url = new URL(event.request.url);
 		const cache = await caches.open(CACHE);
 
+		// The answer-sheet image is regenerated whenever the printed template
+		// changes. It is precached like any other static file, but a stale copy
+		// would silently misalign every answer bubble, so match it on the FULL
+		// URL (including the ?v= content-hash query written by
+		// scripts/build-sheet.mjs). A new hash is a new cache key, which misses
+		// and falls through to the network below.
+		const isSheet = url.pathname === SHEET_PATHNAME;
+		const cacheKey = isSheet ? url.pathname + url.search : url.pathname;
+
 		// `build`/`files` can always be served from the cache
 		if (ASSETS.includes(url.pathname)) {
-			const response = await cache.match(url.pathname);
+			const response = await cache.match(cacheKey);
 
 			if (response) {
 				return response;

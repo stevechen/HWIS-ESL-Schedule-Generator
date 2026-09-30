@@ -1,5 +1,6 @@
 import { PDFDocument } from 'pdf-lib';
 import { BUBBLE_RADIUS, PAGE_SIZE, QUESTION_POSITIONS } from './layout';
+import { SHEET_URL } from './sheetUrl';
 import type { AnswerSet } from './answers';
 
 /** Raster scale: 300 DPI from 72-pt (PDF point) coordinates. */
@@ -42,7 +43,7 @@ export async function renderSheetToCanvas(
 	const { width, height } = canvasSizeForPdf(scale);
 
 	const image = new Image();
-	image.src = '/ZipGrade.svg';
+	image.src = SHEET_URL;
 	await new Promise<void>((resolve, reject) => {
 		image.onload = () => resolve();
 		image.onerror = () => reject(new Error('Failed to load the answer-sheet template.'));
